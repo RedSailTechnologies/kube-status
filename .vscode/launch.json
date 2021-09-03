@@ -23,7 +23,8 @@
             },
             "env": {
                 "ASPNETCORE_ENVIRONMENT": "Development",
-                "BUILD_CONFIG_FROM_CONFIG_FILE": "true"
+                "BUILD_CONFIG_FROM_CONFIG_FILE": "true",
+                "ENABLE_SWAGGER": "true"
             },
             "sourceFileMap": {
                 "/Views": "${workspaceFolder}/src/Views"

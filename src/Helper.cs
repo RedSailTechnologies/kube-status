@@ -1,3 +1,4 @@
+using System.Linq;
 using System.Dynamic;
 using System;
 using System.Diagnostics;
@@ -20,6 +21,12 @@ namespace KubeStatus
         public static Kubernetes GetKubernetesClient()
         {
             return new Kubernetes(GetKubernetesClientConfiguration());
+        }
+
+        public static bool EnableSwagger()
+        {
+            bool.TryParse(Environment.GetEnvironmentVariable("ENABLE_SWAGGER"), out bool enableSwagger);
+            return enableSwagger;
         }
 
         public static string StrimziGroup()
