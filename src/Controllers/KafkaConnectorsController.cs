@@ -1,19 +1,16 @@
-﻿using System.ComponentModel.Design;
-using System.Threading.Tasks;
-using System;
-using System.Threading.Tasks.Sources;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Logging;
 using k8s;
 using k8s.Models;
+using KubeStatus.Models;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
 using Newtonsoft.Json.Linq;
 
 namespace KubeStatus.Controllers
 {
     [ApiController]
-    [Route("[controller]")]
+    [Route("api/[controller]")]
     public class KafkaConnectorsController : ControllerBase
     {
         private readonly ILogger<KafkaConnectorsController> _logger;

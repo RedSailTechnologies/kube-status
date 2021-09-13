@@ -1,7 +1,5 @@
-using System.Linq;
-using System.Dynamic;
 using System;
-using System.Diagnostics;
+
 using k8s;
 
 namespace KubeStatus

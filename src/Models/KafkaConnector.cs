@@ -1,4 +1,4 @@
-namespace KubeStatus
+namespace KubeStatus.Models
 {
     public class KafkaConnector
     {
