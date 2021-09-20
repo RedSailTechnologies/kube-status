@@ -44,7 +44,6 @@ namespace KubeStatus
             else
             {
                 app.UseExceptionHandler("/Error");
-                app.UseHsts();
             }
 
             app.UseStaticFiles();
