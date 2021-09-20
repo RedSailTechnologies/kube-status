@@ -174,7 +174,6 @@ else
     protected override async Task OnInitializedAsync()
     {
         Host = Navigator.BaseUri;
-        Console.WriteLine($"Host: {Host}");
         var request = new HttpRequestMessage(HttpMethod.Get, $"{Host}api/namespaces");
         var client = ClientFactory.CreateClient();
         var response = await client.SendAsync(request);
