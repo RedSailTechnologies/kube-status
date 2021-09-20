@@ -1,10 +1,6 @@
 @page "/"
 
 @using System
-@using System.Text
-@using System.IO
-@using k8s.Models
-@using Newtonsoft.Json
 
 @inject NavigationManager Navigator
 @inject IHttpClientFactory ClientFactory
@@ -160,42 +156,24 @@ else
 }
 
 @code {
-    string Host;
-    bool GetNamespacesError;
-    bool GetPodsError;
+    bool GetNamespacesError = true;
+    bool GetPodsError = true;
     bool _shouldRender;
     IEnumerable<string> Namespaces = Array.Empty<string>();
     string SelectedNamespace = "default";
-    string PodsJson;
-    List<Pod> Pods;
+    IEnumerable<Pod> Pods;
 
     protected override bool ShouldRender() => _shouldRender;
 
-    protected override async Task OnInitializedAsync()
+    protected override void OnInitialized()
     {
-        Host = Navigator.BaseUri;
-        var request = new HttpRequestMessage(HttpMethod.Get, $"{Host}api/namespaces");
-        var client = ClientFactory.CreateClient();
-        var response = await client.SendAsync(request);
-
-        if (response.IsSuccessStatusCode)
-        {
-            using var responseStream = await response.Content.ReadAsStreamAsync();
-
-            using (var reader = new StreamReader(responseStream, Encoding.UTF8))
-            {
-                string jsonString = reader.ReadToEnd();
-                var v1NamespaceList = JsonConvert.DeserializeObject<V1NamespaceList>(jsonString);
-                Namespaces = v1NamespaceList.Items.Select(i => i.Metadata.Name);
-            }
-        }
-        else
-        {
-            GetNamespacesError = true;
-        }
+        var namespacesRepository = new NamespacesRepository();
+        Namespaces = namespacesRepository.GetAllNamespaces().Items.Select(i => i.Metadata.Name);
 
         GetPods();
 
+        GetNamespacesError = false;
+        GetPodsError = false;
         _shouldRender = true;
     }
 
@@ -207,23 +185,7 @@ else
 
     void GetPods()
     {
-        var request = new HttpRequestMessage(HttpMethod.Get, $"{Host}api/pods/{SelectedNamespace}");
-        var client = ClientFactory.CreateClient();
-        var response = client.Send(request);
-
-        if (response.IsSuccessStatusCode)
-        {
-            using var responseStream = response.Content.ReadAsStream();
-
-            using (var reader = new StreamReader(responseStream, Encoding.UTF8))
-            {
-                PodsJson = reader.ReadToEnd();
-                Pods = JsonConvert.DeserializeObject<List<Pod>>(PodsJson);
-            }
-        }
-        else
-        {
-            GetPodsError = true;
-        }
+        var podsRepository = new PodsRepository();
+        Pods = podsRepository.GetAllNamespacedPods(SelectedNamespace);
     }
 }

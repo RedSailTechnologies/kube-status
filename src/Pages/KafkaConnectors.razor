@@ -1,9 +1,5 @@
 @page "/kafka-connectors"
 
-@using System.Text
-@using System.IO
-@using Newtonsoft.Json
-
 @inject NavigationManager Navigator
 @inject IHttpClientFactory ClientFactory
 
@@ -72,64 +68,33 @@ else
 }
 
 @code {
-    string Host;
-    bool GetConnectorsError;
+    bool GetConnectorsError = true;
     bool ConnectorsRestarted;
     bool _shouldRender;
-    string ConnectorsJson;
     IEnumerable<KafkaConnector> Connectors;
     bool HasFailedTasks;
 
     protected override bool ShouldRender() => _shouldRender;
 
-    protected override async Task OnInitializedAsync()
+    protected override void OnInitialized()
     {
-        Host = Navigator.BaseUri;
-        var request = new HttpRequestMessage(HttpMethod.Get, $"{Host}api/kafkaconnectors");
-        var client = ClientFactory.CreateClient();
-        var response = await client.SendAsync(request);
+        var kafkaconnectorsRepository = new KafkaConnectorsRepository();
+        Connectors = kafkaconnectorsRepository.GetAllKafkaConnectors();
+        HasFailedTasks = Connectors.Any(c =>
+        c.TaskState.Equals("failed", StringComparison.OrdinalIgnoreCase) ||
+        c.ConnectorState.Equals("failed", StringComparison.OrdinalIgnoreCase)
+        );
 
-        if (response.IsSuccessStatusCode)
-        {
-            using var responseStream = await response.Content.ReadAsStreamAsync();
-
-            using (var reader = new StreamReader(responseStream, Encoding.UTF8))
-            {
-                ConnectorsJson = reader.ReadToEnd();
-                Connectors = JsonConvert.DeserializeObject<IEnumerable<KafkaConnector>>(ConnectorsJson);
-                HasFailedTasks = Connectors.Any(c =>
-                c.TaskState.Equals("failed", StringComparison.OrdinalIgnoreCase) ||
-                c.ConnectorState.Equals("failed", StringComparison.OrdinalIgnoreCase)
-                );
-            }
-        }
-        else
-        {
-            GetConnectorsError = true;
-        }
+        GetConnectorsError = false;
 
         _shouldRender = true;
     }
 
     void RestartFailed()
     {
-        var request = new HttpRequestMessage(HttpMethod.Patch, $"{Host}api/kafkaconnectors/restartfailed");
+        var kafkaconnectorsRepository = new KafkaConnectorsRepository();
+        Connectors = kafkaconnectorsRepository.RestartAllFailedKafkaConnectors();
 
-        var client = ClientFactory.CreateClient();
-
-        var response = client.Send(request);
-
-        if (response.IsSuccessStatusCode)
-        {
-            using var responseStream = response.Content.ReadAsStream();
-
-            using (var reader = new StreamReader(responseStream, Encoding.UTF8))
-            {
-                ConnectorsJson = reader.ReadToEnd();
-                Connectors = JsonConvert.DeserializeObject<IEnumerable<KafkaConnector>>(ConnectorsJson);
-            }
-
-            ConnectorsRestarted = true;
-        }
+        ConnectorsRestarted = true;
     }
 }
