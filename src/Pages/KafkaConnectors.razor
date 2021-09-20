@@ -1,0 +1,135 @@
+@page "/kafka-connectors"
+
+@using System.Text
+@using System.IO
+@using Newtonsoft.Json
+
+@inject NavigationManager Navigator
+@inject IHttpClientFactory ClientFactory
+
+<h1>Kafka Connectors Status</h1>
+
+@if (ConnectorsRestarted)
+{
+    <div class="alert alert-success" role="alert">
+        Connectors Successfully Restarted!
+    </div>
+}
+else if (HasFailedTasks)
+{
+    <button @onclick="RestartFailed" class="btn btn-primary my-3">
+        Restart All Failed Tasks
+    </button>
+}
+
+@if (GetConnectorsError)
+{
+    <p>Unable to get Kafka Connectors. Please try again later.</p>
+}
+else
+{
+    @if (@Connectors != null && @Connectors.Any())
+    {
+        <TableTemplate Items="Connectors" TItem="KafkaConnector" TableHeaderClass="thead-light">
+            <TableHeader>
+                <th>Name</th>
+                <th>Connector State</th>
+                <th>Task State</th>
+                <th>
+                    <button class="btn btn-outline-secondary btn-sm" type="button" data-bs-toggle="collapse"
+                data-bs-target="#collapseTrace" aria-expanded="false" aria-controls="collapseTrace">
+                        Flip Task Trace
+                    </button>
+                </th>
+            </TableHeader>
+            <RowTemplate>
+                <td>@context.Name</td>
+                <td>@context.ConnectorState</td>
+                <td>@context.TaskState</td>
+                <td>
+                    @if (!string.IsNullOrWhiteSpace(@context.TaskTrace))
+                    {
+                        <div class="collapse" id="collapseTrace">
+                            @context.TaskTrace
+                        </div>
+                    }
+                </td>
+            </RowTemplate>
+        </TableTemplate>
+    }
+    else if (Connectors == null)
+    {
+        <div class="alert alert-info" role="alert">
+            Loading Connectors...
+        </div>
+    }
+    else
+    {
+        <div class="alert alert-primary" role="alert">
+            No Connectors Found
+        </div>
+    }
+}
+
+@code {
+    string Host;
+    bool GetConnectorsError;
+    bool ConnectorsRestarted;
+    bool _shouldRender;
+    string ConnectorsJson;
+    IEnumerable<KafkaConnector> Connectors;
+    bool HasFailedTasks;
+
+    protected override bool ShouldRender() => _shouldRender;
+
+    protected override async Task OnInitializedAsync()
+    {
+        Host = Navigator.BaseUri;
+        var request = new HttpRequestMessage(HttpMethod.Get, $"{Host}api/kafkaconnectors");
+        var client = ClientFactory.CreateClient();
+        var response = await client.SendAsync(request);
+
+        if (response.IsSuccessStatusCode)
+        {
+            using var responseStream = await response.Content.ReadAsStreamAsync();
+
+            using (var reader = new StreamReader(responseStream, Encoding.UTF8))
+            {
+                ConnectorsJson = reader.ReadToEnd();
+                Connectors = JsonConvert.DeserializeObject<IEnumerable<KafkaConnector>>(ConnectorsJson);
+                HasFailedTasks = Connectors.Any(c =>
+                c.TaskState.Equals("failed", StringComparison.OrdinalIgnoreCase) ||
+                c.ConnectorState.Equals("failed", StringComparison.OrdinalIgnoreCase)
+                );
+            }
+        }
+        else
+        {
+            GetConnectorsError = true;
+        }
+
+        _shouldRender = true;
+    }
+
+    void RestartFailed()
+    {
+        var request = new HttpRequestMessage(HttpMethod.Patch, $"{Host}api/kafkaconnectors/restartfailed");
+
+        var client = ClientFactory.CreateClient();
+
+        var response = client.Send(request);
+
+        if (response.IsSuccessStatusCode)
+        {
+            using var responseStream = response.Content.ReadAsStream();
+
+            using (var reader = new StreamReader(responseStream, Encoding.UTF8))
+            {
+                ConnectorsJson = reader.ReadToEnd();
+                Connectors = JsonConvert.DeserializeObject<IEnumerable<KafkaConnector>>(ConnectorsJson);
+            }
+
+            ConnectorsRestarted = true;
+        }
+    }
+}

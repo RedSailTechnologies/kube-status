@@ -19,6 +19,10 @@ namespace KubeStatus
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+            services.AddRazorPages();
+            services.AddServerSideBlazor();
+            services.AddHttpClient();
+            services.AddHttpContextAccessor();
             services.AddHealthChecks();
             services.AddControllers();
             services.AddSwaggerGen(c =>
@@ -36,8 +40,14 @@ namespace KubeStatus
                 app.UseSwagger();
                 app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "KubeStatus v1"));
             }
+            else
+            {
+                app.UseExceptionHandler("/Error");
+                app.UseHsts();
+            }
 
             app.UseHttpsRedirection();
+            app.UseStaticFiles();
 
             app.UseRouting();
 
@@ -45,6 +55,8 @@ namespace KubeStatus
 
             app.UseEndpoints(endpoints =>
             {
+                endpoints.MapBlazorHub();
+                endpoints.MapFallbackToPage("/_Host");
                 endpoints.MapHealthChecks("/health");
                 endpoints.MapControllers();
             });
