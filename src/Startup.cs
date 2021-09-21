@@ -21,10 +21,7 @@ namespace KubeStatus
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddRazorPages();
-            services.AddServerSideBlazor().AddCircuitOptions(options => 
-            {
-                options.DetailedErrors = true;
-            });;
+            services.AddServerSideBlazor();
             services.AddHttpClient();
             services.AddHttpContextAccessor();
             services.AddHealthChecks();
@@ -50,13 +47,13 @@ namespace KubeStatus
             }
 
             app.UseStaticFiles();
-            
+
             app.UseAuthentication();
-            
+
             app.UseHttpMetrics();
-            
+
             app.UseRouting();
-            
+
             app.UseAuthorization();
 
             app.UseEndpoints(endpoints =>
