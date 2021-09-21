@@ -1,5 +1,7 @@
 @page "/kafka-connectors"
 
+@inject ILogger<KafkaConnectors> logger
+
 <h1>Kafka Connectors Status</h1>
 
 @if (ConnectorsRestarted)
@@ -75,16 +77,23 @@ else
 
     protected override void OnInitialized()
     {
-        var kafkaconnectorsRepository = new KafkaConnectorsRepository();
-        Connectors = kafkaconnectorsRepository.GetAllKafkaConnectors();
-        HasFailedTasks = Connectors.Any(c =>
-        c.TaskState.Equals("failed", StringComparison.OrdinalIgnoreCase) ||
-        c.ConnectorState.Equals("failed", StringComparison.OrdinalIgnoreCase)
-        );
+        try
+        {
+            var kafkaconnectorsRepository = new KafkaConnectorsRepository();
+            Connectors = kafkaconnectorsRepository.GetAllKafkaConnectors();
+            HasFailedTasks = Connectors.Any(c =>
+            c.TaskState.Equals("failed", StringComparison.OrdinalIgnoreCase) ||
+            c.ConnectorState.Equals("failed", StringComparison.OrdinalIgnoreCase)
+            );
 
-        GetConnectorsError = false;
+            GetConnectorsError = false;
 
-        _shouldRender = true;
+            _shouldRender = true;
+        }
+        catch (Exception e)
+        {
+            logger.LogError(e, e.Message);
+        }
     }
 
     void RestartFailed()

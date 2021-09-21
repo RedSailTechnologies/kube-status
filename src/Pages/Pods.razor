@@ -2,6 +2,8 @@
 
 @using System
 
+@inject ILogger<Pods> logger
+
 <h1>Pods</h1>
 
 @if (GetNamespacesError)
@@ -164,14 +166,21 @@ else
 
     protected override void OnInitialized()
     {
-        var namespacesRepository = new NamespacesRepository();
-        Namespaces = namespacesRepository.GetAllNamespaces().Items.Select(i => i.Metadata.Name);
+        try
+        {
+            var namespacesRepository = new NamespacesRepository();
+            Namespaces = namespacesRepository.GetAllNamespaces().Items.Select(i => i.Metadata.Name);
 
-        GetPods();
+            GetPods();
 
-        GetNamespacesError = false;
-        GetPodsError = false;
-        _shouldRender = true;
+            GetNamespacesError = false;
+            GetPodsError = false;
+            _shouldRender = true;
+        }
+        catch (Exception e)
+        {
+            logger.LogError(e, e.Message);
+        }
     }
 
     void OnSelect(ChangeEventArgs e)
