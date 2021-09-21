@@ -16,7 +16,7 @@ FROM build AS publish
 RUN dotnet publish -c Release -o /app/publish --no-restore --no-build
 
 
-FROM mcr.microsoft.com/dotnet/aspnet:${DOTNET_VERSION} AS release
+FROM mcr.microsoft.com/dotnet/aspnet:${DOTNET_VERSION}-alpine AS release
 RUN addgroup -g 10001 -S redsail && adduser -u 10001 -S redsail -G redsail
 USER redsail
 WORKDIR /app
