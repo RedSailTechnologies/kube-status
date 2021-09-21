@@ -20,5 +20,5 @@ FROM mcr.microsoft.com/dotnet/aspnet:${DOTNET_VERSION}-alpine AS release
 RUN addgroup -g 10001 -S redsail && adduser -u 10001 -S redsail -G redsail
 USER redsail
 WORKDIR /app
-COPY --from=publish /app/publish ./
+COPY --from=publish /app/publish .
 ENTRYPOINT [ "dotnet", "KubeStatus.dll" ]
