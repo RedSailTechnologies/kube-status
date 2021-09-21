@@ -1,6 +1,7 @@
 @page "/kafka-connectors"
 
 @inject ILogger<KafkaConnectors> logger
+@inject KafkaConnectorService KafkaConnectorService
 
 <h1>Kafka Connectors Status</h1>
 
@@ -79,8 +80,7 @@ else
     {
         try
         {
-            var kafkaconnectorService = new KafkaConnectorService();
-            Connectors = kafkaconnectorService.GetAllKafkaConnectors();
+            Connectors = KafkaConnectorService.GetAllKafkaConnectors();
             HasFailedTasks = Connectors.Any(c =>
             c.TaskState.Equals("failed", StringComparison.OrdinalIgnoreCase) ||
             c.ConnectorState.Equals("failed", StringComparison.OrdinalIgnoreCase)

@@ -3,6 +3,8 @@
 @using System
 
 @inject ILogger<Pods> logger
+@inject NamespaceService NamespaceService
+@inject PodService PodService
 
 <h1>Pods</h1>
 
@@ -168,8 +170,7 @@ else
     {
         try
         {
-            var namespaceService = new NamespaceService();
-            Namespaces = namespaceService.GetAllNamespaces().Items.Select(i => i.Metadata.Name);
+            Namespaces = NamespaceService.GetAllNamespaces().Items.Select(i => i.Metadata.Name);
 
             GetPods();
 
@@ -191,7 +192,6 @@ else
 
     void GetPods()
     {
-        var podService = new PodService();
-        NamespacedPods = podService.GetAllNamespacedPods(SelectedNamespace);
+        NamespacedPods = PodService.GetAllNamespacedPods(SelectedNamespace);
     }
 }
