@@ -1,9 +1,9 @@
 using k8s;
 using k8s.Models;
 
-namespace KubeStatus.Repository
+namespace KubeStatus.Data
 {
-    public class NamespacesRepository
+    public class NamespaceService
     {
         public V1NamespaceList GetAllNamespaces()
         {

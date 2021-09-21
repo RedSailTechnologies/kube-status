@@ -168,8 +168,8 @@ else
     {
         try
         {
-            var namespacesRepository = new NamespacesRepository();
-            Namespaces = namespacesRepository.GetAllNamespaces().Items.Select(i => i.Metadata.Name);
+            var namespaceService = new NamespaceService();
+            Namespaces = namespaceService.GetAllNamespaces().Items.Select(i => i.Metadata.Name);
 
             GetPods();
 
@@ -191,7 +191,7 @@ else
 
     void GetPods()
     {
-        var podsRepository = new PodsRepository();
-        NamespacedPods = podsRepository.GetAllNamespacedPods(SelectedNamespace);
+        var podService = new PodService();
+        NamespacedPods = podService.GetAllNamespacedPods(SelectedNamespace);
     }
 }

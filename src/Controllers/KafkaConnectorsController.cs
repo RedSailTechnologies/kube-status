@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 using KubeStatus.Models;
-using KubeStatus.Repository;
+using KubeStatus.Data;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 
@@ -20,22 +20,22 @@ namespace KubeStatus.Controllers
         [HttpGet]
         public IEnumerable<KafkaConnector> GetAllKafkaConnectors()
         {
-            var kafkaConnectorsRepository = new KafkaConnectorsRepository();
-            return kafkaConnectorsRepository.GetAllKafkaConnectors();
+            var kafkaConnectorService = new KafkaConnectorService();
+            return kafkaConnectorService.GetAllKafkaConnectors();
         }
 
         [HttpGet("{taskState}")]
         public IEnumerable<KafkaConnector> GetKafkaConnectorsByTaskState(string taskState = "failed")
         {
-            var kafkaConnectorsRepository = new KafkaConnectorsRepository();
-            return kafkaConnectorsRepository.GetKafkaConnectorsByTaskState(taskState);
+            var kafkaConnectorService = new KafkaConnectorService();
+            return kafkaConnectorService.GetKafkaConnectorsByTaskState(taskState);
         }
 
         [HttpPatch("RestartFailed")]
         public IEnumerable<KafkaConnector> RestartAllFailedKafkaConnectors()
         {
-            var kafkaConnectorsRepository = new KafkaConnectorsRepository();
-            return kafkaConnectorsRepository.RestartAllFailedKafkaConnectors();
+            var kafkaConnectorService = new KafkaConnectorService();
+            return kafkaConnectorService.RestartAllFailedKafkaConnectors();
         }
     }
 }

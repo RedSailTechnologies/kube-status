@@ -1,6 +1,6 @@
 ﻿using k8s;
 using k8s.Models;
-using KubeStatus.Repository;
+using KubeStatus.Data;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 
@@ -20,8 +20,8 @@ namespace KubeStatus.Controllers
         [HttpGet]
         public V1NamespaceList GetAllNamespaces()
         {
-            var namespacesRepository = new NamespacesRepository();
-            return namespacesRepository.GetAllNamespaces();
+            var namespaceService = new NamespaceService();
+            return namespaceService.GetAllNamespaces();
         }
     }
 }

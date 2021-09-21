@@ -3,9 +3,9 @@ using System.Linq;
 using k8s;
 using KubeStatus.Models;
 
-namespace KubeStatus.Repository
+namespace KubeStatus.Data
 {
-    public class PodsRepository
+    public class PodService
     {
         public IEnumerable<Pod> GetAllNamespacedPods(string k8sNamespace = "default")
         {

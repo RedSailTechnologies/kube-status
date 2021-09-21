@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 using KubeStatus.Models;
-using KubeStatus.Repository;
+using KubeStatus.Data;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 
@@ -26,8 +26,8 @@ namespace KubeStatus.Controllers
         [HttpGet("{k8sNamespace}")]
         public IEnumerable<Pod> GetAllNamespacedPods(string k8sNamespace = "default")
         {
-            var podsRepository = new PodsRepository();
-            return podsRepository.GetAllNamespacedPods(k8sNamespace);
+            var podService = new PodService();
+            return podService.GetAllNamespacedPods(k8sNamespace);
         }
     }
 }

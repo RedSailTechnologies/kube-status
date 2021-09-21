@@ -1,3 +1,4 @@
+using KubeStatus.Data;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
@@ -30,6 +31,9 @@ namespace KubeStatus
             {
                 c.SwaggerDoc("v1", new OpenApiInfo { Title = "KubeStatus", Version = "v1" });
             });
+            services.AddSingleton<KafkaConnectorService>();
+            services.AddSingleton<NamespaceService>();
+            services.AddSingleton<PodService>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

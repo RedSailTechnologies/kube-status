@@ -5,9 +5,9 @@ using k8s.Models;
 using KubeStatus.Models;
 using Newtonsoft.Json.Linq;
 
-namespace KubeStatus.Repository
+namespace KubeStatus.Data
 {
-    public class KafkaConnectorsRepository
+    public class KafkaConnectorService
     {
         public IEnumerable<KafkaConnector> GetAllKafkaConnectors()
         {

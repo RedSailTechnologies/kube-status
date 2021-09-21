@@ -79,8 +79,8 @@ else
     {
         try
         {
-            var kafkaconnectorsRepository = new KafkaConnectorsRepository();
-            Connectors = kafkaconnectorsRepository.GetAllKafkaConnectors();
+            var kafkaconnectorService = new KafkaConnectorService();
+            Connectors = kafkaconnectorService.GetAllKafkaConnectors();
             HasFailedTasks = Connectors.Any(c =>
             c.TaskState.Equals("failed", StringComparison.OrdinalIgnoreCase) ||
             c.ConnectorState.Equals("failed", StringComparison.OrdinalIgnoreCase)
@@ -98,8 +98,8 @@ else
 
     void RestartFailed()
     {
-        var kafkaconnectorsRepository = new KafkaConnectorsRepository();
-        Connectors = kafkaconnectorsRepository.RestartAllFailedKafkaConnectors();
+        var kafkaconnectorService = new KafkaConnectorService();
+        Connectors = kafkaconnectorService.RestartAllFailedKafkaConnectors();
 
         ConnectorsRestarted = true;
     }
