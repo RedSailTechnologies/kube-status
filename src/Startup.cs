@@ -46,10 +46,11 @@ namespace KubeStatus
                 app.UseExceptionHandler("/Error");
             }
 
-            app.UseStaticFiles();
-            app.UseRouting();
+            app.UseAuthentication();
             app.UseAuthorization();
             app.UseHttpMetrics();
+            app.UseRouting();
+            app.UseStaticFiles();
 
             app.UseEndpoints(endpoints =>
             {
