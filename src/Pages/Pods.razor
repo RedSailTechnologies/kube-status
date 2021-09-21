@@ -1,0 +1,188 @@
+@page "/pods"
+
+@using System
+
+<h1>Pods</h1>
+
+@if (GetNamespacesError)
+{
+    <p>Unable to get namespaces. Please try again later.</p>
+}
+else
+{
+    <div class="col-sm-4 mb-3">
+        <div class="form-group">
+            <label for="namespaceSelect" class="form-label">Select a Namespace</label>
+            <select class="form-select" id="namespaceSelect" @onchange="@OnSelect">
+                @foreach (var ns in Namespaces)
+                {
+                    @if (@ns.Equals(@SelectedNamespace))
+                    {
+                        <option value=@ns selected>@ns</option>
+                    }
+                    else
+                    {
+                        <option value=@ns>@ns</option>
+                    }
+                }
+            </select>
+        </div>
+    </div>
+}
+@if (GetPodsError)
+{
+    <p>Unable to get pods. Please try again later.</p>
+}
+else
+{
+    @if (@NamespacedPods != null && @NamespacedPods.Any())
+    {
+        <TableTemplate Items="NamespacedPods" TItem="Pod" TableHeaderClass="thead-light">
+            <TableHeader>
+                <th>Name</th>
+                <th>Component</th>
+                <th>Version</th>
+                <th>Part Of</th>
+                <th>Pod Status</th>
+                <th>
+                    <button class="btn btn-outline-secondary btn-sm" type="button" data-bs-toggle="collapse"
+                data-bs-target="#collapseContainerStatus" aria-expanded="false" aria-controls="collapseContainerStatus">
+                        Flip Container Statuses
+                    </button>
+                </th>
+                <th>
+                    <button class="btn btn-outline-secondary btn-sm" type="button" data-bs-toggle="collapse"
+                data-bs-target="#collapseLabels" aria-expanded="false" aria-controls="collapseLabels">
+                        Flip Pod Labels
+                    </button>
+                </th>
+                <th>
+                    <button class="btn btn-outline-secondary btn-sm" type="button" data-bs-toggle="collapse"
+                data-bs-target="#collapseAnnotations" aria-expanded="false" aria-controls="collapseAnnotations">
+                        Flip Pod Annotations
+                    </button>
+                </th>
+                <th>
+                    <button class="btn btn-outline-secondary btn-sm" type="button" data-bs-toggle="collapse"
+                data-bs-target="#collapsePodVolumes" aria-expanded="false" aria-controls="collapsePodVolumes">
+                        Flip Pod Volumes
+                    </button>
+                </th>
+            </TableHeader>
+            <RowTemplate>
+                <td>@(string.IsNullOrWhiteSpace(context.Name) ? context.PodName : context.Name)</td>
+                <td>@context.Component</td>
+                <td>@context.Version</td>
+                <td>@context.PartOf</td>
+                <td>@context.PodStatus</td>
+                <td>
+                    @if (context.Status != null && context.Status.Any())
+                    {
+                        <div class="collapse" id="collapseContainerStatus">
+                            <div class="mb-2"><strong>Pod Name:</strong> @context.PodName</div>
+                            <TableTemplate
+                    Items="@context.Status.Select(s => new { s.Name, s.Started, s.Ready }).OrderBy(s => s.Name)"
+                    TableClass="table-sm table-striped">
+                                <TableHeader>
+                    <th>Name</th>
+                    <th>Started</th>
+                    <th>Ready</th>
+                    </TableHeader>
+                    <RowTemplate Context="statusContext">
+                        <td>@statusContext.Name</td>
+                        <td>@statusContext.Started</td>
+                        <td>@statusContext.Ready</td>
+                    </RowTemplate>
+            </TableTemplate>
+            </div>
+                    }
+        </td>
+        <td>
+                    @if (context.Labels != null && context.Labels.Any())
+                    {
+                <div class="collapse" id="collapseLabels">
+                    <TableTemplate Items="@context.Labels" TableClass="table-sm table-striped">
+                        <RowTemplate Context="labelsContext">
+            <td>@labelsContext.Key</td>
+            <td>@labelsContext.Value</td>
+            </RowTemplate>
+            </TableTemplate>
+            </div>
+                    }
+        </td>
+        <td>
+                    @if (context.Annotations != null && context.Annotations.Any())
+                    {
+                <div class="collapse" id="collapseAnnotations">
+                    <TableTemplate Items="@context.Annotations" TableClass="table-sm table-striped">
+                        <RowTemplate Context="annotationsContext">
+            <td>@annotationsContext.Key</td>
+            <td>@annotationsContext.Value</td>
+            </RowTemplate>
+            </TableTemplate>
+            </div>
+                    }
+        </td>
+        <td>
+                    @if (context.PodVolumes != null && context.PodVolumes.Any())
+                    {
+                <div class="collapse" id="collapsePodVolumes">
+                    <TableTemplate Items="@context.PodVolumes" TableClass="table-sm table-striped">
+                        <RowTemplate Context="podVolumesContext">
+            <td>@podVolumesContext</td>
+            </RowTemplate>
+            </TableTemplate>
+            </div>
+                    }
+        </td>
+        </RowTemplate>
+        </TableTemplate>
+    }
+    else if (NamespacedPods == null)
+    {
+        <div class="alert alert-info" role="alert">
+            Loading Pods in @SelectedNamespace namespace...
+        </div>
+    }
+    else
+    {
+        <div class="alert alert-primary" role="alert">
+            No Pods Found
+        </div>
+    }
+}
+
+@code {
+    bool GetNamespacesError = true;
+    bool GetPodsError = true;
+    bool _shouldRender;
+    IEnumerable<string> Namespaces = Array.Empty<string>();
+    string SelectedNamespace = "default";
+    IEnumerable<Pod> NamespacedPods;
+
+    protected override bool ShouldRender() => _shouldRender;
+
+    protected override void OnInitialized()
+    {
+        var namespacesRepository = new NamespacesRepository();
+        Namespaces = namespacesRepository.GetAllNamespaces().Items.Select(i => i.Metadata.Name);
+
+        GetPods();
+
+        GetNamespacesError = false;
+        GetPodsError = false;
+        _shouldRender = true;
+    }
+
+    void OnSelect(ChangeEventArgs e)
+    {
+        SelectedNamespace = e.Value.ToString();
+        GetPods();
+    }
+
+    void GetPods()
+    {
+        var podsRepository = new PodsRepository();
+        NamespacedPods = podsRepository.GetAllNamespacedPods(SelectedNamespace);
+    }
+}
