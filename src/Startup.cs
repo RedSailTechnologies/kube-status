@@ -22,9 +22,13 @@ namespace KubeStatus
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddRazorPages();
-            services.AddServerSideBlazor();
-            services.AddHttpClient();
-            services.AddHttpContextAccessor();
+            services.AddServerSideBlazor(o =>
+            {
+                o.DetailedErrors = true;
+            }).AddHubOptions(o =>
+                {
+                o.MaximumReceiveMessageSize = 128 * 1024;
+                });
             services.AddHealthChecks();
             services.AddControllers();
             services.AddSwaggerGen(c =>
@@ -41,9 +45,13 @@ namespace KubeStatus
         {
             if (env.IsDevelopment() || Helper.EnableSwagger())
             {
-                app.UseDeveloperExceptionPage();
                 app.UseSwagger();
                 app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "KubeStatus v1"));
+            }
+
+            if (env.IsDevelopment())
+            {
+                app.UseDeveloperExceptionPage();
             }
             else
             {
