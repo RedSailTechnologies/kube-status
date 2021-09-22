@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using k8s;
 using k8s.Models;
 using KubeStatus.Models;
@@ -9,17 +10,17 @@ namespace KubeStatus.Data
 {
     public class KafkaConnectorService
     {
-        public IEnumerable<KafkaConnector> GetAllKafkaConnectors()
+        public Task<IEnumerable<KafkaConnector>> GetAllKafkaConnectorsAsync()
         {
-            return GetKafkaConnectors();
+            return Task.FromResult(GetKafkaConnectors());
+        }
+        
+        public Task<IEnumerable<KafkaConnector>> GetKafkaConnectorsByTaskStateAsync(string taskState = "failed")
+        {
+            return Task.FromResult(GetKafkaConnectors().Where(c => c.TaskState.Equals(taskState, System.StringComparison.OrdinalIgnoreCase)));
         }
 
-        public IEnumerable<KafkaConnector> GetKafkaConnectorsByTaskState(string taskState = "failed")
-        {
-            return GetKafkaConnectors().Where(c => c.TaskState.Equals(taskState, System.StringComparison.OrdinalIgnoreCase));
-        }
-
-        public IEnumerable<KafkaConnector> RestartAllFailedKafkaConnectors()
+        public Task<IEnumerable<KafkaConnector>> RestartAllFailedKafkaConnectorsAsync()
         {
             var failedKafkaConnectors = GetKafkaConnectors().Where(c => c.TaskState.Equals("failed", System.StringComparison.OrdinalIgnoreCase));
             foreach (var failedKafkaConnector in failedKafkaConnectors)
@@ -37,10 +38,10 @@ namespace KubeStatus.Data
                 client.PatchNamespacedCustomObject(new V1Patch(patchStr, V1Patch.PatchType.MergePatch), Helper.StrimziGroup(), Helper.StrimziConnectorVersion(), failedKafkaConnector.Namespace, Helper.StrimziConnectorPlural(), failedKafkaConnector.Name);
             }
 
-            return failedKafkaConnectors;
+            return Task.FromResult(failedKafkaConnectors);
         }
 
-        private List<KafkaConnector> GetKafkaConnectors()
+        private IEnumerable<KafkaConnector> GetKafkaConnectors()
         {
             var kafkaConnectors = new List<KafkaConnector>();
 

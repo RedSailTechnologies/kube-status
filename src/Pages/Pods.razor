@@ -166,13 +166,14 @@ else
 
     protected override bool ShouldRender() => _shouldRender;
 
-    protected override void OnInitialized()
+    protected override async Task OnInitializedAsync()
     {
         try
         {
-            Namespaces = NamespaceService.GetAllNamespaces().Items.Select(i => i.Metadata.Name);
+            var namespaces = await NamespaceService.GetAllNamespacesAsync();
+            Namespaces = namespaces.Items.Select(i => i.Metadata.Name);
 
-            GetPods();
+            await GetPods();
 
             GetNamespacesError = false;
             GetPodsError = false;
@@ -184,14 +185,14 @@ else
         }
     }
 
-    void OnSelect(ChangeEventArgs e)
+    async Task OnSelect(ChangeEventArgs e)
     {
         SelectedNamespace = e.Value.ToString();
-        GetPods();
+        await GetPods();
     }
 
-    void GetPods()
+    async Task GetPods()
     {
-        NamespacedPods = PodService.GetAllNamespacedPods(SelectedNamespace);
+        NamespacedPods = await PodService.GetAllNamespacedPodsAsync(SelectedNamespace);
     }
 }

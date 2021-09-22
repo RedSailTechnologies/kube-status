@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
-using KubeStatus.Models;
+using System.Threading.Tasks;
 using KubeStatus.Data;
+using KubeStatus.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 
@@ -11,31 +12,30 @@ namespace KubeStatus.Controllers
     public class KafkaConnectorsController : ControllerBase
     {
         private readonly ILogger<KafkaConnectorsController> _logger;
+        private readonly KafkaConnectorService _kafkaConnectorService;
 
-        public KafkaConnectorsController(ILogger<KafkaConnectorsController> logger)
+        public KafkaConnectorsController(ILogger<KafkaConnectorsController> logger, KafkaConnectorService kafkaConnectorService)
         {
             _logger = logger;
+            _kafkaConnectorService = kafkaConnectorService;
         }
 
         [HttpGet]
-        public IEnumerable<KafkaConnector> GetAllKafkaConnectors()
+        public async Task<IEnumerable<KafkaConnector>> GetAllKafkaConnectors()
         {
-            var kafkaConnectorService = new KafkaConnectorService();
-            return kafkaConnectorService.GetAllKafkaConnectors();
+            return await _kafkaConnectorService.GetAllKafkaConnectorsAsync();
         }
 
         [HttpGet("{taskState}")]
-        public IEnumerable<KafkaConnector> GetKafkaConnectorsByTaskState(string taskState = "failed")
+        public async Task<IEnumerable<KafkaConnector>> GetKafkaConnectorsByTaskState(string taskState = "failed")
         {
-            var kafkaConnectorService = new KafkaConnectorService();
-            return kafkaConnectorService.GetKafkaConnectorsByTaskState(taskState);
+            return await _kafkaConnectorService.GetKafkaConnectorsByTaskStateAsync(taskState);
         }
 
         [HttpPatch("RestartFailed")]
-        public IEnumerable<KafkaConnector> RestartAllFailedKafkaConnectors()
+        public async Task<IEnumerable<KafkaConnector>> RestartAllFailedKafkaConnectors()
         {
-            var kafkaConnectorService = new KafkaConnectorService();
-            return kafkaConnectorService.RestartAllFailedKafkaConnectors();
+            return await _kafkaConnectorService.RestartAllFailedKafkaConnectorsAsync();
         }
     }
 }

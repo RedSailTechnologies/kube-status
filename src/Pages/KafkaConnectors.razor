@@ -13,7 +13,7 @@
 }
 else if (HasFailedTasks)
 {
-    <button @onclick="RestartFailed" class="btn btn-primary my-3">
+    <button @onclick="RestartFailed" class="btn btn-primary my-3" disabled="@ButtonIsDisabled">
         Restart All Failed Tasks
     </button>
 }
@@ -73,14 +73,15 @@ else
     bool _shouldRender;
     IEnumerable<KafkaConnector> Connectors;
     bool HasFailedTasks;
+    bool ButtonIsDisabled;
 
     protected override bool ShouldRender() => _shouldRender;
 
-    protected override void OnInitialized()
+    protected override async Task OnInitializedAsync()
     {
         try
         {
-            Connectors = KafkaConnectorService.GetAllKafkaConnectors();
+            Connectors = await KafkaConnectorService.GetAllKafkaConnectorsAsync();
             HasFailedTasks = Connectors.Any(c =>
             c.TaskState.Equals("failed", StringComparison.OrdinalIgnoreCase) ||
             c.ConnectorState.Equals("failed", StringComparison.OrdinalIgnoreCase)
@@ -96,10 +97,16 @@ else
         }
     }
 
-    void RestartFailed()
+    async Task RestartFailed()
     {
+        if (ButtonIsDisabled)
+        {
+            return;
+        }
+
+        ButtonIsDisabled = true;
         var kafkaconnectorService = new KafkaConnectorService();
-        Connectors = kafkaconnectorService.RestartAllFailedKafkaConnectors();
+        Connectors = await kafkaconnectorService.RestartAllFailedKafkaConnectorsAsync();
 
         ConnectorsRestarted = true;
     }

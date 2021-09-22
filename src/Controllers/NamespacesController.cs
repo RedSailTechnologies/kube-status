@@ -1,4 +1,4 @@
-﻿using k8s;
+﻿using System.Threading.Tasks;
 using k8s.Models;
 using KubeStatus.Data;
 using Microsoft.AspNetCore.Mvc;
@@ -11,17 +11,18 @@ namespace KubeStatus.Controllers
     public class NamespacesController : ControllerBase
     {
         private readonly ILogger<NamespacesController> _logger;
+        private readonly NamespaceService _namespaceService;
 
-        public NamespacesController(ILogger<NamespacesController> logger)
+        public NamespacesController(ILogger<NamespacesController> logger, NamespaceService namespaceService)
         {
             _logger = logger;
+            _namespaceService = namespaceService;
         }
 
         [HttpGet]
-        public V1NamespaceList GetAllNamespaces()
+        public async Task<V1NamespaceList> GetAllNamespaces()
         {
-            var namespaceService = new NamespaceService();
-            return namespaceService.GetAllNamespaces();
+            return await _namespaceService.GetAllNamespacesAsync();
         }
     }
 }

@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using k8s;
 using KubeStatus.Models;
 
@@ -7,7 +8,7 @@ namespace KubeStatus.Data
 {
     public class PodService
     {
-        public IEnumerable<Pod> GetAllNamespacedPods(string k8sNamespace = "default")
+        public Task<IEnumerable<Pod>> GetAllNamespacedPodsAsync(string k8sNamespace = "default")
         {
             var pods = new List<Pod>();
 
@@ -35,7 +36,7 @@ namespace KubeStatus.Data
                 });
             }
 
-            return pods;
+            return Task.FromResult(pods.AsEnumerable());
         }
     }
 }
