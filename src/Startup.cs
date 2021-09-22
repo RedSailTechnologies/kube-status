@@ -22,13 +22,7 @@ namespace KubeStatus
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddRazorPages();
-            services.AddServerSideBlazor(o =>
-            {
-                o.DetailedErrors = true;
-            }).AddHubOptions(o =>
-                {
-                o.MaximumReceiveMessageSize = 128 * 1024;
-                });
+            services.AddServerSideBlazor();
             services.AddHealthChecks();
             services.AddControllers();
             services.AddSwaggerGen(c =>
