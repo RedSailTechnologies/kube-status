@@ -14,7 +14,7 @@ namespace KubeStatus.Data
         {
             return Task.FromResult(GetKafkaConnectors());
         }
-        
+
         public Task<IEnumerable<KafkaConnector>> GetKafkaConnectorsByTaskStateAsync(string taskState = "failed")
         {
             return Task.FromResult(GetKafkaConnectors().Where(c => c.TaskState.Equals(taskState, System.StringComparison.OrdinalIgnoreCase)));
@@ -53,24 +53,46 @@ namespace KubeStatus.Data
             {
                 var connectorName = clusterCustomObject.SelectToken("metadata.name").ToString();
                 var connectorNamespace = clusterCustomObject.SelectToken("metadata.namespace").ToString();
-                var connectorState = clusterCustomObject.SelectToken("status.connectorStatus.connector.state").ToString();
 
+                var connectorState = string.Empty;
                 var taskState = string.Empty;
-                if (clusterCustomObject.SelectToken("status.connectorStatus").Children().Any(t => t.Path.Contains("status.connectorStatus.tasks")))
+                var taskTrace = string.Empty;
+                var lastTransitionTime = string.Empty;
+
+                if (clusterCustomObject.SelectToken("status").Children().Any(t => t.Path.Contains("status.connectorStatus")))
                 {
-                    taskState = clusterCustomObject.SelectToken("status.connectorStatus.tasks[0].state").ToString();
+                    connectorState = clusterCustomObject.SelectToken("status.connectorStatus.connector.state").ToString();
+
+                    if (clusterCustomObject.SelectToken("status.connectorStatus").Children().Any(t => t.Path.Contains("status.connectorStatus.tasks")))
+                    {
+                        taskState = clusterCustomObject.SelectToken("status.connectorStatus.tasks[0].state").ToString();
+                    }
+
+                    if (clusterCustomObject.SelectToken("status.connectorStatus.tasks[0]").Children().Any(t => t.Path.Contains("status.connectorStatus.tasks[0].trace")))
+                    {
+                        taskTrace = clusterCustomObject.SelectToken("status.connectorStatus.tasks[0].trace").ToString();
+                    }
+                }
+                else
+                {
+                    connectorState = clusterCustomObject.SelectToken("status.conditions[0].type").ToString();
+
+                    if (clusterCustomObject.SelectToken("status.conditions[0]").Children().Any(t => t.Path.Contains("status.conditions[0].message")))
+                    {
+                        taskTrace = clusterCustomObject.SelectToken("status.conditions[0].message").ToString();
+                    }
                 }
 
-                var taskTrace = string.Empty;
-                if (clusterCustomObject.SelectToken("status.connectorStatus.tasks[0]").Children().Any(t => t.Path.Contains("status.connectorStatus.tasks[0].trace")))
+                if (clusterCustomObject.SelectToken("status.conditions[0]").Children().Any(t => t.Path.Contains("status.conditions[0].lastTransitionTime")))
                 {
-                    taskTrace = clusterCustomObject.SelectToken("status.connectorStatus.tasks[0].trace").ToString();
+                    lastTransitionTime = $"{clusterCustomObject.SelectToken("status.conditions[0].lastTransitionTime")} (UTC)";
                 }
 
                 kafkaConnectors.Add(new KafkaConnector
                 {
                     Name = connectorName,
                     Namespace = connectorNamespace,
+                    LastTransitionTime = lastTransitionTime,
                     ConnectorState = connectorState,
                     TaskState = taskState,
                     TaskTrace = taskTrace

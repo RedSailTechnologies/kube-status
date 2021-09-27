@@ -29,6 +29,7 @@ else
         <TableTemplate Items="Connectors" TItem="KafkaConnector" TableHeaderClass="thead-light">
             <TableHeader>
                 <th>Name</th>
+                <th>Last Transition Time</th>
                 <th>Connector State</th>
                 <th>Task State</th>
                 <th>
@@ -40,6 +41,7 @@ else
             </TableHeader>
             <RowTemplate>
                 <td>@context.Name</td>
+                <td>@context.LastTransitionTime</td>
                 <td>@context.ConnectorState</td>
                 <td>@context.TaskState</td>
                 <td>
