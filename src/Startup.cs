@@ -44,7 +44,6 @@ namespace KubeStatus
                 app.UseCors(x => x
                 .WithOrigins(allowedHosts)
                 .AllowAnyMethod()
-                .WithHeaders("authorization")
                 );
             }
 
