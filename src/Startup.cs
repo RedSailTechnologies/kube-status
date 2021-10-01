@@ -1,3 +1,4 @@
+using System;
 using KubeStatus.Data;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -37,6 +38,16 @@ namespace KubeStatus
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
+            var allowedHosts = Configuration.GetSection("AllowedHosts").Value?.Split(',') ?? Array.Empty<string>();
+            if (allowedHosts.Length > 0)
+            {
+                app.UseCors(x => x
+                .WithOrigins(allowedHosts)
+                .AllowAnyMethod()
+                .WithHeaders("authorization")
+                );
+            }
+
             if (env.IsDevelopment() || Helper.EnableSwagger())
             {
                 app.UseSwagger();
