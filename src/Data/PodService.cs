@@ -8,7 +8,7 @@ namespace KubeStatus.Data
 {
     public class PodService
     {
-        public Task<IEnumerable<Pod>> GetAllNamespacedPodsAsync(string k8sNamespace = "default")
+        public async Task<IEnumerable<Pod>> GetAllNamespacedPodsAsync(string k8sNamespace = "default")
         {
             var pods = new List<Pod>();
 
@@ -36,7 +36,7 @@ namespace KubeStatus.Data
                 });
             }
 
-            return Task.FromResult(pods.AsEnumerable());
+            return await Task.FromResult(pods.AsEnumerable());
         }
     }
 }

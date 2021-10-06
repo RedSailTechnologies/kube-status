@@ -10,17 +10,17 @@ namespace KubeStatus.Data
 {
     public class KafkaConnectorService
     {
-        public Task<IEnumerable<KafkaConnector>> GetAllKafkaConnectorsAsync()
+        public async Task<IEnumerable<KafkaConnector>> GetAllKafkaConnectorsAsync()
         {
-            return Task.FromResult(GetKafkaConnectors());
+            return await Task.FromResult(GetKafkaConnectors());
         }
 
-        public Task<IEnumerable<KafkaConnector>> GetKafkaConnectorsByTaskStateAsync(string taskState = "failed")
+        public async Task<IEnumerable<KafkaConnector>> GetKafkaConnectorsByTaskStateAsync(string taskState = "failed")
         {
-            return Task.FromResult(GetKafkaConnectors().Where(c => c.TaskState.Equals(taskState, System.StringComparison.OrdinalIgnoreCase)));
+            return await Task.FromResult(GetKafkaConnectors().Where(c => c.TaskState.Equals(taskState, System.StringComparison.OrdinalIgnoreCase)));
         }
 
-        public Task<IEnumerable<KafkaConnector>> RestartAllFailedKafkaConnectorsAsync()
+        public async Task<IEnumerable<KafkaConnector>> RestartAllFailedKafkaConnectorsAsync()
         {
             var failedKafkaConnectors = GetKafkaConnectors().Where(c => c.TaskState.Equals("failed", System.StringComparison.OrdinalIgnoreCase));
             foreach (var failedKafkaConnector in failedKafkaConnectors)
@@ -38,7 +38,7 @@ namespace KubeStatus.Data
                 client.PatchNamespacedCustomObject(new V1Patch(patchStr, V1Patch.PatchType.MergePatch), Helper.StrimziGroup(), Helper.StrimziConnectorVersion(), failedKafkaConnector.Namespace, Helper.StrimziConnectorPlural(), failedKafkaConnector.Name);
             }
 
-            return Task.FromResult(failedKafkaConnectors);
+            return await Task.FromResult(failedKafkaConnectors);
         }
 
         private IEnumerable<KafkaConnector> GetKafkaConnectors()
