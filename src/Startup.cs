@@ -64,13 +64,9 @@ namespace KubeStatus
 
             app.UseStaticFiles();
 
-            app.UseAuthentication();
-
-            app.UseHttpMetrics();
-
             app.UseRouting();
 
-            app.UseAuthorization();
+            app.UseHttpMetrics();
 
             app.UseEndpoints(endpoints =>
             {
