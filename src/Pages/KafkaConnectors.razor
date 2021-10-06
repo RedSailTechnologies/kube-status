@@ -70,7 +70,7 @@ else
 }
 
 @code {
-    bool GetConnectorsError = true;
+    bool GetConnectorsError;
     bool ConnectorsRestarted;
     bool _shouldRender;
     IEnumerable<KafkaConnector> Connectors;
@@ -89,12 +89,12 @@ else
             c.ConnectorState.Equals("failed", StringComparison.OrdinalIgnoreCase)
             );
 
-            GetConnectorsError = false;
-
             _shouldRender = true;
         }
         catch (Exception e)
         {
+            GetConnectorsError = true;
+
             logger.LogError(e, e.Message);
         }
     }

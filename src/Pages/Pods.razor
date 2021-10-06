@@ -2,7 +2,7 @@
 
 @using System
 
-@* @inject ILogger<Pods> logger *@
+@inject ILogger<Pods> logger
 @inject NamespaceService NamespaceService
 @inject PodService PodService
 
@@ -41,7 +41,8 @@ else
 {
     @if (@NamespacedPods != null && @NamespacedPods.Any())
     {
-        <TableTemplate Items="NamespacedPods" TItem="Pod" TableHeaderClass="thead-light">
+        <div>Hello World</div>
+        @* <TableTemplate Items="NamespacedPods" TItem="Pod" TableHeaderClass="thead-light">
             <TableHeader>
                 <th>Name</th>
                 <th>Component</th>
@@ -140,7 +141,7 @@ else
                     }
         </td>
         </RowTemplate>
-        </TableTemplate>
+        </TableTemplate> *@
     }
     else if (NamespacedPods == null)
     {
@@ -157,14 +158,14 @@ else
 }
 
 @code {
-    bool GetNamespacesError;
+    bool GetNamespacesError ;
     bool GetPodsError;
-    @* bool _shouldRender; *@
+    bool _shouldRender;
     IEnumerable<string> Namespaces = Array.Empty<string>();
     string SelectedNamespace = "default";
     IEnumerable<Pod> NamespacedPods;
 
-    @* protected override bool ShouldRender() => _shouldRender; *@
+    protected override bool ShouldRender() => _shouldRender;
 
     protected override async Task OnInitializedAsync()
     {
@@ -175,15 +176,14 @@ else
 
             await GetPods();
 
-            @* _shouldRender = true; *@
+            _shouldRender = true;
         }
         catch (Exception e)
         {
             GetNamespacesError = true;
             GetPodsError = true;
-            Console.WriteLine(e.Message);
 
-            @* logger.LogError(e, e.Message); *@
+            logger.LogError(e, e.Message);
         }
     }
 
