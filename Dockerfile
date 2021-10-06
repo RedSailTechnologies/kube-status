@@ -1,4 +1,4 @@
-ARG DOTNET_VERSION=5.0
+ARG DOTNET_VERSION=3.1
 
 FROM mcr.microsoft.com/dotnet/sdk:${DOTNET_VERSION} AS base
 WORKDIR /source
