@@ -2,7 +2,7 @@
 
 @using System
 
-@inject ILogger<Pods> logger
+@* @inject ILogger<Pods> logger *@
 @inject NamespaceService NamespaceService
 @inject PodService PodService
 
@@ -157,14 +157,14 @@ else
 }
 
 @code {
-    bool GetNamespacesError = true;
-    bool GetPodsError = true;
-    bool _shouldRender;
+    bool GetNamespacesError;
+    bool GetPodsError;
+    @* bool _shouldRender; *@
     IEnumerable<string> Namespaces = Array.Empty<string>();
     string SelectedNamespace = "default";
     IEnumerable<Pod> NamespacedPods;
 
-    protected override bool ShouldRender() => _shouldRender;
+    @* protected override bool ShouldRender() => _shouldRender; *@
 
     protected override async Task OnInitializedAsync()
     {
@@ -175,13 +175,15 @@ else
 
             await GetPods();
 
-            GetNamespacesError = false;
-            GetPodsError = false;
-            _shouldRender = true;
+            @* _shouldRender = true; *@
         }
         catch (Exception e)
         {
-            logger.LogError(e, e.Message);
+            GetNamespacesError = true;
+            GetPodsError = true;
+            Console.WriteLine(e.Message);
+
+            @* logger.LogError(e, e.Message); *@
         }
     }
 
