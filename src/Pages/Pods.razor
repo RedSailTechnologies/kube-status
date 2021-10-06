@@ -1,8 +1,6 @@
 @page "/pods"
 
 @using System
-@using k8s
-@using k8s.Models
 
 @inject ILogger<Pods> logger
 @inject NamespaceService NamespaceService
@@ -161,20 +159,14 @@ else
 @code {
     bool GetNamespacesError;
     bool GetPodsError;
-    @* bool _shouldRender; *@
+    bool _shouldRender;
     IEnumerable<string> Namespaces = Array.Empty<string>();
     string SelectedNamespace = "default";
     IEnumerable<Pod> NamespacedPods;
 
-    @* protected override bool ShouldRender() => _shouldRender; *@
+    protected override bool ShouldRender() => _shouldRender;
 
-    protected override void OnInitialized()
-    {
-        var client = Helper.GetKubernetesClient();
-        Namespaces = client.ListNamespace().Items.Select(i => i.Metadata.Name);
-    }
-
-    @* protected override async Task OnInitializedAsync()
+    protected override async Task OnInitializedAsync()
     {
         try
         {
@@ -192,7 +184,7 @@ else
 
             logger.LogError(e, e.Message);
         }
-    } *@
+    }
 
     async Task OnSelect(ChangeEventArgs e)
     {

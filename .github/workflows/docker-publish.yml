@@ -19,14 +19,15 @@ env:
 jobs:
   # Run tests.
   # See also https://docs.docker.com/docker-hub/builds/automated-testing/
-  test:
-    runs-on: ubuntu-latest
+  # NO TESTS YET
+  # test:
+  #   runs-on: ubuntu-latest
 
-    steps:
-      - uses: actions/checkout@v2
+  #   steps:
+  #     - uses: actions/checkout@v2
 
-      - name: Run tests
-        run: docker build . --file Dockerfile
+  #     - name: Run tests
+  #       run: docker build . --file Dockerfile
 
   # Push image to GitHub Packages.
   # See also https://docs.docker.com/docker-hub/builds/
