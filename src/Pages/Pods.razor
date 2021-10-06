@@ -2,7 +2,6 @@
 
 @using System
 
-@inject ILogger<Pods> logger
 @inject NamespaceService NamespaceService
 @inject PodService PodService
 
@@ -177,12 +176,10 @@ else
 
             _shouldRender = true;
         }
-        catch (Exception e)
+        catch
         {
             GetNamespacesError = true;
             GetPodsError = true;
-
-            logger.LogError(e, e.Message);
         }
     }
 

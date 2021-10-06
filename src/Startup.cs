@@ -1,12 +1,10 @@
 using System;
 using KubeStatus.Data;
-using KubeStatus.Pages;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
 using Microsoft.OpenApi.Models;
 using Prometheus;
 
@@ -24,6 +22,9 @@ namespace KubeStatus
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+            services.AddSingleton<KafkaConnectorService>();
+            services.AddSingleton<NamespaceService>();
+            services.AddSingleton<PodService>();
             services.AddRazorPages();
             services.AddServerSideBlazor();
             services.AddHealthChecks();
@@ -32,11 +33,6 @@ namespace KubeStatus
             {
                 c.SwaggerDoc("v1", new OpenApiInfo { Title = "KubeStatus", Version = "v1" });
             });
-            services.AddSingleton<KafkaConnectorService>();
-            services.AddSingleton<NamespaceService>();
-            services.AddSingleton<PodService>();
-            services.AddSingleton<Logger<Pods>>();
-            services.AddSingleton<Logger<KafkaConnectors>>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

@@ -1,6 +1,5 @@
 @page "/kafka-connectors"
 
-@inject ILogger<KafkaConnectors> logger
 @inject KafkaConnectorService KafkaConnectorService
 
 <h1>Kafka Connectors Status</h1>
@@ -91,11 +90,9 @@ else
 
             _shouldRender = true;
         }
-        catch (Exception e)
+        catch
         {
             GetConnectorsError = true;
-
-            logger.LogError(e, e.Message);
         }
     }
 
