@@ -1,10 +1,12 @@
 using System;
 using KubeStatus.Data;
+using KubeStatus.Pages;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 using Microsoft.OpenApi.Models;
 using Prometheus;
 
@@ -33,6 +35,8 @@ namespace KubeStatus
             services.AddSingleton<KafkaConnectorService>();
             services.AddSingleton<NamespaceService>();
             services.AddSingleton<PodService>();
+            services.AddSingleton<Logger<Pods>>();
+            services.AddSingleton<Logger<KafkaConnectors>>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
