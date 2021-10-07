@@ -1,0 +1,41 @@
+@page "/namespaces"
+
+@inject NamespaceService NamespaceService
+
+<h1>Namespaces</h1>
+
+@if (GetNamespacesError)
+{
+    <p>Unable to get namespaces. Please try again later.</p>
+}
+else
+{
+    <TableTemplate Items="NamespaceList" TableClass="table-sm table-striped">
+        <RowTemplate>
+            <td>@context</td>
+        </RowTemplate>
+    </TableTemplate>
+}
+
+@code {
+    bool GetNamespacesError;
+    bool _shouldRender;
+    IEnumerable<string> NamespaceList = Array.Empty<string>();
+
+    protected override bool ShouldRender() => _shouldRender;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            var namespaces = await NamespaceService.GetAllNamespacesAsync();
+            NamespaceList = namespaces.Items.Select(i => i.Metadata.Name);
+
+            _shouldRender = true;
+        }
+        catch
+        {
+            GetNamespacesError = true;
+        }
+    }
+}

@@ -10,9 +10,11 @@ namespace KubeStatus
         {
             if (bool.TryParse(Environment.GetEnvironmentVariable("BUILD_CONFIG_FROM_CONFIG_FILE"), out bool localContext) && localContext)
             {
+                Console.WriteLine("Using kube.config");
                 return KubernetesClientConfiguration.BuildConfigFromConfigFile();
             }
 
+            Console.WriteLine("Using in cluster config");
             return KubernetesClientConfiguration.InClusterConfig();
         }
 
