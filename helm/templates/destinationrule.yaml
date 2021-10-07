@@ -1,0 +1,14 @@
+{{- if .Values.istio.enabled -}}
+kind: DestinationRule
+apiVersion: networking.istio.io/v1alpha3
+metadata:
+  name: {{ include "kube-status.fullname" . }}-sticky
+spec:
+  host: {{ include "kube-status.fullname" . }}.{{ .Release.Namespace }}.svc.cluster.local
+  trafficPolicy:
+    loadBalancer:
+      consistentHash:
+        httpCookie:
+          name: user
+          ttl: 0s
+{{- end -}}

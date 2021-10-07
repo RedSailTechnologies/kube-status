@@ -1,0 +1,16 @@
+{{- if .Values.istio.enabled -}}
+apiVersion: networking.istio.io/v1beta1
+kind: VirtualService
+metadata:
+  name: {{ include "kube-status.fullname" . }}
+spec:
+  hosts:
+    - {{ .Values.istio.host }}
+  gateways:
+    - {{ .Values.istio.gateway }}
+  http:
+    - name: {{ include "kube-status.fullname" . }}
+      route:
+        - destination:
+            host: {{ include "kube-status.fullname" . }}.{{ .Release.Namespace }}.svc.cluster.local
+{{- end -}}

@@ -1,0 +1,109 @@
+{{- if and .Values.oauth2proxy.enabled .Values.istio.enabled -}}
+apiVersion: security.istio.io/v1beta1
+kind: AuthorizationPolicy
+metadata:
+  name: auth-policy-{{ include "kube-status.fullname" . }}
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: {{ include "kube-status.fullname" . }}
+  rules:
+    - from:
+        - source:
+            requestPrincipals: ["*"]
+      to:
+        - operation:
+            hosts: 
+              - {{ .Values.istio.host }}
+---
+apiVersion: "security.istio.io/v1beta1"
+kind: "RequestAuthentication"
+metadata:
+  labels:
+    app.kubernetes.io/name: {{ include "kube-status.fullname" . }}
+  name: jwt-azure-{{ include "kube-status.fullname" . }}
+spec:
+  selector:
+    matchLabels:
+        app.kubernetes.io/name: {{ include "kube-status.fullname" . }}
+  jwtRules:
+    - issuer: "https://sts.windows.net/{{ .Values.oauth2proxy.tenantId }}"
+      jwksUri: "https://login.microsoftonline.com/common/discovery/keys"
+---
+apiVersion: networking.istio.io/v1alpha3
+kind: EnvoyFilter
+metadata:
+  name: {{ include "kube-status.fullname" . }}-oauth2
+spec:
+  workloadSelector:
+    labels:
+      app.kubernetes.io/name: {{ include "kube-status.fullname" . }}
+  configPatches:
+  - applyTo: HTTP_FILTER
+    match:
+      # context: GATEWAY
+      context: SIDECAR_INBOUND
+      listener:
+        portNumber: 8080
+        filterChain:
+          filter:
+            # name: envoy.http_connection_manager
+            name: envoy.filters.network.http_connection_manager
+            subFilter:
+              # In Istio 1.6.4 this is the first filter. The examples showing insertion
+              # after some other authorization filter or not showing where to insert
+              # the filter at all didn't work for me. Istio just failed to insert the
+              # filter (silently) and moved on.
+              name: istio.metadata_exchange
+          # The filter should catch traffic to the service/application.
+          # sni: {{ include "kube-status.fullname" . }}.{{ .Release.Namespace }}.svc.cluster.local
+    patch:
+      operation: INSERT_AFTER
+      value:
+        name: envoy.filters.http.ext_authz
+        typed_config:
+          '@type': type.googleapis.com/envoy.extensions.filters.http.ext_authz.v3.ExtAuthz
+          http_service:
+            authorizationRequest:
+              allowedHeaders:
+                patterns:
+                - exact: accept
+                - exact: authorization
+                - exact: cookie
+                - exact: from
+                - exact: proxy-authorization
+                - exact: user-agent
+                - exact: x-forwarded-access-token
+                - exact: x-forwarded-email
+                - exact: x-forwarded-for
+                - exact: x-forwarded-host
+                - exact: x-forwarded-proto
+                - exact: x-forwarded-user
+                - prefix: x-auth-request
+                - prefix: x-forwarded
+            authorizationResponse:
+              allowedClientHeaders:
+                patterns:
+                - exact: authorization
+                - exact: location
+                - exact: proxy-authenticate
+                - exact: set-cookie
+                - exact: www-authenticate
+                - prefix: x-auth-request
+                - prefix: x-forwarded
+              allowedUpstreamHeaders:
+                patterns:
+                - exact: authorization
+                - exact: location
+                - exact: proxy-authenticate
+                - exact: set-cookie
+                - exact: www-authenticate
+                - prefix: x-auth-request
+                - prefix: x-forwarded
+            server_uri:
+              # URIs here should be to the oauth2-proxy service inside your cluster
+              cluster: outbound|80||oauth2-proxy.infrastructure.svc.cluster.local
+              timeout: 1.5s
+              uri: http://oauth2-proxy.infrastructure.svc.cluster.local
+---
+{{- end }}
