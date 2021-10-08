@@ -21,19 +21,19 @@ namespace KubeStatus.Controllers
         }
 
         [HttpGet]
-        public async Task<IEnumerable<KafkaConnector>> GetAllKafkaConnectors()
+        public async Task<IEnumerable<KafkaConnector>> GetAllKafkaConnectorsAsync()
         {
             return await _kafkaConnectorService.GetAllKafkaConnectorsAsync();
         }
 
         [HttpGet("{taskState}")]
-        public async Task<IEnumerable<KafkaConnector>> GetKafkaConnectorsByTaskState(string taskState = "failed")
+        public async Task<IEnumerable<KafkaConnector>> GetKafkaConnectorsByTaskStateAsync(string taskState = "failed")
         {
             return await _kafkaConnectorService.GetKafkaConnectorsByTaskStateAsync(taskState);
         }
 
         [HttpPatch("RestartFailed")]
-        public async Task<IEnumerable<KafkaConnector>> RestartAllFailedKafkaConnectors()
+        public async Task<IEnumerable<KafkaConnector>> RestartAllFailedKafkaConnectorsAsync()
         {
             return await _kafkaConnectorService.RestartAllFailedKafkaConnectorsAsync();
         }

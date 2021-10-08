@@ -21,13 +21,13 @@ namespace KubeStatus.Controllers
         }
 
         [HttpGet]
-        public IActionResult ListNamespacedPod()
+        public IActionResult ListNamespacedPodAsync()
         {
             return Redirect("/api/pods/default");
         }
 
         [HttpGet("{k8sNamespace}")]
-        public async Task<IEnumerable<Pod>> GetAllNamespacedPods(string k8sNamespace = "default")
+        public async Task<IEnumerable<Pod>> GetAllNamespacedPodsAsync(string k8sNamespace = "default")
         {
             return await _podService.GetAllNamespacedPodsAsync(k8sNamespace);
         }

@@ -20,7 +20,7 @@ namespace KubeStatus.Controllers
         }
 
         [HttpGet]
-        public async Task<V1NamespaceList> GetAllNamespaces()
+        public async Task<V1NamespaceList> GetAllNamespacesAsync()
         {
             return await _namespaceService.GetAllNamespacesAsync();
         }
