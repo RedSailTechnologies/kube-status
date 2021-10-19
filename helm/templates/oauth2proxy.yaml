@@ -27,8 +27,8 @@ spec:
     matchLabels:
         app.kubernetes.io/name: {{ include "kube-status.fullname" . }}
   jwtRules:
-    - issuer: "https://sts.windows.net/{{ .Values.oauth2proxy.tenantId }}"
-      jwksUri: "https://login.microsoftonline.com/common/discovery/keys"
+    - issuer: {{ .Values.oauth2proxy.jwtRules.issuer }}
+      jwksUri: {{ .Values.oauth2proxy.jwtRules.jwksUri }}
 ---
 apiVersion: networking.istio.io/v1alpha3
 kind: EnvoyFilter

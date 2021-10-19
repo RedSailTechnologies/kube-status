@@ -99,4 +99,6 @@ istio:
 
 oauth2proxy:
   enabled: false
-  tenantId: 00000000-0000-0000-0000-000000000000
+  jwtRules:
+    issuer: "https://sts.windows.net/00000000-0000-0000-0000-000000000000"
+    jwksUri: "https://login.microsoftonline.com/common/discovery/keys"
