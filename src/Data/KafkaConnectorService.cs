@@ -63,23 +63,23 @@ namespace KubeStatus.Data
                 {
                     connectorState = clusterCustomObject.SelectToken("status.connectorStatus.connector.state").ToString();
 
-                    if (clusterCustomObject.SelectToken("status.connectorStatus").Children().Any(t => t.Path.Contains("status.connectorStatus.tasks[0]")))
+                    if (clusterCustomObject.SelectToken("status.connectorStatus", errorWhenNoMatch: false) != null && clusterCustomObject.SelectToken("status.connectorStatus").Children().Any(t => t.Path.Contains("status.connectorStatus.tasks[0]")))
                     {
-                        taskState = clusterCustomObject.SelectToken("status.connectorStatus.tasks[0].state").ToString();
+                        taskState = clusterCustomObject.SelectToken("status.connectorStatus.tasks[0].state", errorWhenNoMatch: false).ToString();
                     }
 
-                    if (clusterCustomObject.SelectToken("status.connectorStatus.tasks[0]").Children().Any(t => t.Path.Contains("status.connectorStatus.tasks[0].trace")))
+                    if (clusterCustomObject.SelectToken("status.connectorStatus.tasks[0]", errorWhenNoMatch: false) != null && clusterCustomObject.SelectToken("status.connectorStatus.tasks[0]").Children().Any(t => t.Path.Contains("status.connectorStatus.tasks[0].trace")))
                     {
-                        taskTrace = clusterCustomObject.SelectToken("status.connectorStatus.tasks[0].trace").ToString();
+                        taskTrace = clusterCustomObject.SelectToken("status.connectorStatus.tasks[0].trace", errorWhenNoMatch: false).ToString();
                     }
                 }
                 else
                 {
                     connectorState = clusterCustomObject.SelectToken("status.conditions[0].type").ToString();
 
-                    if (clusterCustomObject.SelectToken("status.conditions[0]").Children().Any(t => t.Path.Contains("status.conditions[0].message")))
+                    if (clusterCustomObject.SelectToken("status.conditions[0]", errorWhenNoMatch: false) != null && clusterCustomObject.SelectToken("status.conditions[0]").Children().Any(t => t.Path.Contains("status.conditions[0].message")))
                     {
-                        taskTrace = clusterCustomObject.SelectToken("status.conditions[0].message").ToString();
+                        taskTrace = clusterCustomObject.SelectToken("status.conditions[0].message", errorWhenNoMatch: false).ToString();
                     }
                 }
 
