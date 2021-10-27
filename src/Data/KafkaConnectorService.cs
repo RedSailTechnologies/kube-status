@@ -63,7 +63,7 @@ namespace KubeStatus.Data
                 {
                     connectorState = clusterCustomObject.SelectToken("status.connectorStatus.connector.state").ToString();
 
-                    if (clusterCustomObject.SelectToken("status.connectorStatus").Children().Any(t => t.Path.Contains("status.connectorStatus.tasks")))
+                    if (clusterCustomObject.SelectToken("status.connectorStatus").Children().Any(t => t.Path.Contains("status.connectorStatus.tasks[0]")))
                     {
                         taskState = clusterCustomObject.SelectToken("status.connectorStatus.tasks[0].state").ToString();
                     }
