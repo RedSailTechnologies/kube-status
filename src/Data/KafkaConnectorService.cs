@@ -29,7 +29,7 @@ namespace KubeStatus.Data
 {
     ""metadata"": {
         ""annotations"": {
-            ""strimzi.io/restart-task"": ""0""
+            ""strimzi.io/restart"": ""true""
         }
     }
 }";
