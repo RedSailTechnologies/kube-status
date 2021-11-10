@@ -33,6 +33,12 @@ else
                 <th>Task State</th>
                 <th>
                     <button class="btn btn-outline-secondary btn-sm" type="button" data-bs-toggle="collapse"
+                data-bs-target="#collapseTopics" aria-expanded="false" aria-controls="collapseTopics">
+                        Flip Topics
+                    </button>
+                </th>
+                <th>
+                    <button class="btn btn-outline-secondary btn-sm" type="button" data-bs-toggle="collapse"
                 data-bs-target="#collapseTrace" aria-expanded="false" aria-controls="collapseTrace">
                         Flip Task Trace
                     </button>
@@ -43,6 +49,19 @@ else
                 <td>@context.LastTransitionTime</td>
                 <td>@context.ConnectorState</td>
                 <td>@context.TaskState</td>
+                <td>
+                    @if (@context.Topics.Any())
+                    {
+                        <div class="collapse" id="collapseTopics">
+                            <ul>
+                            @foreach (var topic in @context.Topics)
+                            {
+                                <li>@topic</li>
+                            }
+                            </ul>
+                        </div>
+                    }
+                </td>
                 <td>
                     @if (!string.IsNullOrWhiteSpace(@context.TaskTrace))
                     {

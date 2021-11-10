@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+
 namespace KubeStatus.Models
 {
     public class KafkaConnector
@@ -8,5 +10,6 @@ namespace KubeStatus.Models
         public string ConnectorState { get; set; }
         public string TaskState { get; set; }
         public string TaskTrace { get; set; }
+        public IList<string> Topics { get; set; }
     }
 }

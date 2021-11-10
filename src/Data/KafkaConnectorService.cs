@@ -58,6 +58,7 @@ namespace KubeStatus.Data
                 var taskState = string.Empty;
                 var taskTrace = string.Empty;
                 var lastTransitionTime = string.Empty;
+                var topics = new List<string>();
 
                 if (clusterCustomObject.SelectToken("status").Children().Any(t => t.Path.Contains("status.connectorStatus")))
                 {
@@ -91,6 +92,12 @@ namespace KubeStatus.Data
                     lastTransitionTime = $"{clusterCustomObject.SelectToken("status.conditions[0].lastTransitionTime")} (UTC)";
                 }
 
+                var topicsObj = clusterCustomObject.SelectToken("status.topics", false);
+                if (topicsObj != null)
+                {
+                    topics = topicsObj.Children().Select(c => c.ToString()).ToList();
+                }
+
                 kafkaConnectors.Add(new KafkaConnector
                 {
                     Name = connectorName,
@@ -98,7 +105,8 @@ namespace KubeStatus.Data
                     LastTransitionTime = lastTransitionTime,
                     ConnectorState = connectorState,
                     TaskState = taskState,
-                    TaskTrace = taskTrace
+                    TaskTrace = taskTrace,
+                    Topics = topics
                 });
             }
 
