@@ -1,4 +1,4 @@
-@page "/pods"
+@page "/pods/{namespaceparam?}"
 
 @using System
 
@@ -156,6 +156,9 @@ else
 }
 
 @code {
+    [Parameter]
+    public string? NamespaceParam { get; set; }
+
     bool GetNamespacesError;
     bool GetPodsError;
     bool _shouldRender;
@@ -169,6 +172,9 @@ else
     {
         try
         {
+            NamespaceParam = NamespaceParam ?? "default";
+            SelectedNamespace = NamespaceParam;
+
             var namespaces = await NamespaceService.GetAllNamespacesAsync();
             Namespaces = namespaces.Items.Select(i => i.Metadata.Name);
 
