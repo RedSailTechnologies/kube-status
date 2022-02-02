@@ -4,6 +4,7 @@ metadata:
   name: {{ include "kube-status.fullname" . }}
   labels:
     {{- include "kube-status.labels" . | nindent 4 }}
+    app.kubernetes.io/component: service
 spec:
   type: {{ .Values.service.type }}
   ports:

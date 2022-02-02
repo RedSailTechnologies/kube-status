@@ -4,6 +4,7 @@ metadata:
   name: {{ include "kube-status.fullname" . }}
   labels:
     {{- include "kube-status.labels" . | nindent 4 }}
+    app.kubernetes.io/component: deployment
 spec:
   {{- if not .Values.autoscaling.enabled }}
   replicas: {{ .Values.replicaCount }}
@@ -18,7 +19,8 @@ spec:
         {{- toYaml . | nindent 8 }}
       {{- end }}
       labels:
-        {{- include "kube-status.selectorLabels" . | nindent 8 }}
+        {{- include "kube-status.labels" . | nindent 8 }}
+        app.kubernetes.io/component: website
     spec:
       {{- with .Values.imagePullSecrets }}
       imagePullSecrets:

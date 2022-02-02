@@ -11,6 +11,7 @@ metadata:
   name: {{ $fullName }}
   labels:
     {{- include "kube-status.labels" . | nindent 4 }}
+    app.kubernetes.io/component: ingress
   {{- with .Values.ingress.annotations }}
   annotations:
     {{- toYaml . | nindent 4 }}

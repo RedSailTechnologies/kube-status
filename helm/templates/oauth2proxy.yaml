@@ -4,17 +4,17 @@ kind: AuthorizationPolicy
 metadata:
   name: auth-policy-{{ include "kube-status.fullname" . }}
 spec:
+  action: CUSTOM
+  provider:
+    name: oauth2-proxy
+  rules:
+    - to:
+        - operation:
+            hosts:
+              - {{ .Values.istio.host }}
   selector:
     matchLabels:
       app.kubernetes.io/name: {{ include "kube-status.fullname" . }}
-  rules:
-    - from:
-        - source:
-            requestPrincipals: ["*"]
-      to:
-        - operation:
-            hosts: 
-              - {{ .Values.istio.host }}
 ---
 apiVersion: "security.istio.io/v1beta1"
 kind: "RequestAuthentication"
@@ -30,6 +30,7 @@ spec:
     - issuer: {{ .Values.oauth2proxy.jwtRules.issuer }}
       jwksUri: {{ .Values.oauth2proxy.jwtRules.jwksUri }}
 ---
+{{- if false -}}
 apiVersion: networking.istio.io/v1alpha3
 kind: EnvoyFilter
 metadata:
@@ -106,4 +107,5 @@ spec:
               timeout: 1.5s
               uri: http://oauth2-proxy.infrastructure.svc.cluster.local
 ---
+{{- end }}
 {{- end }}

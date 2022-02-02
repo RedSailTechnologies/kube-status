@@ -36,13 +36,15 @@ podSecurityContext:
   # fsGroup: 2000
 
 securityContext:
-  {}
-  # capabilities:
-  #   drop:
-  #   - ALL
-  # readOnlyRootFilesystem: true
-  # runAsNonRoot: true
-  # runAsUser: 1000
+  capabilities:
+    drop:
+      - ALL
+  privileged: false
+  runAsUser: 10001
+  runAsGroup: 10001
+  runAsNonRoot: true
+  readOnlyRootFilesystem: true
+  allowPrivilegeEscalation: false
 
 service:
   type: ClusterIP
@@ -88,6 +90,7 @@ containerPort: 8080
 metricsPort: 5599
 
 envVars:
+  COMPlus_EnableDiagnostics: "0"
   ASPNETCORE_ENVIRONMENT: Production
   ASPNETCORE_URLS: http://+:5599;http://+:8080
   ENABLE_SWAGGER: "true"
