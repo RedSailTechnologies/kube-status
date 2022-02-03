@@ -41,5 +41,20 @@ namespace KubeStatus
         {
             return Environment.GetEnvironmentVariable("STRIMZI__CONNECTOR_PLURAL") ?? "kafkaconnectors";
         }
+
+        public static string SparkGroup()
+        {
+            return Environment.GetEnvironmentVariable("SPARK__GROUP") ?? "sparkoperator.k8s.io";
+        }
+
+        public static string SparkApplicationVersion()
+        {
+            return Environment.GetEnvironmentVariable("SPARK__APPLICATION_VERSION") ?? "v1beta2";
+        }
+
+        public static string SparkApplicationPlural()
+        {
+            return Environment.GetEnvironmentVariable("SPARK__APPLICATION_PLURAL") ?? "sparkapplications";
+        }
     }
 }

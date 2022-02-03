@@ -1,0 +1,137 @@
+@page "/spark-applications"
+
+@inject SparkApplicationService SparkApplicationService
+
+<h1>Spark Applications Status</h1>
+
+@if (GetApplicationsError)
+{
+    <p>Unable to get Spark Applications. Please try again later.</p>
+}
+else
+{
+    @if (@Applications != null && @Applications.Any())
+    {
+        <TableTemplate Items="Applications" TItem="SparkApplication" TableHeaderClass="thead-light">
+            <TableHeader>
+                <th>Name</th>
+                <th>Submission Attempts</th>
+                <th>Last Submission Attempt Time</th>
+                <th>Termination Time</th>
+                <th>Application State</th>
+                <th>Driver Info</th>
+                <th>Executor Attempts</th>
+                <th>Executor State</th>
+                <th>Spark Application Spec</th>
+            </TableHeader>
+            <RowTemplate>
+                <td>@context.Metadata.Name</td>
+                <td>@context.Status.SubmissionAttempts</td>
+                <td>@context.Status.LastSubmissionAttemptTime</td>
+                <td>@context.Status.TerminationTime</td>
+                <td style="">
+                    @if (context.Status.ApplicationState != null)
+                    {
+                        var sortedAppState = new
+                        SortedDictionary<string, string>(context.Status.ApplicationState).OrderByDescending(s => s.Key);
+                        foreach (var appState in sortedAppState)
+                        {
+                            if (appState.Key.Equals("errorMessage", StringComparison.OrdinalIgnoreCase))
+                            {
+                                <button class="btn btn-outline-secondary btn-sm" type="button" data-bs-toggle="collapse"
+                data-bs-target="#@context.Metadata.Name-app-state-@appState.Key" aria-expanded="false"
+                aria-controls="@context.Metadata.Name-app-state-@appState.Key">
+                                    Show Errors
+                                </button>
+                                <div class="app-state collapse" id="@context.Metadata.Name-app-state-@appState.Key">
+                                    <div class="key fw-bold">@($"{char.ToUpper(@appState.Key[0])}{@appState.Key.Substring(1)}:")</div>
+                                    <div class="value">@appState.Value</div>
+                                </div>
+                            }
+                            else
+                            {
+                                <div class="app-state" id="@context.Metadata.Name-app-state-@appState.Key">
+                                    <div class="key fw-bold">@($"{char.ToUpper(@appState.Key[0])}{@appState.Key.Substring(1)}:")</div>
+                                    <div class="value">@appState.Value</div>
+                                </div>
+                            }
+                        }
+                    }
+                </td>
+                <td style="">
+                    @if (context.Status.DriverInfo != null)
+                    {
+                        foreach (var driverInfo in context.Status.DriverInfo)
+                        {
+                            <div class="driver-info" id="@context.Metadata.Name-driver-info-@driverInfo.Key">
+                                <div class="key fw-bold">@($"{char.ToUpper(@driverInfo.Key[0])}{@driverInfo.Key.Substring(1)}:")</div>
+                                <div class="value">@driverInfo.Value</div>
+                            </div>
+                        }
+                    }
+                </td>
+                <td>@context.Status.ExecutionAttempts</td>
+                <td>
+                    @if (context.Status.ExecutorState != null)
+                    {
+                        foreach (var execState in context.Status.ExecutorState)
+                        {
+                            <div class="exec-state" id="@context.Metadata.Name-exec-state-@execState.Key">
+                                <div class="key fw-bold">@($"{char.ToUpper(@execState.Key[0])}{@execState.Key.Substring(1)}:")</div>
+                                <div class="value">@execState.Value</div>
+                            </div>
+                        }
+                    }
+                </td>
+                <td>
+                    @if (!string.IsNullOrWhiteSpace(@context.Spec))
+                    {
+                        <button class="btn btn-outline-secondary btn-sm" type="button" data-bs-toggle="collapse"
+                data-bs-target="#@context.Metadata.Name-spec" aria-expanded="false" aria-controls="@context.Metadata.Name-spec">
+                        Flip Spec
+                    </button>
+                        <div class="collapse" id="@context.Metadata.Name-spec">
+                            <samp>
+                                @context.Spec
+                            </samp>
+                        </div>
+                    }
+                </td>
+            </RowTemplate>
+        </TableTemplate>
+    }
+    else if (Applications == null)
+    {
+        <div class="alert alert-info" role="alert">
+            Loading Spark Applications...
+        </div>
+    }
+    else
+    {
+        <div class="alert alert-primary" role="alert">
+            No Spark Applications Found
+        </div>
+    }
+}
+
+@code {
+    bool GetApplicationsError;
+    bool _shouldRender;
+    IEnumerable<SparkApplication> Applications;
+
+    protected override bool ShouldRender() => _shouldRender;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            Applications = await SparkApplicationService.GetAllSparkApplicationsAsync();
+
+            _shouldRender = true;
+        }
+        catch
+        {
+            GetApplicationsError = true;
+        }
+    }
+}
