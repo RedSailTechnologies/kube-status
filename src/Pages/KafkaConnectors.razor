@@ -31,18 +31,8 @@ else
                 <th>Last Transition Time</th>
                 <th>Connector State</th>
                 <th>Task State</th>
-                <th>
-                    <button class="btn btn-outline-secondary btn-sm" type="button" data-bs-toggle="collapse"
-                data-bs-target="#collapseTopics" aria-expanded="false" aria-controls="collapseTopics">
-                        Flip Topics
-                    </button>
-                </th>
-                <th>
-                    <button class="btn btn-outline-secondary btn-sm" type="button" data-bs-toggle="collapse"
-                data-bs-target="#collapseTrace" aria-expanded="false" aria-controls="collapseTrace">
-                        Flip Task Trace
-                    </button>
-                </th>
+                <th>Topics</th>
+                <th>Task Trace</th>
             </TableHeader>
             <RowTemplate>
                 <td>@context.Name</td>
@@ -52,12 +42,16 @@ else
                 <td>
                     @if (@context.Topics.Any())
                     {
-                        <div class="collapse" id="collapseTopics">
+                        <button class="btn btn-outline-secondary btn-sm" type="button" data-bs-toggle="collapse"
+                data-bs-target="#@context.Name-topics" aria-expanded="false" aria-controls="@context.Name-topics">
+                            Flip Topics
+                        </button>
+                        <div class="collapse" id="@context.Name-topics">
                             <ul>
-                            @foreach (var topic in @context.Topics)
-                            {
-                                <li>@topic</li>
-                            }
+                                @foreach (var topic in @context.Topics)
+                                {
+                                    <li>@topic</li>
+                                }
                             </ul>
                         </div>
                     }
@@ -65,8 +59,14 @@ else
                 <td>
                     @if (!string.IsNullOrWhiteSpace(@context.TaskTrace))
                     {
-                        <div class="collapse" id="collapseTrace">
-                            @context.TaskTrace
+                        <button class="btn btn-outline-secondary btn-sm" type="button" data-bs-toggle="collapse"
+                data-bs-target="#@context.Name-trace" aria-expanded="false" aria-controls="@context.Name-trace">
+                            Flip Task Trace
+                        </button>
+                        <div class="collapse" id="@context.Name-trace">
+                            <samp>
+                                @context.TaskTrace
+                            </samp>
                         </div>
                     }
                 </td>
