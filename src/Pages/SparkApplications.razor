@@ -45,7 +45,9 @@ else
                                 </button>
                                 <div class="app-state collapse" id="@context.Metadata.Name-app-state-@appState.Key">
                                     <div class="key fw-bold">@($"{char.ToUpper(@appState.Key[0])}{@appState.Key.Substring(1)}:")</div>
-                                    <div class="value">@appState.Value</div>
+                                    <div class="value">
+                                        <pre>@appState.Value</pre>
+                                    </div>
                                 </div>
                             }
                             else
@@ -87,13 +89,12 @@ else
                     @if (!string.IsNullOrWhiteSpace(@context.Spec))
                     {
                         <button class="btn btn-outline-secondary btn-sm" type="button" data-bs-toggle="collapse"
-                data-bs-target="#@context.Metadata.Name-spec" aria-expanded="false" aria-controls="@context.Metadata.Name-spec">
-                        Flip Spec
-                    </button>
+                data-bs-target="#@context.Metadata.Name-spec" aria-expanded="false"
+                aria-controls="@context.Metadata.Name-spec">
+                            Flip Spec
+                        </button>
                         <div class="collapse" id="@context.Metadata.Name-spec">
-                            <samp>
-                                @context.Spec
-                            </samp>
+                            <pre>@context.Spec</pre>
                         </div>
                     }
                 </td>
