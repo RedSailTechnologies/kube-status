@@ -84,20 +84,46 @@ else
                         <div class="collapse" id="collapseContainerStatus">
                             <div class="mb-2"><strong>Pod Name:</strong> @context.PodName</div>
                             <TableTemplate
-                    Items="@context.Status.Select(s => new { s.Name, s.Started, s.Ready }).OrderBy(s => s.Name)"
+                    Items="@context.Status.Select(s => new { s.Name, s.Started, s.Ready, s.RestartCount, s.Image, s.ImageID }).OrderBy(s => s.Name)"
                     TableClass="table-sm table-striped">
                                 <TableHeader>
                     <th>Name</th>
                     <th>Started</th>
                     <th>Ready</th>
+                    <th>Restart Count</th>
+                    <th>Image</th>
+                    <th>Tag</th>
+                    <th>Image ID</th>
                     </TableHeader>
                     <RowTemplate Context="statusContext">
                         <td>@statusContext.Name</td>
                         <td>@statusContext.Started</td>
                         <td>@statusContext.Ready</td>
-                    </RowTemplate>
-            </TableTemplate>
-            </div>
+                        <td>@statusContext.RestartCount</td>
+                        <td>@if (statusContext.ImageID?.Split('@').Length > 1)
+                                        {
+                                @statusContext.ImageID?.Split('@')[0]
+                                        }
+                                        else
+                                        {
+                                @statusContext.Image?.Split(':')[0]
+                                        }
+            </td>
+            <td>@if (statusContext.Image.StartsWith("sha"))
+                                        {
+                                @statusContext.Image
+                                        }
+                                        else
+                                        {
+                                @statusContext.Image?.Split(':')[1]}</td>
+                <td>@if (statusContext.ImageID?.Split('@').Length > 1)
+                                        {
+                                @statusContext.ImageID?.Split('@')[1]
+                                        }
+            </td>
+        </RowTemplate>
+</TableTemplate>
+</div>
                     }
         </td>
         <td>
