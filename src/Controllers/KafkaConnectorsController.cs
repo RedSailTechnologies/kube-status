@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using KubeStatus.Data;
 using KubeStatus.Models;
@@ -24,6 +26,13 @@ namespace KubeStatus.Controllers
         public async Task<IEnumerable<KafkaConnector>> GetAllKafkaConnectorsAsync()
         {
             return await _kafkaConnectorService.GetAllKafkaConnectorsAsync();
+        }
+
+        [HttpGet]
+        [Route("status")]
+        public async Task<string> GetConnectorsStatusAsync()
+        {
+            return await _kafkaConnectorService.GetConnectorsStatusAsync();
         }
 
         [HttpGet("{taskState}")]

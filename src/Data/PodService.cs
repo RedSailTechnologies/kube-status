@@ -14,7 +14,7 @@ namespace KubeStatus.Data
 
             var client = Helper.GetKubernetesClient();
 
-            var list = client.ListNamespacedPod(k8sNamespace);
+            var list = await client.ListNamespacedPodAsync(k8sNamespace);
             foreach (var item in list.Items)
             {
                 pods.Add(new Pod
@@ -32,7 +32,9 @@ namespace KubeStatus.Data
                     Annotations = item.Metadata.Annotations,
                     Status = item.Status.ContainerStatuses,
                     PodStatus = item.Status.Phase,
-                    PodVolumes = item.Spec.Volumes.Select(v => v.Name).ToList()
+                    PodVolumes = item.Spec.Volumes.Select(v => v.Name).ToList(),
+                    PodIPs = item.Status.PodIPs.Select(i => i.Ip).ToList(),
+                    HostIP = item.Status.HostIP
                 });
             }
 

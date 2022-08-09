@@ -47,6 +47,8 @@ else
                 <th>Version</th>
                 <th>Part Of</th>
                 <th>Pod Status</th>
+                <th>Node IP</th>
+                <th>Pod IP(s)</th>
                 <th>
                     <button class="btn btn-outline-secondary btn-sm" type="button" data-bs-toggle="collapse"
                 data-bs-target="#collapseContainerStatus" aria-expanded="false" aria-controls="collapseContainerStatus">
@@ -78,6 +80,18 @@ else
                 <td>@context.Version</td>
                 <td>@context.PartOf</td>
                 <td>@context.PodStatus</td>
+                <td>@context.HostIP</td>
+                <td>
+                    @if(@context.PodIPs != null && context.PodIPs.Any())
+                    {
+                        <ul>
+                        @foreach (var ip in context.PodIPs)
+                        {
+                            <li>@ip</li>
+                        }
+                        </ul>
+                    }
+                </td>
                 <td>
                     @if (context.Status != null && context.Status.Any())
                     {

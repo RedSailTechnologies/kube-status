@@ -1,28 +1,32 @@
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Http;
+using System.Text.Json;
+using System.Text.Json.Nodes;
 using System.Threading.Tasks;
 using k8s;
 using k8s.Models;
 using KubeStatus.Models;
-using Newtonsoft.Json.Linq;
 
 namespace KubeStatus.Data
 {
     public class KafkaConnectorService
     {
+        static readonly HttpClient client = new HttpClient();
+
         public async Task<IEnumerable<KafkaConnector>> GetAllKafkaConnectorsAsync()
         {
-            return await Task.FromResult(GetKafkaConnectors());
+            return await GetKafkaConnectors();
         }
 
         public async Task<IEnumerable<KafkaConnector>> GetKafkaConnectorsByTaskStateAsync(string taskState = "failed")
         {
-            return await Task.FromResult(GetKafkaConnectors().Where(c => c.TaskState.Equals(taskState, System.StringComparison.OrdinalIgnoreCase)));
+            return await Task.FromResult(GetKafkaConnectors().Result.Where(c => c.TaskState.Equals(taskState, System.StringComparison.OrdinalIgnoreCase)));
         }
 
         public async Task<IEnumerable<KafkaConnector>> RestartAllFailedKafkaConnectorsAsync()
         {
-            var failedKafkaConnectors = GetKafkaConnectors().Where(c => c.TaskState.Equals("failed", System.StringComparison.OrdinalIgnoreCase));
+            var failedKafkaConnectors = GetKafkaConnectors().Result.Where(c => c.TaskState.Equals("failed", System.StringComparison.OrdinalIgnoreCase));
             foreach (var failedKafkaConnector in failedKafkaConnectors)
             {
                 var patchStr = @"
@@ -35,24 +39,27 @@ namespace KubeStatus.Data
 }";
 
                 var client = Helper.GetKubernetesClient();
-                client.PatchNamespacedCustomObject(new V1Patch(patchStr, V1Patch.PatchType.MergePatch), Helper.StrimziGroup(), Helper.StrimziConnectorVersion(), failedKafkaConnector.Namespace, Helper.StrimziConnectorPlural(), failedKafkaConnector.Name);
+                await client.PatchNamespacedCustomObjectAsync(new V1Patch(patchStr, V1Patch.PatchType.MergePatch), Helper.StrimziGroup(), Helper.StrimziConnectorVersion(), failedKafkaConnector.Namespace, Helper.StrimziConnectorPlural(), failedKafkaConnector.Name);
             }
 
             return await Task.FromResult(failedKafkaConnectors);
         }
 
-        private IEnumerable<KafkaConnector> GetKafkaConnectors()
+        private async Task<IEnumerable<KafkaConnector>> GetKafkaConnectors()
         {
             var kafkaConnectors = new List<KafkaConnector>();
 
             var client = Helper.GetKubernetesClient();
 
-            var clusterCustomObjects = ((JObject)client.ListClusterCustomObject(Helper.StrimziGroup(), Helper.StrimziConnectorVersion(), Helper.StrimziConnectorPlural())).SelectToken("items").Children();
+            var response = await client.ListClusterCustomObjectAsync(Helper.StrimziGroup(), Helper.StrimziConnectorVersion(), Helper.StrimziConnectorPlural());
+            var jsonString = JsonSerializer.Serialize<object>(response);
+            JsonNode jsonNode = JsonNode.Parse(jsonString)!;
+            JsonNode itemsNode = jsonNode!["items"]!;
 
-            foreach (var clusterCustomObject in clusterCustomObjects)
+            foreach (var item in itemsNode.AsArray())
             {
-                var connectorName = clusterCustomObject.SelectToken("metadata.name").ToString();
-                var connectorNamespace = clusterCustomObject.SelectToken("metadata.namespace").ToString();
+                var connectorName = item!["metadata"]!["name"]!.ToString();
+                var connectorNamespace = item!["metadata"]!["namespace"]!.ToString();
 
                 var connectorState = string.Empty;
                 var taskState = string.Empty;
@@ -60,17 +67,17 @@ namespace KubeStatus.Data
                 var lastTransitionTime = string.Empty;
                 var topics = new List<string>();
 
-                if (clusterCustomObject.SelectToken("status").Children().Any(t => t.Path.Contains("status.connectorStatus")))
+                if (item!["status"].AsObject().Any(t => t.Key.Equals("connectorStatus")))
                 {
-                    connectorState = clusterCustomObject.SelectToken("status.connectorStatus.connector.state").ToString();
+                    connectorState = item!["status"]!["connectorStatus"]!["connector"]!["state"]!.ToString();
 
-                    var taskStateObj = clusterCustomObject.SelectToken("status.connectorStatus.tasks[0].state", false);
+                    var taskStateObj = item!["status"]!["connectorStatus"]!["tasks"]![0]["state"];
                     if (taskStateObj != null)
                     {
                         taskState = taskStateObj.ToString();
                     }
 
-                    var taskTraceObj = clusterCustomObject.SelectToken("status.connectorStatus.tasks[0].trace", false);
+                    var taskTraceObj = item!["status"]!["connectorStatus"]!["tasks"]![0]!["trace"];
                     if (taskTraceObj != null)
                     {
                         taskTrace = taskTraceObj.ToString();
@@ -78,24 +85,24 @@ namespace KubeStatus.Data
                 }
                 else
                 {
-                    connectorState = clusterCustomObject.SelectToken("status.conditions[0].type").ToString();
+                    connectorState = item!["status"]!["conditions"]![0]!["type"].ToString();
 
-                    var taskTraceObj = clusterCustomObject.SelectToken("status.conditions[0].message", false);
+                    var taskTraceObj = item!["status"]!["conditions"]![0]!["message"];
                     if (taskTraceObj != null)
                     {
                         taskTrace = taskTraceObj.ToString();
                     }
                 }
 
-                if (clusterCustomObject.SelectToken("status.conditions[0]").Children().Any(t => t.Path.Contains("status.conditions[0].lastTransitionTime")))
+                if (item!["status"]!["conditions"]![0].AsObject().Any(t => t.Key.Contains("lastTransitionTime")))
                 {
-                    lastTransitionTime = $"{clusterCustomObject.SelectToken("status.conditions[0].lastTransitionTime")} (UTC)";
+                    lastTransitionTime = $"{item!["status"]!["conditions"]![0]!["lastTransitionTime"]!} (UTC)";
                 }
 
-                var topicsObj = clusterCustomObject.SelectToken("status.topics", false);
+                var topicsObj = item!["status"]!["topics"];
                 if (topicsObj != null)
                 {
-                    topics = topicsObj.Children().Select(c => c.ToString()).ToList();
+                    topics = topicsObj.AsArray().Select(c => c.ToString()).ToList();
                 }
 
                 kafkaConnectors.Add(new KafkaConnector
@@ -112,5 +119,35 @@ namespace KubeStatus.Data
 
             return kafkaConnectors;
         }
+
+        public async Task<string> GetConnectorsStatusAsync(bool expandStatus = true, bool expandInfo = true)
+        {
+            var host = Helper.StrimziConnectClusterServiceHost();
+            if (string.IsNullOrWhiteSpace(host))
+            {
+                return "{}";
+            }
+            else
+            {
+                var urlParam = string.Empty;
+                if (expandStatus && expandInfo)
+                {
+                    urlParam = "?expand=status&expand=info";
+                }
+                else if (expandStatus)
+                {
+                    urlParam = "?expand=status";
+                }
+                else if (expandInfo)
+                {
+                    urlParam = "?expand=info";
+                }
+
+                var uri = $"{host.TrimEnd(new char[] { '\\', '/' })}/connectors{urlParam}";
+
+                return await client.GetStringAsync(uri);
+            }
+        }
     }
 }
+

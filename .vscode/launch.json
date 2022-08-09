@@ -9,7 +9,7 @@
             "type": "coreclr",
             "request": "launch",
             "preLaunchTask": "build",
-            "program": "${workspaceFolder}/src/bin/Debug/net5.0/KubeStatus.dll",
+            "program": "${workspaceFolder}/src/bin/Debug/net6.0/KubeStatus.dll",
             "args": [],
             "cwd": "${workspaceFolder}/src",
             "stopAtEntry": false,
@@ -24,7 +24,8 @@
             "env": {
                 "ASPNETCORE_ENVIRONMENT": "Development",
                 "BUILD_CONFIG_FROM_CONFIG_FILE": "true",
-                "ENABLE_SWAGGER": "true"
+                "ENABLE_SWAGGER": "true",
+                "STRIMZI__CONNECT_CLUSTER_SERVICE_HOST": "http://localhost:65282/"
             },
             "sourceFileMap": {
                 "/Views": "${workspaceFolder}/src/Views"

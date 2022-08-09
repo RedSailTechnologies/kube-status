@@ -42,6 +42,11 @@ namespace KubeStatus
             return Environment.GetEnvironmentVariable("STRIMZI__CONNECTOR_PLURAL") ?? "kafkaconnectors";
         }
 
+        public static string StrimziConnectClusterServiceHost()
+        {
+            return Environment.GetEnvironmentVariable("STRIMZI__CONNECT_CLUSTER_SERVICE_HOST") ?? "";
+        }
+
         public static string SparkGroup()
         {
             return Environment.GetEnvironmentVariable("SPARK__GROUP") ?? "sparkoperator.k8s.io";

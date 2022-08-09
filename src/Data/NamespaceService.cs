@@ -11,7 +11,7 @@ namespace KubeStatus.Data
         {
             var client = Helper.GetKubernetesClient();
 
-            var namespaces = client.ListNamespace();
+            var namespaces = await client.ListNamespaceAsync();
 
             return await Task.FromResult(namespaces);
         }

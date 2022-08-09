@@ -19,5 +19,7 @@ namespace KubeStatus.Models
         public IList<V1ContainerStatus> Status { get; set; }
         public string PodStatus { get; set; }
         public IList<string> PodVolumes { get; set; }
+        public IList<string> PodIPs { get; set; }
+        public string HostIP { get; set; }
     }
 }

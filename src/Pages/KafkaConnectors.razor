@@ -1,5 +1,6 @@
 @page "/kafka-connectors"
 
+@inject IJSRuntime JS
 @inject KafkaConnectorService KafkaConnectorService
 
 <h1>Kafka Connectors Status</h1>
@@ -12,7 +13,7 @@
 }
 else if (HasFailedTasks)
 {
-    <button @onclick="RestartFailed" class="btn btn-primary my-3" disabled="@ButtonIsDisabled">
+    <button @onclick="RestartFailed" class="btn btn-primary my-3" disabled="@FailedButtonIsDisabled">
         Restart All Failed Tasks
     </button>
 }
@@ -85,13 +86,33 @@ else
     }
 }
 
+@if(ShowKafkaApiButtons)
+{
+    <button @onclick="ShowConfiguration" class="btn btn-primary my-3">
+        View Configuration
+    </button>
+    <button @onclick="ShowLiveStatus" class="btn btn-primary my-3">
+        View Live Status
+    </button>
+    @if(!string.IsNullOrWhiteSpace(@JsonText.ToString()))
+    {
+        <button @onclick="Clear" class="btn btn-light m-3">
+            Clear
+        </button>
+    }
+    <pre>@JsonText</pre>
+}
+
 @code {
     bool GetConnectorsError;
     bool ConnectorsRestarted;
     bool _shouldRender;
     IEnumerable<KafkaConnector> Connectors;
     bool HasFailedTasks;
-    bool ButtonIsDisabled;
+    bool FailedButtonIsDisabled;
+    bool ShowKafkaApiButtons;
+    string StatusJson;
+    MarkupString JsonText;
 
     protected override bool ShouldRender() => _shouldRender;
 
@@ -105,6 +126,8 @@ else
             c.ConnectorState.Equals("failed", StringComparison.OrdinalIgnoreCase)
             );
 
+            ShowKafkaApiButtons = !String.IsNullOrWhiteSpace(Helper.StrimziConnectClusterServiceHost());
+
             _shouldRender = true;
         }
         catch
@@ -115,15 +138,32 @@ else
 
     async Task RestartFailed()
     {
-        if (ButtonIsDisabled)
+        if (FailedButtonIsDisabled)
         {
             return;
         }
 
-        ButtonIsDisabled = true;
+        FailedButtonIsDisabled = true;
         var kafkaconnectorService = new KafkaConnectorService();
         Connectors = await kafkaconnectorService.RestartAllFailedKafkaConnectorsAsync();
 
         ConnectorsRestarted = true;
+    }
+
+    async Task ShowConfiguration()
+    {
+        StatusJson = await KafkaConnectorService.GetConnectorsStatusAsync(expandStatus: false);
+        JsonText = new MarkupString(await JS.InvokeAsync<string>("formatJson", StatusJson));
+    }
+
+    async Task ShowLiveStatus()
+    {
+        StatusJson = await KafkaConnectorService.GetConnectorsStatusAsync(expandInfo: false);
+        JsonText = new MarkupString(await JS.InvokeAsync<string>("formatJson", StatusJson));
+    }
+
+    async Task Clear()
+    {
+        JsonText = new MarkupString();
     }
 }

@@ -44,4 +44,11 @@
         crossorigin="anonymous"></script>
 </body>
 
+<script>
+    function formatJson(text) {
+        var jsonObj = JSON.parse(text);
+        return JSON.stringify(jsonObj, undefined, 2);
+    }
+</script>
+
 </html>
