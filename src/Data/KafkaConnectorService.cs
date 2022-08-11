@@ -26,7 +26,8 @@ namespace KubeStatus.Data
 
         public async Task<IEnumerable<KafkaConnector>> RestartAllFailedKafkaConnectorsAsync()
         {
-            var failedKafkaConnectors = GetKafkaConnectors().Result.Where(c => c.TaskState.Equals("failed", System.StringComparison.OrdinalIgnoreCase));
+            var kafkaConnectors = await GetKafkaConnectors();
+            var failedKafkaConnectors = kafkaConnectors.Where(c => c.TaskState.Equals("failed", System.StringComparison.OrdinalIgnoreCase));
             foreach (var failedKafkaConnector in failedKafkaConnectors)
             {
                 var patchStr = @"
