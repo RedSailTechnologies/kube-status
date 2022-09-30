@@ -47,32 +47,11 @@ else
                 <th>Version</th>
                 <th>Part Of</th>
                 <th>Pod Status</th>
-                <th>Node IP</th>
-                <th>Pod IP(s)</th>
-                <th>
-                    <button class="btn btn-outline-secondary btn-sm" type="button" data-bs-toggle="collapse"
-                data-bs-target="#collapseContainerStatus" aria-expanded="false" aria-controls="collapseContainerStatus">
-                        Flip Container Statuses
-                    </button>
-                </th>
-                <th>
-                    <button class="btn btn-outline-secondary btn-sm" type="button" data-bs-toggle="collapse"
-                data-bs-target="#collapseLabels" aria-expanded="false" aria-controls="collapseLabels">
-                        Flip Pod Labels
-                    </button>
-                </th>
-                <th>
-                    <button class="btn btn-outline-secondary btn-sm" type="button" data-bs-toggle="collapse"
-                data-bs-target="#collapseAnnotations" aria-expanded="false" aria-controls="collapseAnnotations">
-                        Flip Pod Annotations
-                    </button>
-                </th>
-                <th>
-                    <button class="btn btn-outline-secondary btn-sm" type="button" data-bs-toggle="collapse"
-                data-bs-target="#collapsePodVolumes" aria-expanded="false" aria-controls="collapsePodVolumes">
-                        Flip Pod Volumes
-                    </button>
-                </th>
+                <th>Node IP & Pod IP(s)</th>
+                <th>Containers</th>
+                <th>Pod Labels</th>
+                <th>Pod Annotations</th>
+                <th>Pod Volumes</th>
             </TableHeader>
             <RowTemplate>
                 <td>@(string.IsNullOrWhiteSpace(context.Name) ? context.PodName : context.Name)</td>
@@ -80,22 +59,27 @@ else
                 <td>@context.Version</td>
                 <td>@context.PartOf</td>
                 <td>@context.PodStatus</td>
-                <td>@context.HostIP</td>
-                <td>
-                    @if(@context.PodIPs != null && context.PodIPs.Any())
+                <td>@context.HostIP
+                    @if (@context.PodIPs != null && context.PodIPs.Any())
                     {
                         <ul>
-                        @foreach (var ip in context.PodIPs)
-                        {
-                            <li>@ip</li>
-                        }
+                            @foreach (var ip in context.PodIPs)
+                            {
+                                <li>@ip</li>
+                            }
                         </ul>
                     }
                 </td>
                 <td>
                     @if (context.Status != null && context.Status.Any())
                     {
-                        <div class="collapse" id="collapseContainerStatus">
+                        <button class="btn btn-outline-secondary btn-sm" type="button" data-bs-toggle="collapse"
+                data-bs-target="#@context.PodName-collapseContainerStatus" aria-expanded="false"
+                aria-controls="collapseContainerStatus">
+                            Flip Container Statuses
+                        </button>
+
+                        <div class="collapse" id="@context.PodName-collapseContainerStatus">
                             <div class="mb-2"><strong>Pod Name:</strong> @context.PodName</div>
                             <TableTemplate
                     Items="@context.Status.Select(s => new { s.Name, s.Started, s.Ready, s.RestartCount, s.Image, s.ImageID }).OrderBy(s => s.Name)"
@@ -143,7 +127,11 @@ else
         <td>
                     @if (context.Labels != null && context.Labels.Any())
                     {
-                <div class="collapse" id="collapseLabels">
+                <button class="btn btn-outline-secondary btn-sm" type="button" data-bs-toggle="collapse"
+        data-bs-target="#@context.PodName-collapseLabels" aria-expanded="false" aria-controls="collapseLabels">
+                    Flip Pod Labels
+                </button>
+                <div class="collapse" id="@context.PodName-collapseLabels">
                     <TableTemplate Items="@context.Labels" TableClass="table-sm table-striped">
                         <RowTemplate Context="labelsContext">
             <td>@labelsContext.Key</td>
@@ -156,7 +144,12 @@ else
         <td>
                     @if (context.Annotations != null && context.Annotations.Any())
                     {
-                <div class="collapse" id="collapseAnnotations">
+                <button class="btn btn-outline-secondary btn-sm" type="button" data-bs-toggle="collapse"
+        data-bs-target="#@context.PodName-collapseAnnotations" aria-expanded="false"
+        aria-controls="collapseAnnotations">
+                    Flip Pod Annotations
+                </button>
+                <div class="collapse" id="@context.PodName-collapseAnnotations">
                     <TableTemplate Items="@context.Annotations" TableClass="table-sm table-striped">
                         <RowTemplate Context="annotationsContext">
             <td>@annotationsContext.Key</td>
@@ -169,7 +162,11 @@ else
         <td>
                     @if (context.PodVolumes != null && context.PodVolumes.Any())
                     {
-                <div class="collapse" id="collapsePodVolumes">
+                <button class="btn btn-outline-secondary btn-sm" type="button" data-bs-toggle="collapse"
+        data-bs-target="#@context.PodName-collapsePodVolumes" aria-expanded="false" aria-controls="collapsePodVolumes">
+                    Flip Pod Volumes
+                </button>
+                <div class="collapse" id="@context.PodName-collapsePodVolumes">
                     <TableTemplate Items="@context.PodVolumes" TableClass="table-sm table-striped">
                         <RowTemplate Context="podVolumesContext">
             <td>@podVolumesContext</td>
