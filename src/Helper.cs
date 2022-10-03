@@ -6,23 +6,6 @@ namespace KubeStatus
 {
     public static class Helper
     {
-        public static string GetBaseUrl()
-        {
-            var baseUrl = "http://localhost:8080/";
-            if (!string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable("ASPNETCORE_URLS")))
-            {
-                var urls = Environment.GetEnvironmentVariable("ASPNETCORE_URLS").Split(";");
-                var protocol = urls[0].Split(":")[0];
-                var port = urls[0].Split(":")[2];
-                if (port.EndsWith("/"))
-                {
-                    port = port.Remove(port.Length - 1);
-                }
-                baseUrl = $"{protocol}://localhost:{port}/";
-            }
-            return baseUrl;
-        }
-
         public static KubernetesClientConfiguration GetKubernetesClientConfiguration()
         {
             if (bool.TryParse(Environment.GetEnvironmentVariable("BUILD_CONFIG_FROM_CONFIG_FILE"), out bool localContext) && localContext)

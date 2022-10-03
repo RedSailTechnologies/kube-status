@@ -243,8 +243,7 @@ else
 
     async Task GetLogs(string k8sNamespace, string podName, string name)
     {
-        var logApi = $"{Helper.GetBaseUrl()}api/logs/{k8sNamespace}/{podName}/{name}/";
-        var fileName = $"{k8sNamespace}-{podName}-{name}.log";
-        await JS.InvokeVoidAsync("triggerFileDownload", fileName, logApi);
+        var logApi = $"/api/logs/{k8sNamespace}/{podName}/{name}/";
+        await JS.InvokeVoidAsync("triggerFileDownload", "", logApi);
     }
 }
