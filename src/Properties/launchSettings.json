@@ -19,10 +19,10 @@
     },
     "KubeStatus": {
       "commandName": "Project",
-      "dotnetRunMessages": "true",
+      "dotnetRunMessages": true,
       "launchBrowser": true,
       "launchUrl": "swagger/index.html",
-      "applicationUrl": "https://localhost:6001;http://localhost:6000",
+      "applicationUrl": "http://localhost:8080/",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development"
       }

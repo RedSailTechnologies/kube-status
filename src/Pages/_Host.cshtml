@@ -49,6 +49,14 @@
         var jsonObj = JSON.parse(text);
         return JSON.stringify(jsonObj, undefined, 2);
     }
+
+    window.triggerFileDownload = (fileName, url) => {
+        const anchorElement = document.createElement('a');
+        anchorElement.href = url;
+        anchorElement.download = fileName ?? '';
+        anchorElement.click();
+        anchorElement.remove();
+    }
 </script>
 
 </html>

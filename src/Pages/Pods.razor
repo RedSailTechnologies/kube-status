@@ -4,6 +4,7 @@
 
 @inject NamespaceService NamespaceService
 @inject PodService PodService
+@inject IJSRuntime JS
 
 <h1>Pods</h1>
 
@@ -85,6 +86,7 @@ else
                     Items="@context.Status.Select(s => new { s.Name, s.Started, s.Ready, s.RestartCount, s.Image, s.ImageID }).OrderBy(s => s.Name)"
                     TableClass="table-sm table-striped">
                                 <TableHeader>
+                    <th></th>
                     <th>Name</th>
                     <th>Started</th>
                     <th>Ready</th>
@@ -94,6 +96,8 @@ else
                     <th>Image ID</th>
                     </TableHeader>
                     <RowTemplate Context="statusContext">
+                        <td><button @onclick="() => GetLogs(context.Namespace, context.PodName, statusContext.Name)">Logs</button>
+                        </td>
                         <td>@statusContext.Name</td>
                         <td>@statusContext.Started</td>
                         <td>@statusContext.Ready</td>
@@ -235,5 +239,12 @@ else
     async Task GetPods()
     {
         NamespacedPods = await PodService.GetAllNamespacedPodsAsync(SelectedNamespace);
+    }
+
+    async Task GetLogs(string k8sNamespace, string podName, string name)
+    {
+        var logApi = $"{Helper.GetBaseUrl()}api/logs/{k8sNamespace}/{podName}/{name}/";
+        var fileName = $"{k8sNamespace}-{podName}-{name}.log";
+        await JS.InvokeVoidAsync("triggerFileDownload", fileName, logApi);
     }
 }
