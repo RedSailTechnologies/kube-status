@@ -43,7 +43,7 @@ else
                 <td>
                     @if (@context.Topics.Any())
                     {
-                        <button class="btn btn-outline-secondary btn-sm" type="button" data-bs-toggle="collapse"
+                        <button class="btn btn-outline-dark btn-sm" type="button" data-bs-toggle="collapse"
                 data-bs-target="#@context.Name-topics" aria-expanded="false" aria-controls="@context.Name-topics">
                             Flip Topics
                         </button>
@@ -60,7 +60,7 @@ else
                 <td>
                     @if (!string.IsNullOrWhiteSpace(@context.TaskTrace))
                     {
-                        <button class="btn btn-outline-secondary btn-sm" type="button" data-bs-toggle="collapse"
+                        <button class="btn btn-outline-dark btn-sm" type="button" data-bs-toggle="collapse"
                 data-bs-target="#@context.Name-trace" aria-expanded="false" aria-controls="@context.Name-trace">
                             Flip Task Trace
                         </button>

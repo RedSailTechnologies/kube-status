@@ -78,7 +78,7 @@ else
                 <td>
                     @if (context.Status != null && context.Status.Any())
                     {
-                        <button class="btn btn-outline-secondary btn-sm" type="button" data-bs-toggle="collapse"
+                        <button class="btn btn-outline-dark btn-sm" type="button" data-bs-toggle="collapse"
                 data-bs-target="#@context.PodName-collapseContainerStatus" aria-expanded="false"
                 aria-controls="collapseContainerStatus">
                             Flip Container Statuses
@@ -100,7 +100,8 @@ else
                     <th>Image ID</th>
                     </TableHeader>
                     <RowTemplate Context="statusContext">
-                        <td><button @onclick="() => GetLogs(context.Namespace, context.PodName, statusContext.Name)">Logs</button>
+                        <td><button class="btn btn-outline-dark btn-sm"
+                    @onclick="() => GetLogs(context.Namespace, context.PodName, statusContext.Name)">Logs</button>
                         </td>
                         <td>@statusContext.Name</td>
                         <td>@statusContext.Started</td>
@@ -135,7 +136,7 @@ else
         <td>
                     @if (context.Labels != null && context.Labels.Any())
                     {
-                <button class="btn btn-outline-secondary btn-sm" type="button" data-bs-toggle="collapse"
+                <button class="btn btn-outline-dark btn-sm" type="button" data-bs-toggle="collapse"
         data-bs-target="#@context.PodName-collapseLabels" aria-expanded="false" aria-controls="collapseLabels">
                     Flip Pod Labels
                 </button>
@@ -152,7 +153,7 @@ else
         <td>
                     @if (context.Annotations != null && context.Annotations.Any())
                     {
-                <button class="btn btn-outline-secondary btn-sm" type="button" data-bs-toggle="collapse"
+                <button class="btn btn-outline-dark btn-sm" type="button" data-bs-toggle="collapse"
         data-bs-target="#@context.PodName-collapseAnnotations" aria-expanded="false"
         aria-controls="collapseAnnotations">
                     Flip Pod Annotations
@@ -170,7 +171,7 @@ else
         <td>
                     @if (context.PodVolumes != null && context.PodVolumes.Any())
                     {
-                <button class="btn btn-outline-secondary btn-sm" type="button" data-bs-toggle="collapse"
+                <button class="btn btn-outline-dark btn-sm" type="button" data-bs-toggle="collapse"
         data-bs-target="#@context.PodName-collapsePodVolumes" aria-expanded="false" aria-controls="collapsePodVolumes">
                     Flip Pod Volumes
                 </button>

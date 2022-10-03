@@ -38,7 +38,7 @@ else
                         {
                             if (appState.Key.Equals("errorMessage", StringComparison.OrdinalIgnoreCase))
                             {
-                                <button class="btn btn-outline-secondary btn-sm" type="button" data-bs-toggle="collapse"
+                                <button class="btn btn-outline-dark btn-sm" type="button" data-bs-toggle="collapse"
                 data-bs-target="#@context.Metadata.Name-app-state-@appState.Key" aria-expanded="false"
                 aria-controls="@context.Metadata.Name-app-state-@appState.Key">
                                     Show Errors
@@ -88,7 +88,7 @@ else
                 <td>
                     @if (!string.IsNullOrWhiteSpace(@context.Spec))
                     {
-                        <button class="btn btn-outline-secondary btn-sm" type="button" data-bs-toggle="collapse"
+                        <button class="btn btn-outline-dark btn-sm" type="button" data-bs-toggle="collapse"
                 data-bs-target="#@context.Metadata.Name-spec" aria-expanded="false"
                 aria-controls="@context.Metadata.Name-spec">
                             Flip Spec
