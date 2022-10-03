@@ -51,8 +51,6 @@
     }
 
     window.triggerFileDownload = (fileName, url) => {
-        console.log("File Name: %s", fileName);
-        console.log("URL: %s", url);
         const anchorElement = document.createElement('a');
         anchorElement.href = url;
         anchorElement.download = fileName ?? '';
