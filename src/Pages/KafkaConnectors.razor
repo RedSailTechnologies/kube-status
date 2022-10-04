@@ -28,45 +28,76 @@ else
     {
         <TableTemplate Items="Connectors" TItem="KafkaConnector" TableHeaderClass="thead-light">
             <TableHeader>
-                <th>Name</th>
-                <th>Last Transition Time</th>
-                <th>Connector State</th>
-                <th>Task State</th>
-                <th>Topics</th>
-                <th>Task Trace</th>
+                <th>
+                    <div class="form-group row">
+                        <div class="col-xl-3 d-none d-xl-block">
+                            <label for="name"><b>Name</b></label>
+                        </div>
+                        <div class="col-xl-2 d-none d-xl-block">
+                            <label for="connectorState"><b>Connector State</b></label>
+                        </div>
+                        <div class="col-xl-2 d-none d-xl-block">
+                            <label for="taskState"><b>Task State</b></label>
+                        </div>
+                        <div class="col-xl-3 d-none d-xl-block">
+                            <label for="lastTransitionTime"><b>Last Transition Time</b></label>
+                        </div>
+                    </div>
+                </th>
             </TableHeader>
             <RowTemplate>
-                <td>@context.Name</td>
-                <td>@context.LastTransitionTime</td>
-                <td>@context.ConnectorState</td>
-                <td>@context.TaskState</td>
                 <td>
+                    <div class="form-group row mb-2">
+                        <div class="col-xl-3">
+                            <label for="name" class="form-label d-xl-none"><b>Name:</b></label>
+                            <span id="name" class="form-item">@context.Name</span>
+                        </div>
+                        <div class="col-xl-2">
+                            <label for="connectorState" class="form-label d-xl-none"><b>Connector State:</b></label>
+                            <span id="connectorState" class="form-item">@context.ConnectorState</span </div>
+                            <div class="col-xl-2">
+                                <label for="taskState" class="form-label d-xl-none"><b>Task State:</b></label>
+                                <span id="taskState" class="form-item">@context.TaskState</span>
+                            </div>
+                            <div class="col-xl-3">
+                                <label for="lastTransitionTime" class="form-label d-xl-none"><b>Last Transition
+                                        Time:</b></label>
+                                <span id="lastTransitionTime" class="form-item">@context.LastTransitionTime</span>
+                            </div>
+                        </div>
                     @if (@context.Topics.Any())
                     {
-                        <button class="btn btn-outline-dark btn-sm" type="button" data-bs-toggle="collapse"
-                data-bs-target="#@context.Name-topics" aria-expanded="false" aria-controls="@context.Name-topics">
-                            Flip Topics
-                        </button>
-                        <div class="collapse" id="@context.Name-topics">
-                            <ul>
-                                @foreach (var topic in @context.Topics)
-                                {
-                                    <li>@topic</li>
-                                }
-                            </ul>
-                        </div>
+                            <div class="row mb-1">
+                                <div class="col-xl-12">
+                                    <button class="btn btn-outline-dark btn-sm collapsed" type="button" data-bs-toggle="collapse"
+                            data-bs-target="#@context.Name-topics" aria-expanded="false"
+                            aria-controls="@context.Name-topics"><span class="show">Show</span><span class="hide">Hide</span>
+                                        Topics</button>
+                                    <div class="collapse mt-3" id="@context.Name-topics">
+                                        <ul>
+                                        @foreach (var topic in @context.Topics)
+                                        {
+                                                <li>@topic</li>
+                                        }
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
                     }
-                </td>
-                <td>
+
                     @if (!string.IsNullOrWhiteSpace(@context.TaskTrace))
                     {
-                        <button class="btn btn-outline-dark btn-sm" type="button" data-bs-toggle="collapse"
-                data-bs-target="#@context.Name-trace" aria-expanded="false" aria-controls="@context.Name-trace">
-                            Flip Task Trace
-                        </button>
-                        <div class="collapse" id="@context.Name-trace">
-                            <pre>@context.TaskTrace</pre>
-                        </div>
+                            <div class="row mb-1">
+                                <div class="col-xl-12">
+                                    <button class="btn btn-outline-dark btn-sm collapsed" type="button" data-bs-toggle="collapse"
+                            data-bs-target="#@context.Name-trace" aria-expanded="false"
+                            aria-controls="@context.Name-trace"><span class="show">Show</span><span class="hide">Hide</span>
+                                        Task Trace</button>
+                                    <div class="collapse mt-3" id="@context.Name-trace">
+                                        <pre>@context.TaskTrace</pre>
+                                    </div>
+                                </div>
+                            </div>
                     }
                 </td>
             </RowTemplate>
@@ -86,7 +117,7 @@ else
     }
 }
 
-@if(ShowKafkaApiButtons)
+@if (ShowKafkaApiButtons)
 {
     <button @onclick="ShowConfiguration" class="btn btn-primary my-3">
         View Configuration
@@ -94,7 +125,7 @@ else
     <button @onclick="ShowLiveStatus" class="btn btn-primary my-3">
         View Live Status
     </button>
-    @if(!string.IsNullOrWhiteSpace(@JsonText.ToString()))
+    @if (!string.IsNullOrWhiteSpace(@JsonText.ToString()))
     {
         <button @onclick="Clear" class="btn btn-light m-3">
             Clear
@@ -162,7 +193,7 @@ else
         JsonText = new MarkupString(await JS.InvokeAsync<string>("formatJson", StatusJson));
     }
 
-    async Task Clear()
+    void Clear()
     {
         JsonText = new MarkupString();
     }

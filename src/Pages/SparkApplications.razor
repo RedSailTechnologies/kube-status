@@ -14,89 +14,127 @@ else
     {
         <TableTemplate Items="Applications" TItem="SparkApplication" TableHeaderClass="thead-light">
             <TableHeader>
-                <th>Name</th>
-                <th>Submission Attempts</th>
-                <th>Last Submission Attempt Time</th>
-                <th>Termination Time</th>
-                <th>Application State</th>
-                <th>Driver Info</th>
-                <th>Executor Attempts</th>
-                <th>Executor State</th>
-                <th>Spark Application Spec</th>
+                <th>
+                </th>
             </TableHeader>
             <RowTemplate>
-                <td>@context.Metadata.Name</td>
-                <td>@context.Status.SubmissionAttempts</td>
-                <td>@context.Status.LastSubmissionAttemptTime</td>
-                <td>@context.Status.TerminationTime</td>
-                <td style="">
+                <td>
+                    <div class="form-group row mb-2">
+                        <div class="col-xl-3">
+                            <label for="name" class="form-label"><b>Name:</b></label>
+                            <span id="name" class="form-item">@context.Metadata.Name</span>
+                        </div>
+                        <div class="col-xl-2">
+                            <label for="submissionAttempts" class="form-label"><b>Submission Attempts:</b></label>
+                            <span id="submissionAttempts" class="form-item">@context.Status.SubmissionAttempts</span>
+                        </div>
+                        <div class="col-xl-3">
+                            <label for="lastSubmissionAttemptTime" class="form-label"><b>Last Submission Attempt
+                                    Time:</b></label>
+                            <span id="lastSubmissionAttemptTime"
+                        class="form-item">@context.Status.LastSubmissionAttemptTime</span>
+                        </div>
+                        @if (context.Status.TerminationTime != null)
+                        {
+                            <div class="col-xl-3">
+                                <label for="terminationTime" class="form-label"><b>Termination Time:</b></label>
+                                <span id="terminationTime" class="form-item">@context.Status.TerminationTime</span>
+                            </div>
+                        }
+                    </div>
                     @if (context.Status.ApplicationState != null)
                     {
-                        var sortedAppState = new
-                        SortedDictionary<string, string>(context.Status.ApplicationState).OrderByDescending(s => s.Key);
-                        foreach (var appState in sortedAppState)
-                        {
-                            if (appState.Key.Equals("errorMessage", StringComparison.OrdinalIgnoreCase))
-                            {
-                                <button class="btn btn-outline-dark btn-sm" type="button" data-bs-toggle="collapse"
-                data-bs-target="#@context.Metadata.Name-app-state-@appState.Key" aria-expanded="false"
-                aria-controls="@context.Metadata.Name-app-state-@appState.Key">
-                                    Show Errors
-                                </button>
-                                <div class="app-state collapse" id="@context.Metadata.Name-app-state-@appState.Key">
-                                    <div class="key fw-bold">@($"{char.ToUpper(@appState.Key[0])}{@appState.Key.Substring(1)}:")</div>
-                                    <div class="value">
-                                        <pre>@appState.Value</pre>
-                                    </div>
-                                </div>
-                            }
-                            else
-                            {
-                                <div class="app-state" id="@context.Metadata.Name-app-state-@appState.Key">
-                                    <div class="key fw-bold">@($"{char.ToUpper(@appState.Key[0])}{@appState.Key.Substring(1)}:")</div>
-                                    <div class="value">@appState.Value</div>
-                                </div>
-                            }
-                        }
-                    }
-                </td>
-                <td style="">
-                    @if (context.Status.DriverInfo != null)
-                    {
-                        foreach (var driverInfo in context.Status.DriverInfo)
-                        {
-                            <div class="driver-info" id="@context.Metadata.Name-driver-info-@driverInfo.Key">
-                                <div class="key fw-bold">@($"{char.ToUpper(@driverInfo.Key[0])}{@driverInfo.Key.Substring(1)}:")</div>
-                                <div class="value">@driverInfo.Value</div>
+                        <div class="row mb-2">
+                            <div class="col-xl-3">
+                                @if (context.Status.DriverInfo != null)
+                                {
+                                    foreach (var driverInfo in context.Status.DriverInfo)
+                                    {
+                                        <div class="driver-info" id="@context.Metadata.Name-driver-info-@driverInfo.Key">
+                                            <label for="driver-state-@context.Metadata.Name-driver-info-@driverInfo.Key"
+                            class="form-label"><b>Driver
+                                                    @($"{char.ToUpper(@driverInfo.Key[0])}{@driverInfo.Key.Substring(1)}:")</b></label>
+                                            <span id="driver-state-@context.Metadata.Name-driver-info-@driverInfo.Key"
+                            class="form-item">@driverInfo.Value</span>
+                                        </div>
+                                    }
+                                }
                             </div>
-                        }
-                    }
-                </td>
-                <td>@context.Status.ExecutionAttempts</td>
-                <td>
-                    @if (context.Status.ExecutorState != null)
-                    {
-                        foreach (var execState in context.Status.ExecutorState)
-                        {
-                            <div class="exec-state" id="@context.Metadata.Name-exec-state-@execState.Key">
-                                <div class="key fw-bold">@($"{char.ToUpper(@execState.Key[0])}{@execState.Key.Substring(1)}:")</div>
-                                <div class="value">@execState.Value</div>
+                            <div class="col-xl-2">
+                                @if (context.Status.ExecutionAttempts != null)
+                                {
+                                    <label for="exec-attempts-@context.Metadata.Name" class="form-label"><b>Executor
+                                            Attempts:</b></label>
+                                    <span id="exec-attempts-@context.Metadata.Name"
+                        class="form-item">@context.Status.ExecutionAttempts</span>
+                                }
                             </div>
-                        }
-                    }
-                </td>
-                <td>
-                    @if (!string.IsNullOrWhiteSpace(@context.Spec))
-                    {
-                        <button class="btn btn-outline-dark btn-sm" type="button" data-bs-toggle="collapse"
-                data-bs-target="#@context.Metadata.Name-spec" aria-expanded="false"
-                aria-controls="@context.Metadata.Name-spec">
-                            Flip Spec
-                        </button>
-                        <div class="collapse" id="@context.Metadata.Name-spec">
-                            <pre>@context.Spec</pre>
+                            <div class="col-xl-7">
+                                @if (context.Status.ExecutorState != null)
+                                {
+                                    foreach (var execState in context.Status.ExecutorState)
+                                    {
+                                        <div class="exec-state" id="@context.Metadata.Name-exec-state-@execState.Key">
+                                            <label for="exec-state-@context.Metadata.Name-exec-state-@execState.Key"
+                            class="form-label">@($"{char.ToUpper(@execState.Key[0])}{@execState.Key.Substring(1)}:")</label>
+                                            <span id="exec-state-@context.Metadata.Name-exec-state-@execState.Key"
+                            class="form-item">@execState.Value</span>
+                                        </div>
+                                    }
+                                }
+                            </div>
+
+                        </div>
+                        <div class="row mb-2">
+                            @if (context.Status.ApplicationState != null)
+                            {
+                                var sortedAppState = new
+                                SortedDictionary<string, string>(context.Status.ApplicationState).OrderByDescending(s => s.Key);
+                                foreach (var appState in sortedAppState)
+                                {
+                                    if (appState.Key.Equals("errorMessage", StringComparison.OrdinalIgnoreCase))
+                                    {
+                                        <div class="col-xl-1">
+                                            <button class="btn btn-outline-dark btn-sm collapsed" type="button" data-bs-toggle="collapse"
+                        data-bs-target="#@context.Metadata.Name-app-state-@appState.Key" aria-expanded="false"
+                        aria-controls="@context.Metadata.Name-app-state-@appState.Key">
+                                                <span class="show">Show</span><span class="hide">Hide</span> Errors
+                                            </button>
+                                        </div>
+                                        <div class="app-state collapse col-sm-12" id="@context.Metadata.Name-app-state-@appState.Key">
+                                            <div class="key fw-bold">@($"{char.ToUpper(@appState.Key[0])}{@appState.Key.Substring(1)}:")</div>
+                                            <div class="value">
+                                                <pre>@appState.Value</pre>
+                                            </div>
+                                        </div>
+                                    }
+                                    else
+                                    {
+                                        <div class="app-state col-xl-1" id="@context.Metadata.Name-app-state-@appState.Key">
+                                            <label for="app-state-@appState.Key"
+                        class="form-label"><b>@($"{char.ToUpper(@appState.Key[0])}{@appState.Key.Substring(1)}:")</b></label>
+                                            <span id="app-state-@appState.Key" class="form-item">@appState.Value</span>
+                                        </div>
+                                    }
+                                }
+                            }
                         </div>
                     }
+                    <div class="row mb-2">
+                        @if (!string.IsNullOrWhiteSpace(@context.Spec))
+                        {
+                            <div class="col-xl-1">
+                                <button class="btn btn-outline-dark btn-sm collapsed" type="button" data-bs-toggle="collapse"
+                        data-bs-target="#@context.Metadata.Name-spec" aria-expanded="false"
+                        aria-controls="@context.Metadata.Name-spec">
+                                    <span class="show">Show</span><span class="hide">Hide</span> Spec
+                                </button>
+                            </div>
+                            <div class="collapse col-sm-12" id="@context.Metadata.Name-spec">
+                                <pre>@context.Spec</pre>
+                            </div>
+                        }
+                    </div>
                 </td>
             </RowTemplate>
         </TableTemplate>

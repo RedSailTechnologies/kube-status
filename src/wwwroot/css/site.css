@@ -34,3 +34,11 @@
   right: 0.75rem;
   top: 0.5rem;
 }
+
+.btn:not(.collapsed) .show {
+  display: none;
+}
+
+.btn.collapsed .hide {
+  display: none;
+}

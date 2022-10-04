@@ -10,7 +10,10 @@
 }
 else
 {
-    <TableTemplate Items="NamespaceList" TableClass="table-sm table-striped">
+    <TableTemplate Items="NamespaceList" TableClass="table table-striped">
+        <TableHeader>
+            <th scope="col">Namesapce</th>
+        </TableHeader>
         <RowTemplate>
             <td><a href="pods/@context">@context</a></td>
         </RowTemplate>

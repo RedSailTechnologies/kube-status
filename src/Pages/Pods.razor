@@ -47,142 +47,266 @@ else
     {
         <TableTemplate Items="NamespacedPods" TItem="Pod" TableHeaderClass="thead-light">
             <TableHeader>
-                <th>Name</th>
-                <th>Component</th>
-                <th>Version</th>
-                <th>Part Of</th>
-                <th>Pod Status</th>
-                <th>Node IP & Pod IP(s)</th>
-                <th>Containers</th>
-                <th>Pod Labels</th>
-                <th>Pod Annotations</th>
-                <th>Pod Volumes</th>
+                <th>
+                    <div class="form-group row">
+                        <div class="col-xl-3 d-none d-xl-block">
+                            <label class="form-label"><b>Pod</b></label>
+                        </div>
+                        <div class="col-xl-1 d-none d-xl-block">
+                            <label class="form-label"><b>Status</b></label>
+                        </div>
+                        <div class="col-xl-2 d-none d-xl-block">
+                            <label class="form-label"><b>Version</b></label>
+                        </div>
+                        <div class="col-xl-2 d-none d-xl-block">
+                            <label class="form-label"><b>Component</b></label>
+                        </div>
+                        <div class="col-xl-1 d-none d-xl-block">
+                            <label class="form-label"><b>Part Of</b></label>
+                        </div>
+                        <div class="col-xl-2 d-none d-xl-block">
+                            <label class="form-label"><b>Node IP & Pod IP(s)</b></label>
+                        </div>
+                    </div>
+                </th>
             </TableHeader>
             <RowTemplate>
-                <td>@(string.IsNullOrWhiteSpace(context.Name) ? context.PodName : context.Name)</td>
-                <td>@context.Component</td>
-                <td>@context.Version</td>
-                <td>@context.PartOf</td>
-                <td>@context.PodStatus</td>
-                <td>@context.HostIP
-                    @if (@context.PodIPs != null && context.PodIPs.Any())
-                    {
-                        <ul>
-                            @foreach (var ip in context.PodIPs)
-                            {
-                                <li>@ip</li>
-                            }
-                        </ul>
-                    }
-                </td>
                 <td>
-                    @if (context.Status != null && context.Status.Any())
-                    {
-                        <button class="btn btn-outline-dark btn-sm" type="button" data-bs-toggle="collapse"
-                data-bs-target="#@context.PodName-collapseContainerStatus" aria-expanded="false"
-                aria-controls="collapseContainerStatus">
-                            Flip Container Statuses
-                        </button>
+                    <div class="form-group row mb-2">
+                        <div class="col-xl-3">
+                            <label for="name-@context.PodName" class="form-label d-xl-none"><b>Pod:</b></label>
+                            <span id="name-@context.PodName" class="form-item">@(string.IsNullOrWhiteSpace(context.Name) ?
+                        context.PodName : context.Name)</span>
+                        </div>
+                        <div class="col-xl-1">
+                            <label for="status-@context.PodName" class="form-label d-xl-none"><b>Status:</b></label>
+                            <span id="status-@context.PodName" class="form-item">@context.PodStatus</span>
+                        </div>
+                        <div class="col-xl-2">
+                            <label for="version-@context.PodName" class="form-label d-xl-none"><b>Version:</b></label>
+                            <span id="version-@context.PodName" class="form-item">@context.Version</span>
+                        </div>
+                        <div class="col-xl-2">
+                            <label for="component-@context.PodName" class="form-label d-xl-none"><b>Component:</b></label>
+                            <span id="component-@context.PodName" class="form-item">@context.Component</span>
+                        </div>
+                        <div class="col-xl-1">
+                            <label for="part-of-@context.PodName" class="form-label d-xl-none"><b>Part Of:</b></label>
+                            <span id="part-of-@context.PodName" class="form-item">@context.PartOf</span>
+                        </div>
+                        <div class="col-xl-2">
+                            @if (@context.PodIPs != null && context.PodIPs.Any())
+                            {
+                                <label for="ip-@context.PodName" class="form-label d-xl-none"><b>Node IP & Pod IP(s):</b></label>
+                                <span id="ip-@context.PodName" class="form-item">@context.HostIP
+                                    <ul>
+                                        @foreach (var ip in context.PodIPs)
+                                        {
+                                            <li>@ip</li>
+                                        }
+                                    </ul>
+                                </span>
+                            }
+                        </div>
+                    </div>
 
-                        <div class="collapse" id="@context.PodName-collapseContainerStatus">
-                            <div class="mb-2"><strong>Pod Name:</strong> @context.PodName</div>
-                            <TableTemplate
-                    Items="@context.Status.Select(s => new { s.Name, s.Started, s.Ready, s.RestartCount, s.Image, s.ImageID }).OrderBy(s => s.Name)"
-                    TableClass="table-sm table-striped">
-                                <TableHeader>
-                    <th></th>
-                    <th>Name</th>
-                    <th>Started</th>
-                    <th>Ready</th>
-                    <th>Restart Count</th>
-                    <th>Image</th>
-                    <th>Tag</th>
-                    <th>Image ID</th>
+                    <div class="row justify-content-evenly mb-2">
+                        @if (context.Status != null && context.Status.Any())
+                        {
+                            <div class="col-xl-2">
+                                <button class="btn btn-outline-dark btn-sm collapsed" type="button" data-bs-toggle="collapse"
+                        data-bs-target="#@context.PodName-collapseContainerStatus" aria-expanded="false"
+                        aria-controls="collapseContainerStatus">
+                                    <span class="show">Show</span><span class="hide">Hide</span> Container Statuses
+                                </button>
+                            </div>
+                        }
+
+                        @if (context.Labels != null && context.Labels.Any())
+                        {
+                            <div class="col-xl-2">
+                                <button class="btn btn-outline-dark btn-sm collapsed" type="button" data-bs-toggle="collapse"
+                        data-bs-target="#@context.PodName-collapseLabels" aria-expanded="false"
+                        aria-controls="collapseLabels">
+                                    <span class="show">Show</span><span class="hide">Hide</span> Pod Labels
+                                </button>
+                            </div>
+                        }
+
+                        @if (context.Annotations != null && context.Annotations.Any())
+                        {
+                            <div class="col-xl-2">
+                                <button class="btn btn-outline-dark btn-sm collapsed" type="button" data-bs-toggle="collapse"
+                        data-bs-target="#@context.PodName-collapseAnnotations" aria-expanded="false"
+                        aria-controls="collapseAnnotations">
+                                    <span class="show">Show</span><span class="hide">Hide</span> Pod Annotations
+                                </button>
+                            </div>
+                        }
+
+                        @if (context.PodVolumes != null && context.PodVolumes.Any())
+                        {
+                            <div class="col-xl-2">
+                                <button class="btn btn-outline-dark btn-sm collapsed" type="button" data-bs-toggle="collapse"
+                        data-bs-target="#@context.PodName-collapsePodVolumes" aria-expanded="false"
+                        aria-controls="collapsePodVolumes">
+                                    <span class="show">Show</span><span class="hide">Hide</span> Pod Volumes
+                                </button>
+                            </div>
+                        }
+                    </div>
+
+                    <div class="row mb-2">
+                        @if (context.Status != null && context.Status.Any())
+                        {
+                            <div class="collapse col-sm-12" id="@context.PodName-collapseContainerStatus">
+                                <div class="alert alert-info mb-2"><strong>Pod Name:</strong> @context.PodName</div>
+                                <TableTemplate
+                        Items="@context.Status.Select(s => new { s.Name, s.Started, s.Ready, s.RestartCount, s.Image, s.ImageID }).OrderBy(s => s.Name)"
+                        TableClass="table-sm table-striped">
+                                    <TableHeader>
+                    <th>
+                        <div class="form-group row">
+                            <div class="col-xl-1">
+                            </div>
+                            <div class="col-xl-1">
+                                <label class="form-label d-none d-xl-block"><b>Container</b></label>
+                            </div>
+                            <div class="col-xl-1">
+                                <label class="form-label d-none d-xl-block"><b>Started</b></label>
+                            </div>
+                            <div class="col-xl-1">
+                                <label class="form-label d-none d-xl-block"><b>Ready</b></label>
+                            </div>
+                            <div class="col-xl-1">
+                                <label class="form-label d-none d-xl-block"><b>Restart Count</b></label>
+                            </div>
+                            <div class="col-xl-2">
+                                <label class="form-label d-none d-xl-block"><b>Image</b></label>
+                            </div>
+                            <div class="col-xl-1">
+                                <label class="form-label d-none d-xl-block"><b>Tag</b></label>
+                            </div>
+                            <div class="col-xl-4">
+                                <label class="form-label d-none d-xl-block"><b>Image ID</b></label>
+                            </div>
+                        </div>
+                    </th>
                     </TableHeader>
                     <RowTemplate Context="statusContext">
-                        <td><button class="btn btn-outline-dark btn-sm"
-                    @onclick="() => GetLogs(context.Namespace, context.PodName, statusContext.Name)">Logs</button>
-                        </td>
-                        <td>@statusContext.Name</td>
-                        <td>@statusContext.Started</td>
-                        <td>@statusContext.Ready</td>
-                        <td>@statusContext.RestartCount</td>
-                        <td>@if (statusContext.ImageID?.Split('@').Length > 1)
-                                        {
-                                @statusContext.ImageID?.Split('@')[0]
-                                        }
-                                        else
-                                        {
-                                @statusContext.Image?.Split(':')[0]
-                                        }
-            </td>
-            <td>@if (statusContext.Image.StartsWith("sha"))
-                                        {
-                                @statusContext.Image
-                                        }
-                                        else
-                                        {
-                                @statusContext.Image?.Split(':')[1]}</td>
-                <td>@if (statusContext.ImageID?.Split('@').Length > 1)
-                                        {
-                                @statusContext.ImageID?.Split('@')[1]
-                                        }
+                        <td>
+                            <div class="form-group row mb-1">
+                                <div class="col-xl-1">
+                                    <button class="btn btn-outline-dark btn-sm" @onclick="() => GetLogs(context.Namespace, context.PodName, statusContext.Name)">Logs</button>
+                                </div>
+                                <div class="col-xl-1">
+                                    <label for="name-@statusContext.Name" class="form-label d-xl-none"><b>Container:</b></label>
+                                    <span id="name-@statusContext.Name" class="form-item">@statusContext.Name</span>
+                                </div>
+                                <div class="col-xl-1">
+                                    <label for="started-@statusContext.Started" class="form-label d-xl-none"><b>Started:</b></label>
+                                    <span id="started-@statusContext.Started" class="form-item">@statusContext.Started</span>
+                                </div>
+                                <div class="col-xl-1">
+                                    <label for="ready-@statusContext.Ready" class="form-label d-xl-none"><b>Ready:</b></label>
+                                    <span id="ready-@statusContext.Ready" class="form-item">@statusContext.Ready</span>
+                                </div>
+                                <div class="col-xl-1">
+                                    <label for="restart-count-@statusContext.RestartCount" class="form-label d-xl-none"><b>Restart
+                                            Count:</b></label>
+                                    <span id="restart-count-@statusContext.RestartCount"
+                            class="form-item">@statusContext.RestartCount</span>
+                                </div>
+                                <div class="col-xl-2">
+                                    <label for="image-@statusContext.ImageID" class="form-label d-xl-none"><b>Image:</b></label>
+                                    <span id="image-@statusContext.ImageID" class="form-item">@if
+                            (statusContext.ImageID?.Split('@').Length > 1)
+                                                        {
+                                                @statusContext.ImageID?.Split('@')[0]
+                                                        }
+                                                        else
+                                                        {
+                                                @statusContext.Image?.Split(':')[0]
+                                                        }</span>
+                    </div>
+                    <div class="col-xl-1">
+                        <label for="tag-@statusContext.Image" class="form-label d-xl-none"><b>Tag:</b></label>
+                        <span id="tag-@statusContext.Image" class="form-item">@if
+                            (statusContext.Image.StartsWith("sha"))
+                                                        {
+                                                @statusContext.Image
+                                                        }
+                                                        else
+                                                        {
+                                                @statusContext.Image?.Split(':')[1]}</span>
+                        </div>
+                        <div class="col-xl-4">
+                            <label for="image-id-@statusContext.ImageID" class="form-label d-xl-none"><b>Image
+                                    ID:</b></label>
+                            <span id="image-id-@statusContext.ImageID" class="form-item">@if
+                            (statusContext.ImageID?.Split('@').Length > 1)
+                                                        {
+                                                @statusContext.ImageID?.Split('@')[1]
+                                                        }
+                                        </span>
+                    </div>
+                </div>
             </td>
         </RowTemplate>
 </TableTemplate>
 </div>
-                    }
-        </td>
-        <td>
-                    @if (context.Labels != null && context.Labels.Any())
-                    {
-                <button class="btn btn-outline-dark btn-sm" type="button" data-bs-toggle="collapse"
-        data-bs-target="#@context.PodName-collapseLabels" aria-expanded="false" aria-controls="collapseLabels">
-                    Flip Pod Labels
-                </button>
-                <div class="collapse" id="@context.PodName-collapseLabels">
+                        }
+        </div>
+
+        <div class="row mb-2">
+                        @if (context.Labels != null && context.Labels.Any())
+                        {
+                <div class="collapse col-sm-12" id="@context.PodName-collapseLabels">
                     <TableTemplate Items="@context.Labels" TableClass="table-sm table-striped">
+                        <TableHeader>
+                            <th colspan="2">Labels</th>
+                        </TableHeader>
                         <RowTemplate Context="labelsContext">
-            <td>@labelsContext.Key</td>
-            <td>@labelsContext.Value</td>
-            </RowTemplate>
-            </TableTemplate>
-            </div>
-                    }
-        </td>
-        <td>
-                    @if (context.Annotations != null && context.Annotations.Any())
-                    {
-                <button class="btn btn-outline-dark btn-sm" type="button" data-bs-toggle="collapse"
-        data-bs-target="#@context.PodName-collapseAnnotations" aria-expanded="false"
-        aria-controls="collapseAnnotations">
-                    Flip Pod Annotations
-                </button>
-                <div class="collapse" id="@context.PodName-collapseAnnotations">
+                            <td>@labelsContext.Key</td>
+                            <td>@labelsContext.Value</td>
+                        </RowTemplate>
+                    </TableTemplate>
+                </div>
+                        }
+        </div>
+
+        <div class="row mb-2">
+                        @if (context.Annotations != null && context.Annotations.Any())
+                        {
+                <div class="collapse col-sm-12" id="@context.PodName-collapseAnnotations">
                     <TableTemplate Items="@context.Annotations" TableClass="table-sm table-striped">
+                        <TableHeader>
+                            <th colspan="2">Annotations</th>
+                        </TableHeader>
                         <RowTemplate Context="annotationsContext">
-            <td>@annotationsContext.Key</td>
-            <td>@annotationsContext.Value</td>
-            </RowTemplate>
-            </TableTemplate>
-            </div>
-                    }
-        </td>
-        <td>
-                    @if (context.PodVolumes != null && context.PodVolumes.Any())
-                    {
-                <button class="btn btn-outline-dark btn-sm" type="button" data-bs-toggle="collapse"
-        data-bs-target="#@context.PodName-collapsePodVolumes" aria-expanded="false" aria-controls="collapsePodVolumes">
-                    Flip Pod Volumes
-                </button>
-                <div class="collapse" id="@context.PodName-collapsePodVolumes">
+                            <td>@annotationsContext.Key</td>
+                            <td>@annotationsContext.Value</td>
+                        </RowTemplate>
+                    </TableTemplate>
+                </div>
+                        }
+        </div>
+
+        <div class="row mb-2">
+                        @if (context.PodVolumes != null && context.PodVolumes.Any())
+                        {
+                <div class="collapse col-sm-12" id="@context.PodName-collapsePodVolumes">
                     <TableTemplate Items="@context.PodVolumes" TableClass="table-sm table-striped">
+                        <TableHeader>
+                            <th>Volumes</th>
+                        </TableHeader>
                         <RowTemplate Context="podVolumesContext">
-            <td>@podVolumesContext</td>
-            </RowTemplate>
-            </TableTemplate>
-            </div>
-                    }
+                            <td>@podVolumesContext</td>
+                        </RowTemplate>
+                    </TableTemplate>
+                </div>
+                        }
+        </div>
         </td>
         </RowTemplate>
         </TableTemplate>

@@ -2,13 +2,18 @@
 
 <table class="table @TableClass">
     <thead class="@TableHeaderClass">
-        <tr scope="col">@TableHeader</tr>
+        <tr>
+            <th scope="col" class="d-none"></th>
+            @TableHeader
+        </tr>
     </thead>
     <tbody>
         @foreach (var item in Items)
-
         {
-            <tr>@RowTemplate(item)</tr>
+            <tr>
+                <th scope="row" class="d-none"></th>
+                @RowTemplate(item)
+            </tr>
 
         }
     </tbody>
