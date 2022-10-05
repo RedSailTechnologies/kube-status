@@ -34,7 +34,8 @@ namespace KubeStatus.Data
                     PodStatus = item.Status.Phase,
                     PodVolumes = item.Spec.Volumes.Select(v => v.Name).ToList(),
                     PodIPs = item.Status.PodIPs.Select(i => i.Ip).ToList(),
-                    HostIP = item.Status.HostIP
+                    HostIP = item.Status.HostIP,
+                    NodeName = item.Spec.NodeName
                 });
             }
 

@@ -25,7 +25,7 @@
                 "ASPNETCORE_ENVIRONMENT": "Development",
                 "BUILD_CONFIG_FROM_CONFIG_FILE": "true",
                 "ENABLE_SWAGGER": "true",
-                "STRIMZI__CONNECT_CLUSTER_SERVICE_HOST": "http://localhost:65282/"
+                "STRIMZI__CONNECT_CLUSTER_SERVICE_HOST": "http://localhost:63009/"
             },
             "sourceFileMap": {
                 "/Views": "${workspaceFolder}/src/Views"

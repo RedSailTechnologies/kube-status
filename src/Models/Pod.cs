@@ -21,5 +21,6 @@ namespace KubeStatus.Models
         public IList<string> PodVolumes { get; set; }
         public IList<string> PodIPs { get; set; }
         public string HostIP { get; set; }
+        public string NodeName { get; set; }
     }
 }

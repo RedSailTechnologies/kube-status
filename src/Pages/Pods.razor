@@ -52,12 +52,6 @@ else
                         <div class="col-xl-3 d-none d-xl-block">
                             <label class="form-label"><b>Pod</b></label>
                         </div>
-                        <div class="col-xl-1 d-none d-xl-block">
-                            <label class="form-label"><b>Status</b></label>
-                        </div>
-                        <div class="col-xl-2 d-none d-xl-block">
-                            <label class="form-label"><b>Version</b></label>
-                        </div>
                         <div class="col-xl-2 d-none d-xl-block">
                             <label class="form-label"><b>Component</b></label>
                         </div>
@@ -65,102 +59,127 @@ else
                             <label class="form-label"><b>Part Of</b></label>
                         </div>
                         <div class="col-xl-2 d-none d-xl-block">
-                            <label class="form-label"><b>Node IP & Pod IP(s)</b></label>
+                            <label class="form-label"><b>Version</b></label>
+                        </div>
+                        <div class="col-xl-1 d-none d-xl-block">
+                            <label class="form-label"><b>Status</b></label>
                         </div>
                     </div>
                 </th>
             </TableHeader>
             <RowTemplate>
                 <td>
-                    <div class="form-group row mb-2">
+                    <div class="form-group row">
                         <div class="col-xl-3">
-                            <label for="name-@context.PodName" class="form-label d-xl-none"><b>Pod:</b></label>
-                            <span id="name-@context.PodName" class="form-item">@(string.IsNullOrWhiteSpace(context.Name) ?
-                        context.PodName : context.Name)</span>
+                            <h5 id="name-@context.PodName" class="form-item">@(string.IsNullOrWhiteSpace(context.Name) ?
+                        context.PodName : context.Name)</h5>
+                        </div>
+                        <div class="col-xl-2">
+                            @if (!string.IsNullOrWhiteSpace(context.Component))
+                            {
+                                <label for="component-@context.PodName" class="form-label d-xl-none"><b>Component:</b></label>
+                                <span id="component-@context.PodName" class="form-item">@context.Component</span>
+                            }
+                        </div>
+                        <div class="col-xl-1">
+                            @if (!string.IsNullOrWhiteSpace(context.PartOf))
+                            {
+                                <label for="part-of-@context.PodName" class="form-label d-xl-none"><b>Part Of:</b></label>
+                                <span id="part-of-@context.PodName" class="form-item">@context.PartOf</span>
+                            }
+                        </div>
+                        <div class="col-xl-2">
+                            @if (!string.IsNullOrWhiteSpace(context.Version))
+                            {
+                                <label for="version-@context.PodName" class="form-label d-xl-none"><b>Version:</b></label>
+                                <span id="version-@context.PodName" class="form-item">@context.Version</span>
+                            }
                         </div>
                         <div class="col-xl-1">
                             <label for="status-@context.PodName" class="form-label d-xl-none"><b>Status:</b></label>
                             <span id="status-@context.PodName" class="form-item">@context.PodStatus</span>
                         </div>
-                        <div class="col-xl-2">
-                            <label for="version-@context.PodName" class="form-label d-xl-none"><b>Version:</b></label>
-                            <span id="version-@context.PodName" class="form-item">@context.Version</span>
-                        </div>
-                        <div class="col-xl-2">
-                            <label for="component-@context.PodName" class="form-label d-xl-none"><b>Component:</b></label>
-                            <span id="component-@context.PodName" class="form-item">@context.Component</span>
-                        </div>
-                        <div class="col-xl-1">
-                            <label for="part-of-@context.PodName" class="form-label d-xl-none"><b>Part Of:</b></label>
-                            <span id="part-of-@context.PodName" class="form-item">@context.PartOf</span>
-                        </div>
-                        <div class="col-xl-2">
-                            @if (@context.PodIPs != null && context.PodIPs.Any())
-                            {
-                                <label for="ip-@context.PodName" class="form-label d-xl-none"><b>Node IP & Pod IP(s):</b></label>
-                                <span id="ip-@context.PodName" class="form-item">@context.HostIP
-                                    <ul>
-                                        @foreach (var ip in context.PodIPs)
-                                        {
-                                            <li>@ip</li>
-                                        }
-                                    </ul>
-                                </span>
-                            }
-                        </div>
                     </div>
-
-                    <div class="row justify-content-evenly mb-2">
-                        @if (context.Status != null && context.Status.Any())
-                        {
-                            <div class="col-xl-2">
-                                <button class="btn btn-outline-dark btn-sm collapsed" type="button" data-bs-toggle="collapse"
+                    <div class="row">
+                        <div class="col-8 col-lg-12">
+                            @if (context.Status != null && context.Status.Any())
+                            {
+                                <button class="btn btn-outline-dark btn-sm m-2 collapsed" type="button" data-bs-toggle="collapse"
                         data-bs-target="#@context.PodName-collapseContainerStatus" aria-expanded="false"
                         aria-controls="collapseContainerStatus">
-                                    <span class="show">Show</span><span class="hide">Hide</span> Container Statuses
+                                    <span class="show">Show</span><span class="hide">Hide</span> More Details
                                 </button>
-                            </div>
-                        }
+                            }
 
-                        @if (context.Labels != null && context.Labels.Any())
-                        {
-                            <div class="col-xl-2">
-                                <button class="btn btn-outline-dark btn-sm collapsed" type="button" data-bs-toggle="collapse"
+                            @if (context.Labels != null && context.Labels.Any())
+                            {
+                                <button class="btn btn-outline-dark btn-sm m-2 collapsed" type="button" data-bs-toggle="collapse"
                         data-bs-target="#@context.PodName-collapseLabels" aria-expanded="false"
                         aria-controls="collapseLabels">
                                     <span class="show">Show</span><span class="hide">Hide</span> Pod Labels
                                 </button>
-                            </div>
-                        }
+                            }
 
-                        @if (context.Annotations != null && context.Annotations.Any())
-                        {
-                            <div class="col-xl-2">
-                                <button class="btn btn-outline-dark btn-sm collapsed" type="button" data-bs-toggle="collapse"
+                            @if (context.Annotations != null && context.Annotations.Any())
+                            {
+                                <button class="btn btn-outline-dark btn-sm m-2 collapsed" type="button" data-bs-toggle="collapse"
                         data-bs-target="#@context.PodName-collapseAnnotations" aria-expanded="false"
                         aria-controls="collapseAnnotations">
                                     <span class="show">Show</span><span class="hide">Hide</span> Pod Annotations
                                 </button>
-                            </div>
-                        }
+                            }
 
-                        @if (context.PodVolumes != null && context.PodVolumes.Any())
-                        {
-                            <div class="col-xl-2">
-                                <button class="btn btn-outline-dark btn-sm collapsed" type="button" data-bs-toggle="collapse"
+                            @if (context.PodVolumes != null && context.PodVolumes.Any())
+                            {
+                                <button class="btn btn-outline-dark btn-sm m-2 collapsed" type="button" data-bs-toggle="collapse"
                         data-bs-target="#@context.PodName-collapsePodVolumes" aria-expanded="false"
                         aria-controls="collapsePodVolumes">
                                     <span class="show">Show</span><span class="hide">Hide</span> Pod Volumes
                                 </button>
-                            </div>
-                        }
+                            }
+                        </div>
                     </div>
-
                     <div class="row mb-2">
                         @if (context.Status != null && context.Status.Any())
                         {
                             <div class="collapse col-sm-12" id="@context.PodName-collapseContainerStatus">
                                 <div class="alert alert-info mb-2"><strong>Pod Name:</strong> @context.PodName</div>
+                                <div class="row">
+                                    <div class="col-md-4">
+                                        <label for="node-name-@context.PodName" class="form-label"><b>Node Name</b></label>
+                                        <p>@context.NodeName</p>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label for="node-ip-@context.PodName" class="form-label"><b>Node IP</b></label>
+                                        <p>@context.HostIP</p>
+                                    </div>
+                                    <div class="col-md-4">
+                                        @if (@context.PodIPs != null && context.PodIPs.Any())
+                                        {
+                                            @if (@context.PodIPs.Count > 1)
+                                            {
+                                                <label for="ip-@context.PodName" class="form-label"><b>Pod IPs</b></label>
+                                                <div id="ip-@context.PodName" class="form-item">
+                                                    <ul>
+                                                        @foreach (var ip in context.PodIPs)
+                                                        {
+                                                            <li>@ip</li>
+                                                        }
+                                                    </ul>
+                                                </div>
+                                            }
+                                            else if (@context.PodIPs.Count == 1)
+                                            {
+                                                <label for="ip-@context.PodName" class="form-label"><b>Pod IP</b></label>
+                                                <div id="ip-@context.PodName" class="form-item">@context.PodIPs[0]</div>
+                                            }
+                                            else
+                                            {
+                                                <div class="alert alert-warning">No Pod IP address was assigned.</div>
+                                            }
+                                        }
+                                    </div>
+                                </div>
                                 <TableTemplate
                         Items="@context.Status.Select(s => new { s.Name, s.Started, s.Ready, s.RestartCount, s.Image, s.ImageID }).OrderBy(s => s.Name)"
                         TableClass="table-sm table-striped">
@@ -197,7 +216,8 @@ else
                         <td>
                             <div class="form-group row mb-1">
                                 <div class="col-xl-1">
-                                    <button class="btn btn-outline-dark btn-sm" @onclick="() => GetLogs(context.Namespace, context.PodName, statusContext.Name)">Logs</button>
+                                    <button class="btn btn-outline-dark btn-sm"
+                            @onclick="() => GetLogs(context.Namespace, context.PodName, statusContext.Name)">Logs</button>
                                 </div>
                                 <div class="col-xl-1">
                                     <label for="name-@statusContext.Name" class="form-label d-xl-none"><b>Container:</b></label>
@@ -248,7 +268,7 @@ else
                                                         {
                                                 @statusContext.ImageID?.Split('@')[1]
                                                         }
-                                        </span>
+                        </span>
                     </div>
                 </div>
             </td>
@@ -257,7 +277,6 @@ else
 </div>
                         }
         </div>
-
         <div class="row mb-2">
                         @if (context.Labels != null && context.Labels.Any())
                         {
@@ -274,7 +293,6 @@ else
                 </div>
                         }
         </div>
-
         <div class="row mb-2">
                         @if (context.Annotations != null && context.Annotations.Any())
                         {
@@ -291,7 +309,6 @@ else
                 </div>
                         }
         </div>
-
         <div class="row mb-2">
                         @if (context.PodVolumes != null && context.PodVolumes.Any())
                         {
