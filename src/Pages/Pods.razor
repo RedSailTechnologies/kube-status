@@ -71,33 +71,38 @@ else
                 <td>
                     <div class="form-group row">
                         <div class="col-xl-3">
-                            <h5 id="name-@context.PodName" class="form-item">@(string.IsNullOrWhiteSpace(context.Name) ?
+                            <h5 id="name-@context.PodName.Replace(".","-")" class="form-item">
+                                @(string.IsNullOrWhiteSpace(context.Name) ?
                         context.PodName : context.Name)</h5>
                         </div>
                         <div class="col-xl-2">
                             @if (!string.IsNullOrWhiteSpace(context.Component))
                             {
-                                <label for="component-@context.PodName" class="form-label d-xl-none"><b>Component:</b></label>
-                                <span id="component-@context.PodName" class="form-item">@context.Component</span>
+                                <label for="component-@context.PodName.Replace(".","-")"
+                        class="form-label d-xl-none"><b>Component:</b></label>
+                                <span id="component-@context.PodName.Replace(".","-")" class="form-item">@context.Component</span>
                             }
                         </div>
                         <div class="col-xl-1">
                             @if (!string.IsNullOrWhiteSpace(context.PartOf))
                             {
-                                <label for="part-of-@context.PodName" class="form-label d-xl-none"><b>Part Of:</b></label>
-                                <span id="part-of-@context.PodName" class="form-item">@context.PartOf</span>
+                                <label for="part-of-@context.PodName.Replace(".","-")" class="form-label d-xl-none"><b>Part
+                                        Of:</b></label>
+                                <span id="part-of-@context.PodName.Replace(".","-")" class="form-item">@context.PartOf</span>
                             }
                         </div>
                         <div class="col-xl-2">
                             @if (!string.IsNullOrWhiteSpace(context.Version))
                             {
-                                <label for="version-@context.PodName" class="form-label d-xl-none"><b>Version:</b></label>
-                                <span id="version-@context.PodName" class="form-item">@context.Version</span>
+                                <label for="version-@context.PodName.Replace(".","-")"
+                        class="form-label d-xl-none"><b>Version:</b></label>
+                                <span id="version-@context.PodName.Replace(".","-")" class="form-item">@context.Version</span>
                             }
                         </div>
                         <div class="col-xl-1">
-                            <label for="status-@context.PodName" class="form-label d-xl-none"><b>Status:</b></label>
-                            <span id="status-@context.PodName" class="form-item">@context.PodStatus</span>
+                            <label for="status-@context.PodName.Replace(".","-")"
+                        class="form-label d-xl-none"><b>Status:</b></label>
+                            <span id="status-@context.PodName.Replace(".","-")" class="form-item">@context.PodStatus</span>
                         </div>
                     </div>
                     <div class="row">
@@ -105,8 +110,8 @@ else
                             @if (context.Status != null && context.Status.Any())
                             {
                                 <button class="btn btn-outline-dark btn-sm m-2 collapsed" type="button" data-bs-toggle="collapse"
-                        data-bs-target="#@context.PodName-collapseContainerStatus" aria-expanded="false"
-                        aria-controls="collapseContainerStatus">
+                        data-bs-target="#@context.PodName.Replace(".","-")-collapseMoreDetails" aria-expanded="false"
+                        aria-controls="collapseMoreDetails">
                                     <span class="show">Show</span><span class="hide">Hide</span> More Details
                                 </button>
                             }
@@ -114,7 +119,7 @@ else
                             @if (context.Labels != null && context.Labels.Any())
                             {
                                 <button class="btn btn-outline-dark btn-sm m-2 collapsed" type="button" data-bs-toggle="collapse"
-                        data-bs-target="#@context.PodName-collapseLabels" aria-expanded="false"
+                        data-bs-target="#@context.PodName.Replace(".","-")-collapseLabels" aria-expanded="false"
                         aria-controls="collapseLabels">
                                     <span class="show">Show</span><span class="hide">Hide</span> Pod Labels
                                 </button>
@@ -123,7 +128,7 @@ else
                             @if (context.Annotations != null && context.Annotations.Any())
                             {
                                 <button class="btn btn-outline-dark btn-sm m-2 collapsed" type="button" data-bs-toggle="collapse"
-                        data-bs-target="#@context.PodName-collapseAnnotations" aria-expanded="false"
+                        data-bs-target="#@context.PodName.Replace(".","-")-collapseAnnotations" aria-expanded="false"
                         aria-controls="collapseAnnotations">
                                     <span class="show">Show</span><span class="hide">Hide</span> Pod Annotations
                                 </button>
@@ -132,7 +137,7 @@ else
                             @if (context.PodVolumes != null && context.PodVolumes.Any())
                             {
                                 <button class="btn btn-outline-dark btn-sm m-2 collapsed" type="button" data-bs-toggle="collapse"
-                        data-bs-target="#@context.PodName-collapsePodVolumes" aria-expanded="false"
+                        data-bs-target="#@context.PodName.Replace(".","-")-collapsePodVolumes" aria-expanded="false"
                         aria-controls="collapsePodVolumes">
                                     <span class="show">Show</span><span class="hide">Hide</span> Pod Volumes
                                 </button>
@@ -142,15 +147,17 @@ else
                     <div class="row mb-2">
                         @if (context.Status != null && context.Status.Any())
                         {
-                            <div class="collapse col-sm-12" id="@context.PodName-collapseContainerStatus">
+                            <div class="collapse col-sm-12" id="@context.PodName.Replace(".","-")-collapseMoreDetails">
                                 <div class="alert alert-info mb-2"><strong>Pod Name:</strong> @context.PodName</div>
                                 <div class="row">
                                     <div class="col-md-4">
-                                        <label for="node-name-@context.PodName" class="form-label"><b>Node Name</b></label>
+                                        <label for="node-name-@context.PodName.Replace(".","-")" class="form-label"><b>Node
+                                                Name</b></label>
                                         <p>@context.NodeName</p>
                                     </div>
                                     <div class="col-md-4">
-                                        <label for="node-ip-@context.PodName" class="form-label"><b>Node IP</b></label>
+                                        <label for="node-ip-@context.PodName.Replace(".","-")" class="form-label"><b>Node
+                                                IP</b></label>
                                         <p>@context.HostIP</p>
                                     </div>
                                     <div class="col-md-4">
@@ -158,8 +165,8 @@ else
                                         {
                                             @if (@context.PodIPs.Count > 1)
                                             {
-                                                <label for="ip-@context.PodName" class="form-label"><b>Pod IPs</b></label>
-                                                <div id="ip-@context.PodName" class="form-item">
+                                                <label for="ip-@context.PodName.Replace(".","-")" class="form-label"><b>Pod IPs</b></label>
+                                                <div id="ip-@context.PodName.Replace(".","-")" class="form-item">
                                                     <ul>
                                                         @foreach (var ip in context.PodIPs)
                                                         {
@@ -170,8 +177,8 @@ else
                                             }
                                             else if (@context.PodIPs.Count == 1)
                                             {
-                                                <label for="ip-@context.PodName" class="form-label"><b>Pod IP</b></label>
-                                                <div id="ip-@context.PodName" class="form-item">@context.PodIPs[0]</div>
+                                                <label for="ip-@context.PodName.Replace(".","-")" class="form-label"><b>Pod IP</b></label>
+                                                <div id="ip-@context.PodName.Replace(".","-")" class="form-item">@context.PodIPs[0]</div>
                                             }
                                             else
                                             {
@@ -280,7 +287,7 @@ else
         <div class="row mb-2">
                         @if (context.Labels != null && context.Labels.Any())
                         {
-                <div class="collapse col-sm-12" id="@context.PodName-collapseLabels">
+                <div class="collapse col-sm-12" id="@context.PodName.Replace(".","-")-collapseLabels">
                     <TableTemplate Items="@context.Labels" TableClass="table-sm table-striped">
                         <TableHeader>
                             <th colspan="2">Labels</th>
@@ -296,7 +303,7 @@ else
         <div class="row mb-2">
                         @if (context.Annotations != null && context.Annotations.Any())
                         {
-                <div class="collapse col-sm-12" id="@context.PodName-collapseAnnotations">
+                <div class="collapse col-sm-12" id="@context.PodName.Replace(".","-")-collapseAnnotations">
                     <TableTemplate Items="@context.Annotations" TableClass="table-sm table-striped">
                         <TableHeader>
                             <th colspan="2">Annotations</th>
@@ -312,7 +319,7 @@ else
         <div class="row mb-2">
                         @if (context.PodVolumes != null && context.PodVolumes.Any())
                         {
-                <div class="collapse col-sm-12" id="@context.PodName-collapsePodVolumes">
+                <div class="collapse col-sm-12" id="@context.PodName.Replace(".","-")-collapsePodVolumes">
                     <TableTemplate Items="@context.PodVolumes" TableClass="table-sm table-striped">
                         <TableHeader>
                             <th>Volumes</th>
