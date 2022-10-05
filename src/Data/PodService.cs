@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using k8s;
+using k8s.Models;
 using KubeStatus.Models;
 
 namespace KubeStatus.Data
@@ -30,19 +31,41 @@ namespace KubeStatus.Data
                     Namespace = k8sNamespace,
                     Labels = item.Metadata.Labels,
                     Annotations = item.Metadata.Annotations,
-                    InitStatus = item.Status.InitContainerStatuses,
-                    Status = item.Status.ContainerStatuses,
                     PodStatus = item.Status.Phase,
                     PodVolumes = item.Spec.Volumes.Select(v => v.Name).ToList(),
                     PodIPs = item.Status.PodIPs.Select(i => i.Ip).ToList(),
                     HostIP = item.Status.HostIP,
                     NodeName = item.Spec.NodeName,
-                    InitContainers = item.Spec.InitContainers,
-                    Containers = item.Spec.Containers
+                    InitContainers = SortContainersAndStatuses(item.Status.InitContainerStatuses, item.Spec.InitContainers),
+                    Containers = SortContainersAndStatuses(item.Status.ContainerStatuses, item.Spec.Containers)
                 });
             }
 
             return await Task.FromResult(pods.AsEnumerable());
+        }
+
+        private IList<V1ContainerAndStatus> SortContainersAndStatuses(IList<V1ContainerStatus> statuses, IList<V1Container> containers)
+        {
+            var list = new List<V1ContainerAndStatus>();
+
+            if (containers != null && containers.Count > 0)
+            {
+                foreach (var container in containers.OrderBy(c => c.Name))
+                {
+                    var name = container.Name;
+                    var status = statuses.Where(s => s.Name.Equals(name)).FirstOrDefault();
+                    list.Add(new V1ContainerAndStatus { ContainerStatus = status, Container = container });
+                }
+            }
+            else if (statuses != null && statuses.Count > 0)
+            {
+                foreach (var status in statuses.OrderBy(s => s.Name))
+                {
+                    list.Add(new V1ContainerAndStatus { ContainerStatus = status });
+                }
+            }
+
+            return list;
         }
     }
 }

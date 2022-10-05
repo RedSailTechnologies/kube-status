@@ -16,14 +16,18 @@ namespace KubeStatus.Models
         public string Namespace { get; set; }
         public IDictionary<string, string> Labels { get; set; }
         public IDictionary<string, string> Annotations { get; set; }
-        public IList<V1ContainerStatus> InitStatus { get; set; }
-        public IList<V1ContainerStatus> Status { get; set; }
         public string PodStatus { get; set; }
         public IList<string> PodVolumes { get; set; }
         public IList<string> PodIPs { get; set; }
         public string HostIP { get; set; }
         public string NodeName { get; set; }
-        public IList<V1Container> InitContainers { get; set; }
-        public IList<V1Container> Containers { get; set; }
+        public IList<V1ContainerAndStatus> InitContainers { get; set; }
+        public IList<V1ContainerAndStatus> Containers { get; set; }
+    }
+
+    public class V1ContainerAndStatus
+    {
+        public V1ContainerStatus ContainerStatus { get; set; }
+        public V1Container Container { get; set; }
     }
 }
