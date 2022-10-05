@@ -30,12 +30,15 @@ namespace KubeStatus.Data
                     Namespace = k8sNamespace,
                     Labels = item.Metadata.Labels,
                     Annotations = item.Metadata.Annotations,
+                    InitStatus = item.Status.InitContainerStatuses,
                     Status = item.Status.ContainerStatuses,
                     PodStatus = item.Status.Phase,
                     PodVolumes = item.Spec.Volumes.Select(v => v.Name).ToList(),
                     PodIPs = item.Status.PodIPs.Select(i => i.Ip).ToList(),
                     HostIP = item.Status.HostIP,
-                    NodeName = item.Spec.NodeName
+                    NodeName = item.Spec.NodeName,
+                    InitContainers = item.Spec.InitContainers,
+                    Containers = item.Spec.Containers
                 });
             }
 
