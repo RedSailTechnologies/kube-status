@@ -32,6 +32,7 @@ namespace KubeStatus.Data
                     Labels = item.Metadata.Labels,
                     Annotations = item.Metadata.Annotations,
                     PodStatus = item.Status.Phase,
+                    PodCreated = item.Metadata.CreationTimestamp,
                     PodVolumes = item.Spec.Volumes.Select(v => v.Name).ToList(),
                     PodIPs = item.Status.PodIPs.Select(i => i.Ip).ToList(),
                     HostIP = item.Status.HostIP,

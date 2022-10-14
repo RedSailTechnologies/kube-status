@@ -52,17 +52,20 @@ else
                         <div class="col-xl-3 d-none d-xl-block">
                             <label class="form-label"><b>Pod</b></label>
                         </div>
-                        <div class="col-xl-2 d-none d-xl-block">
+                        <div class="col-xl-1 d-none d-xl-block">
                             <label class="form-label"><b>Component</b></label>
                         </div>
                         <div class="col-xl-1 d-none d-xl-block">
                             <label class="form-label"><b>Part Of</b></label>
                         </div>
-                        <div class="col-xl-2 d-none d-xl-block">
+                        <div class="col-xl-1 d-none d-xl-block">
                             <label class="form-label"><b>Version</b></label>
                         </div>
                         <div class="col-xl-1 d-none d-xl-block">
                             <label class="form-label"><b>Status</b></label>
+                        </div>
+                        <div class="col-xl-1 d-none d-xl-block">
+                            <label class="form-label"><b>Created</b></label>
                         </div>
                     </div>
                 </th>
@@ -75,12 +78,12 @@ else
                                 @(string.IsNullOrWhiteSpace(context.Name) ?
                         context.PodName : context.Name)</h5>
                         </div>
-                        <div class="col-xl-2">
+                        <div class="col-xl-1">
                             @if (!string.IsNullOrWhiteSpace(context.Component))
                             {
                                 <label for="component-@context.PodName.Replace(".","-")"
                         class="form-label d-xl-none"><b>Component:</b></label>
-                                <span id="component-@context.PodName.Replace(".","-")" class="form-item">@context.Component</span>
+                                <span id="component-@context.PodName.Replace(".","-")" class="form-item small">@context.Component</span>
                             }
                         </div>
                         <div class="col-xl-1">
@@ -88,21 +91,26 @@ else
                             {
                                 <label for="part-of-@context.PodName.Replace(".","-")" class="form-label d-xl-none"><b>Part
                                         Of:</b></label>
-                                <span id="part-of-@context.PodName.Replace(".","-")" class="form-item">@context.PartOf</span>
+                                <span id="part-of-@context.PodName.Replace(".","-")" class="form-item small">@context.PartOf</span>
                             }
                         </div>
-                        <div class="col-xl-2">
+                        <div class="col-xl-1">
                             @if (!string.IsNullOrWhiteSpace(context.Version))
                             {
                                 <label for="version-@context.PodName.Replace(".","-")"
                         class="form-label d-xl-none"><b>Version:</b></label>
-                                <span id="version-@context.PodName.Replace(".","-")" class="form-item">@context.Version</span>
+                                <span id="version-@context.PodName.Replace(".","-")" class="form-item small">@context.Version</span>
                             }
                         </div>
                         <div class="col-xl-1">
                             <label for="status-@context.PodName.Replace(".","-")"
                         class="form-label d-xl-none"><b>Status:</b></label>
-                            <span id="status-@context.PodName.Replace(".","-")" class="form-item">@context.PodStatus</span>
+                            <span id="status-@context.PodName.Replace(".","-")" class="form-item small">@context.PodStatus</span>
+                        </div>
+                        <div class="col-xl-1">
+                            <label for="created-@context.PodName.Replace(".","-")"
+                        class="form-label d-xl-none"><b>Created:</b></label>
+                            <span id="created-@context.PodName.Replace(".","-")" class="form-item small">@context.PodCreated</span>
                         </div>
                     </div>
                     <div class="row">
