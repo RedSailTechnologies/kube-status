@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using k8s;
@@ -11,11 +12,18 @@ namespace KubeStatus.Data
     {
         public async Task<IEnumerable<Pod>> GetAllNamespacedPodsAsync(string k8sNamespace = "default")
         {
-            var pods = new List<Pod>();
-
             var client = Helper.GetKubernetesClient();
 
+            var namespaces = await client.ListNamespaceAsync();
+            if (!namespaces.Items.Any(n => n.Metadata.Name.Equals(k8sNamespace, System.StringComparison.OrdinalIgnoreCase)))
+            {
+                return null;
+            }
+
             var list = await client.ListNamespacedPodAsync(k8sNamespace);
+
+            var pods = new List<Pod>();
+
             foreach (var item in list.Items)
             {
                 pods.Add(new Pod
@@ -67,6 +75,58 @@ namespace KubeStatus.Data
             }
 
             return list;
+        }
+
+        public async Task<byte[]> GetAllNamespacedPodsFileAsync(string k8sNamespace = "default")
+        {
+            try
+            {
+                var pods = await GetAllNamespacedPodsAsync(k8sNamespace);
+                if (pods == null)
+                {
+                    return null;
+                }
+                else
+                {
+                    byte[] bytesInStream;
+                    var podList = pods
+                        .Select(p => new PodMeta
+                        {
+                            Name = string.IsNullOrWhiteSpace(p.Name) ? p.PodName : p.Name,
+                            Component = p.Component,
+                            Version = p.Version,
+                            PartOf = p.PartOf,
+                            PodStatus = p.PodStatus
+                        })
+                        .DistinctBy(p => p.Name)
+                        .ToList();
+
+                    using (var memoryStream = new MemoryStream())
+                    {
+                        using (var streamWriter = new StreamWriter(memoryStream))
+                        {
+                            streamWriter.WriteLine($"\"Name\",\"Component\",\"Version\",\"PartOf\",\"PodStatus\"");
+                            podList.ForEach(p => streamWriter.WriteLine($"\"{p.Name}\",\"{p.Component}\",\"{p.Version}\",\"{p.PartOf}\",\"{p.PodStatus}\""));
+                        }
+                        bytesInStream = memoryStream.ToArray();
+                    }
+
+                    return bytesInStream;
+                }
+            }
+            catch
+            {
+                return null;
+            }
+        }
+
+        private class PodMeta
+        {
+            public string Name { get; set; }
+            public string Component { get; set; }
+            public string Version { get; set; }
+            public string PartOf { get; set; }
+            public string PodStatus { get; set; }
         }
     }
 }

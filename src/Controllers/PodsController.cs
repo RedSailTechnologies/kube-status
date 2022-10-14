@@ -1,7 +1,5 @@
-﻿using System.Collections.Generic;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 using KubeStatus.Data;
-using KubeStatus.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 
@@ -27,9 +25,34 @@ namespace KubeStatus.Controllers
         }
 
         [HttpGet("{k8sNamespace}")]
-        public async Task<IEnumerable<Pod>> GetAllNamespacedPodsAsync(string k8sNamespace = "default")
+        public async Task<IActionResult> GetAllNamespacedPodsAsync(string k8sNamespace = "default")
         {
-            return await _podService.GetAllNamespacedPodsAsync(k8sNamespace);
+            var pods = await _podService.GetAllNamespacedPodsAsync(k8sNamespace);
+
+            if (pods == null)
+            {
+                return NotFound();
+            }
+            else
+            {
+                return Ok(pods);
+            }
+        }
+
+        [HttpGet("{k8sNamespace}/csv")]
+        public async Task<IActionResult> GetAllNamespacedPodsFileAsync(string k8sNamespace = "default")
+        {
+            var fileName = $"{k8sNamespace}.csv";
+            var bytes = await _podService.GetAllNamespacedPodsFileAsync(k8sNamespace);
+
+            if (bytes == null)
+            {
+                return NotFound();
+            }
+            else
+            {
+                return File(bytes, "text/csv", fileName);
+            }
         }
     }
 }

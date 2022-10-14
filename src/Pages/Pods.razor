@@ -31,7 +31,10 @@ else
                 }
             </select>
         </div>
-        <div class="col-sm-2 offset-sm-6">
+        <div class="col-sm-2 offset-sm-4">
+            <button class="btn btn-outline-dark btn-sm" @onclick="() => GetPodCsv()">Download Pod List</button>
+        </div>
+        <div class="col-sm-2">
             <label for="logRows" class="form-label">Log Rows</label>
             <input type="number" class="form-control" id="logRows" @bind-value="LogRows">
         </div>
@@ -511,5 +514,11 @@ else
     {
         var logApi = $"/api/logs/{k8sNamespace}/{podName}/{name}?tail={LogRows}";
         await JS.InvokeVoidAsync("triggerFileDownload", "", logApi);
+    }
+
+    async Task GetPodCsv()
+    {
+        var podCsv = $"/api/pods/{SelectedNamespace}/csv";
+        await JS.InvokeVoidAsync("triggerFileDownload", "", podCsv);
     }
 }
