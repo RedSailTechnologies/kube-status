@@ -86,7 +86,8 @@ else
                             {
                                 <label for="component-@context.PodName.Replace(".","-")"
                         class="form-label d-xl-none"><b>Component:</b></label>
-                                <span id="component-@context.PodName.Replace(".","-")" class="form-item small">@context.Component</span>
+                                <span id="component-@context.PodName.Replace(".","-")"
+                        class="form-item small">@context.Component</span>
                             }
                         </div>
                         <div class="col-xl-1">
@@ -108,12 +109,19 @@ else
                         <div class="col-xl-1">
                             <label for="status-@context.PodName.Replace(".","-")"
                         class="form-label d-xl-none"><b>Status:</b></label>
-                            <span id="status-@context.PodName.Replace(".","-")" class="form-item small">@context.PodStatus</span>
+                            <span id="status-@context.PodName.Replace(".","-")"
+                        class="form-item small">@context.PodStatus</span>
                         </div>
                         <div class="col-xl-1">
                             <label for="created-@context.PodName.Replace(".","-")"
                         class="form-label d-xl-none"><b>Created:</b></label>
-                            <span id="created-@context.PodName.Replace(".","-")" class="form-item small">@context.PodCreated</span>
+                            <span id="created-@context.PodName.Replace(".","-")" class="form-item small">@if
+                        (context.PodCreated.HasValue)
+                                {
+                                    @context.PodCreated.Value.ToString("u")
+                                    ;
+                                }
+                            </span>
                         </div>
                     </div>
                     <div class="row">
