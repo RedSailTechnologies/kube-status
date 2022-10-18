@@ -17,6 +17,8 @@ namespace KubeStatus.Models
         public string Namespace { get; set; }
         public IDictionary<string, string> Labels { get; set; }
         public IDictionary<string, string> Annotations { get; set; }
+        public V1Affinity Affinity { get; set; }
+        public IList<V1Toleration> Tolerations { get; set; }
         public string PodStatus { get; set; }
         public DateTime? PodCreated { get; set; }
         public IList<string> PodVolumes { get; set; }

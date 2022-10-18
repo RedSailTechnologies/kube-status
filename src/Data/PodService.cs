@@ -39,6 +39,8 @@ namespace KubeStatus.Data
                     Namespace = k8sNamespace,
                     Labels = item.Metadata.Labels,
                     Annotations = item.Metadata.Annotations,
+                    Affinity = item.Spec.Affinity,
+                    Tolerations = item.Spec.Tolerations,
                     PodStatus = item.Status.Phase,
                     PodCreated = item.Metadata.CreationTimestamp,
                     PodVolumes = item.Spec.Volumes.Select(v => v.Name).ToList(),

@@ -154,6 +154,16 @@ else
                                 </button>
                             }
 
+
+                            @if (context.Affinity != null || (context.Tolerations != null && context.Tolerations.Any()))
+                            {
+                                <button class="btn btn-outline-dark btn-sm m-2 collapsed" type="button" data-bs-toggle="collapse"
+                        data-bs-target="#@context.PodName.Replace(".","-")-collapseAffinityAndTolerations"
+                        aria-expanded="false" aria-controls="collapseAffinityAndTolerations">
+                                    <span class="show">Show</span><span class="hide">Hide</span> Affinity & Tolerations
+                                </button>
+                            }
+
                             @if (context.PodVolumes != null && context.PodVolumes.Any())
                             {
                                 <button class="btn btn-outline-dark btn-sm m-2 collapsed" type="button" data-bs-toggle="collapse"
@@ -436,6 +446,38 @@ else
                             <td>@annotationsContext.Value</td>
                         </RowTemplate>
                     </TableTemplate>
+                </div>
+                        }
+        </div>
+        <div class="row mb-2">
+                        @if (context.Affinity != null || (context.Tolerations != null && context.Tolerations.Any()))
+                        {
+                <div class="collapse col-sm-12" id="@context.PodName.Replace(".","-")-collapseAffinityAndTolerations">
+                                @if (context.Affinity != null)
+                                {
+                        <h5>Affinity</h5>
+                        <pre>@context.Affinity.ToYaml()</pre>
+                                }
+                                @if (context.Tolerations != null && context.Tolerations.Any())
+                                {
+                        <h5>Tolerations</h5>
+                        <TableTemplate Items="@context.Tolerations" TableClass="table-sm table-striped">
+                            <TableHeader>
+                                <th>Key</th>
+                                <th>Operator</th>
+                                <th>Value</th>
+                                <th>Effect</th>
+                                <th>Seconds</th>
+                            </TableHeader>
+                            <RowTemplate Context="tolerationsContext">
+                                <td>@tolerationsContext.Key</td>
+                                <td>@tolerationsContext.OperatorProperty</td>
+                                <td>@tolerationsContext.Value</td>
+                                <td>@tolerationsContext.Effect</td>
+                                <td>@tolerationsContext.TolerationSeconds</td>
+                            </RowTemplate>
+                        </TableTemplate>
+                                }
                 </div>
                         }
         </div>

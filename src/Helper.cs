@@ -1,6 +1,7 @@
 using System;
-
 using k8s;
+using YamlDotNet.Serialization;
+using YamlDotNet.Serialization.NamingConventions;
 
 namespace KubeStatus
 {
@@ -60,6 +61,16 @@ namespace KubeStatus
         public static string SparkApplicationPlural()
         {
             return Environment.GetEnvironmentVariable("SPARK__APPLICATION_PLURAL") ?? "sparkapplications";
+        }
+
+        public static string ToYaml(this object obj)
+        {
+            var serializer = new SerializerBuilder()
+                .WithNamingConvention(CamelCaseNamingConvention.Instance)
+                .Build();
+            var yaml = serializer.Serialize(obj);
+
+            return yaml;
         }
     }
 }
