@@ -5,22 +5,28 @@ using System.Threading.Tasks;
 using k8s;
 using k8s.Models;
 using KubeStatus.Models;
+using Microsoft.AspNetCore.Mvc;
 
 namespace KubeStatus.Data
 {
     public class PodService
     {
+        private readonly IKubernetes kubernetesClient;
+
+        public PodService(IKubernetes kubernetesClient)
+        {
+            this.kubernetesClient = kubernetesClient;
+        }
+
         public async Task<IEnumerable<Pod>> GetAllNamespacedPodsAsync(string k8sNamespace = "default")
         {
-            var client = Helper.GetKubernetesClient();
-
-            var namespaces = await client.ListNamespaceAsync();
+            var namespaces = await kubernetesClient.CoreV1.ListNamespaceAsync();
             if (!namespaces.Items.Any(n => n.Metadata.Name.Equals(k8sNamespace, System.StringComparison.OrdinalIgnoreCase)))
             {
                 return null;
             }
 
-            var list = await client.ListNamespacedPodAsync(k8sNamespace);
+            var list = await kubernetesClient.CoreV1.ListNamespacedPodAsync(k8sNamespace);
 
             var pods = new List<Pod>();
 

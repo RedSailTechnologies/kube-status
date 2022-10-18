@@ -1,4 +1,5 @@
 using System;
+using k8s;
 using KubeStatus.Data;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -22,6 +23,7 @@ namespace KubeStatus
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+            services.AddSingleton<IKubernetes>(_ => Helper.GetKubernetesClient());
             services.AddSingleton<SparkApplicationService>();
             services.AddSingleton<KafkaConnectorService>();
             services.AddSingleton<NamespaceService>();

@@ -12,7 +12,13 @@ namespace KubeStatus.Data
 {
     public class KafkaConnectorService
     {
-        static readonly HttpClient client = new HttpClient();
+        private readonly IKubernetes kubernetesClient;
+        static readonly HttpClient httpClient = new HttpClient();
+
+        public KafkaConnectorService(IKubernetes kubernetesClient)
+        {
+            this.kubernetesClient = kubernetesClient;
+        }
 
         public async Task<IEnumerable<KafkaConnector>> GetAllKafkaConnectorsAsync()
         {
@@ -39,8 +45,7 @@ namespace KubeStatus.Data
     }
 }";
 
-                var client = Helper.GetKubernetesClient();
-                await client.PatchNamespacedCustomObjectAsync(new V1Patch(patchStr, V1Patch.PatchType.MergePatch), Helper.StrimziGroup(), Helper.StrimziConnectorVersion(), failedKafkaConnector.Namespace, Helper.StrimziConnectorPlural(), failedKafkaConnector.Name);
+                await kubernetesClient.CustomObjects.PatchNamespacedCustomObjectAsync(new V1Patch(patchStr, V1Patch.PatchType.MergePatch), Helper.StrimziGroup(), Helper.StrimziConnectorVersion(), failedKafkaConnector.Namespace, Helper.StrimziConnectorPlural(), failedKafkaConnector.Name);
             }
 
             return await Task.FromResult(failedKafkaConnectors);
@@ -50,9 +55,7 @@ namespace KubeStatus.Data
         {
             var kafkaConnectors = new List<KafkaConnector>();
 
-            var client = Helper.GetKubernetesClient();
-
-            var response = await client.ListClusterCustomObjectAsync(Helper.StrimziGroup(), Helper.StrimziConnectorVersion(), Helper.StrimziConnectorPlural());
+            var response = await kubernetesClient.CustomObjects.ListClusterCustomObjectAsync(Helper.StrimziGroup(), Helper.StrimziConnectorVersion(), Helper.StrimziConnectorPlural());
             var jsonString = JsonSerializer.Serialize<object>(response);
             JsonNode jsonNode = JsonNode.Parse(jsonString)!;
             JsonNode itemsNode = jsonNode!["items"]!;
@@ -146,7 +149,7 @@ namespace KubeStatus.Data
 
                 var uri = $"{host.TrimEnd(new char[] { '\\', '/' })}/connectors{urlParam}";
 
-                return await client.GetStringAsync(uri);
+                return await httpClient.GetStringAsync(uri);
             }
         }
     }

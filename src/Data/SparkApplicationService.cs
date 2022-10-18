@@ -9,6 +9,13 @@ namespace KubeStatus.Data
 {
     public class SparkApplicationService
     {
+        private readonly IKubernetes kubernetesClient;
+
+        public SparkApplicationService(IKubernetes kubernetesClient)
+        {
+            this.kubernetesClient = kubernetesClient;
+        }
+
         private static JsonSerializerOptions _options = new JsonSerializerOptions() { PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
 
         public async Task<IEnumerable<SparkApplication>> GetAllSparkApplicationsAsync()
@@ -20,9 +27,7 @@ namespace KubeStatus.Data
         {
             var sparkApplications = new List<SparkApplication>();
 
-            var client = Helper.GetKubernetesClient();
-
-            var response = await client.ListClusterCustomObjectAsync(Helper.SparkGroup(), Helper.SparkApplicationVersion(), Helper.SparkApplicationPlural());
+            var response = await kubernetesClient.CustomObjects.ListClusterCustomObjectAsync(Helper.SparkGroup(), Helper.SparkApplicationVersion(), Helper.SparkApplicationPlural());
 
             var jsonString = JsonSerializer.Serialize<object>(response);
             JsonNode jsonNode = JsonNode.Parse(jsonString)!;

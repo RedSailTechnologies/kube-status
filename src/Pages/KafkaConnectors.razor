@@ -175,8 +175,7 @@ else
         }
 
         FailedButtonIsDisabled = true;
-        var kafkaconnectorService = new KafkaConnectorService();
-        Connectors = await kafkaconnectorService.RestartAllFailedKafkaConnectorsAsync();
+        Connectors = await KafkaConnectorService.RestartAllFailedKafkaConnectorsAsync();
 
         ConnectorsRestarted = true;
     }

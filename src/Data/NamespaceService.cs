@@ -7,11 +7,16 @@ namespace KubeStatus.Data
 {
     public class NamespaceService
     {
+        private readonly IKubernetes kubernetesClient;
+
+        public NamespaceService(IKubernetes kubernetesClient)
+        {
+            this.kubernetesClient = kubernetesClient;
+        }
+
         public async Task<V1NamespaceList> GetAllNamespacesAsync()
         {
-            var client = Helper.GetKubernetesClient();
-
-            var namespaces = await client.ListNamespaceAsync();
+            var namespaces = await kubernetesClient.CoreV1.ListNamespaceAsync();
 
             return await Task.FromResult(namespaces);
         }
