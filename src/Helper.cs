@@ -66,6 +66,7 @@ namespace KubeStatus
         public static string ToYaml(this object obj)
         {
             var serializer = new SerializerBuilder()
+                .ConfigureDefaultValuesHandling(DefaultValuesHandling.OmitNull)
                 .WithNamingConvention(CamelCaseNamingConvention.Instance)
                 .Build();
             var yaml = serializer.Serialize(obj);
