@@ -27,11 +27,14 @@ namespace KubeStatus.Data
             }
 
             var list = await kubernetesClient.CoreV1.ListNamespacedPodAsync(k8sNamespace);
+            var events = await kubernetesClient.CoreV1.ListNamespacedEventAsync(k8sNamespace);
 
             var pods = new List<Pod>();
 
             foreach (var item in list.Items)
             {
+                var podEvents = events.Items.Where(i => i.InvolvedObject.Uid.Equals(item.Metadata.Uid)).ToList();
+                
                 pods.Add(new Pod
                 {
                     Name = item.Metadata.Labels.ContainsKey("app.kubernetes.io/name") ? item.Metadata.Labels["app.kubernetes.io/name"] : "",
@@ -48,13 +51,18 @@ namespace KubeStatus.Data
                     Affinity = item.Spec.Affinity,
                     Tolerations = item.Spec.Tolerations,
                     PodStatus = item.Status.Phase,
+                    PodStatusMessage = item.Status.Message,
+                    PodStatusReason = item.Status.Reason,
+                    PodStatusPhase = item.Status.Phase,
+                    PodConditions = item.Status.Conditions,
                     PodCreated = item.Metadata.CreationTimestamp,
                     PodVolumes = item.Spec.Volumes.Select(v => v.Name).ToList(),
                     PodIPs = item.Status.PodIPs.Select(i => i.Ip).ToList(),
                     HostIP = item.Status.HostIP,
                     NodeName = item.Spec.NodeName,
                     InitContainers = SortContainersAndStatuses(item.Status.InitContainerStatuses, item.Spec.InitContainers),
-                    Containers = SortContainersAndStatuses(item.Status.ContainerStatuses, item.Spec.Containers)
+                    Containers = SortContainersAndStatuses(item.Status.ContainerStatuses, item.Spec.Containers),
+                    Events = podEvents
                 });
             }
 

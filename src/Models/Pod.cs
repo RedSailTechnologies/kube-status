@@ -20,6 +20,10 @@ namespace KubeStatus.Models
         public V1Affinity Affinity { get; set; }
         public IList<V1Toleration> Tolerations { get; set; }
         public string PodStatus { get; set; }
+        public string PodStatusMessage { get; set; }
+        public string PodStatusReason { get; set; }
+        public string PodStatusPhase { get; set; }
+        public IList<V1PodCondition> PodConditions { get; set; }
         public DateTime? PodCreated { get; set; }
         public IList<string> PodVolumes { get; set; }
         public IList<string> PodIPs { get; set; }
@@ -27,6 +31,7 @@ namespace KubeStatus.Models
         public string NodeName { get; set; }
         public IList<V1ContainerAndStatus> InitContainers { get; set; }
         public IList<V1ContainerAndStatus> Containers { get; set; }
+        public IList<Corev1Event> Events { get; set; }
     }
 
     public class V1ContainerAndStatus
