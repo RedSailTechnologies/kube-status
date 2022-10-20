@@ -63,10 +63,21 @@ namespace KubeStatus
             return Environment.GetEnvironmentVariable("SPARK__APPLICATION_PLURAL") ?? "sparkapplications";
         }
 
-        public static string ToYaml(this object obj)
+        /// <summary>
+        /// Converts an object to yaml.
+        /// </summary>
+        /// <param name="obj"></param>
+        /// <param name="defaultValueHandling">Available Options: OmitDefaults, OmitEmptyCollections, OmitNull, Preserve</param>
+        /// <returns></returns>
+        public static string ToYaml(this object obj, string defaultValueHandling = "OmitNull")
         {
+            if (!Enum.TryParse(defaultValueHandling, out DefaultValuesHandling defaultValueHandlingEnum))
+            {
+                defaultValueHandlingEnum = DefaultValuesHandling.OmitNull;
+            }
+
             var serializer = new SerializerBuilder()
-                .ConfigureDefaultValuesHandling(DefaultValuesHandling.OmitNull)
+                .ConfigureDefaultValuesHandling(defaultValueHandlingEnum)
                 .WithNamingConvention(CamelCaseNamingConvention.Instance)
                 .Build();
             var yaml = serializer.Serialize(obj);

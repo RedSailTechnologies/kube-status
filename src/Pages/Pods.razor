@@ -222,192 +222,171 @@ else
                                 {
                                     <h5>Init Containers</h5>
                                     <TableTemplate
-                        Items="@context.InitContainers.Select(s => new { s.ContainerStatus.Name, s.ContainerStatus.Started, s.ContainerStatus.Ready, s.ContainerStatus.RestartCount, s.ContainerStatus.Image, s.ContainerStatus.ImageID }).OrderBy(s => s.Name)"
+                        Items="@context.InitContainers.Select(s => new { s.ContainerStatus.Name, s.ContainerStatus.Started, s.ContainerStatus.Ready, s.ContainerStatus.RestartCount, s.ContainerStatus.Image, s.ContainerStatus.ImageID, s.ContainerStatus.LastState }).OrderBy(s => s.Name)"
                         TableClass="table-sm table-striped">
-                                        <TableHeader>
-                        <th>
-                            <div class="form-group row">
-                                <div class="col-xl-1">
-                                </div>
-                                <div class="col-xl-1">
-                                    <label class="form-label d-none d-xl-block"><b>Container</b></label>
-                                </div>
-                                <div class="col-xl-1">
-                                    <label class="form-label d-none d-xl-block"><b>Started</b></label>
-                                </div>
-                                <div class="col-xl-1">
-                                    <label class="form-label d-none d-xl-block"><b>Ready</b></label>
-                                </div>
-                                <div class="col-xl-1">
-                                    <label class="form-label d-none d-xl-block"><b>Restart Count</b></label>
-                                </div>
+                                        <RowTemplate Context="statusContext">
+                        <td>
+                            <div class="form-group container-fluid row mb-1">
                                 <div class="col-xl-2">
-                                    <label class="form-label d-none d-xl-block"><b>Image</b></label>
-                                </div>
-                                <div class="col-xl-1">
-                                    <label class="form-label d-none d-xl-block"><b>Tag</b></label>
-                                </div>
-                                <div class="col-xl-4">
-                                    <label class="form-label d-none d-xl-block"><b>Image ID</b></label>
-                                </div>
-                            </div>
-                        </th>
-                        </TableHeader>
-                        <RowTemplate Context="statusContext">
-                            <td>
-                                <div class="form-group row mb-1">
-                                    <div class="col-xl-1">
-                                        <button class="btn btn-outline-dark btn-sm"
+                                    <div class="mb-2">
+                                        <label
+                            for="name-@context.PodName.Replace(".","-")-@statusContext.Name"><b>Container:</b></label>
+                                        <span id="name-@context.PodName.Replace(".","-")-@statusContext.Name"
+                            class="form-item">@statusContext.Name</span>
+                                    </div>
+                                    <div class="row">
+                                        <button class="btn btn-outline-dark btn-sm col-6"
                             @onclick="() => GetLogs(context.Namespace, context.PodName, statusContext.Name)">Logs</button>
                                     </div>
-                                    <div class="col-xl-1">
-                                        <label for="name-@statusContext.Name" class="form-label d-xl-none"><b>Container:</b></label>
-                                        <span id="name-@statusContext.Name" class="form-item">@statusContext.Name</span>
+                                </div>
+                                <div class="col-xl-1">
+                                    <div class="small mb-2">
+                                        <label
+                            for="started-@context.PodName.Replace(".","-")-@statusContext.Name"><b>Started:</b></label>
+                                        <span id="started-@context.PodName.Replace(".","-")-@statusContext.Name"
+                            class="form-item">@statusContext.Started</span>
                                     </div>
-                                    <div class="col-xl-1">
-                                        <label for="started-@statusContext.Started" class="form-label d-xl-none"><b>Started:</b></label>
-                                        <span id="started-@statusContext.Started" class="form-item">@statusContext.Started</span>
+                                    <div class="small mb-2">
+                                        <label for="ready-@context.PodName.Replace(".","-")-@statusContext.Name"><b>Ready:</b></label>
+                                        <span id="ready-@context.PodName.Replace(".","-")-@statusContext.Name"
+                            class="form-item">@statusContext.Ready</span>
                                     </div>
-                                    <div class="col-xl-1">
-                                        <label for="ready-@statusContext.Ready" class="form-label d-xl-none"><b>Ready:</b></label>
-                                        <span id="ready-@statusContext.Ready" class="form-item">@statusContext.Ready</span>
-                                    </div>
-                                    <div class="col-xl-1">
-                                        <label for="restart-count-@statusContext.RestartCount" class="form-label d-xl-none"><b>Restart
+                                    <div class="small mb-2">
+                                        <label for="restart-count-@context.PodName.Replace(".","-")-@statusContext.Name"><b>Restart
                                                 Count:</b></label>
-                                        <span id="restart-count-@statusContext.RestartCount"
+                                        <span id="restart-count-@context.PodName.Replace(".","-")-@statusContext.Name"
                             class="form-item">@statusContext.RestartCount</span>
                                     </div>
-                                    <div class="col-xl-2">
-                                        <label for="image-@statusContext.ImageID" class="form-label d-xl-none"><b>Image:</b></label>
-                                        <span id="image-@statusContext.ImageID" class="form-item">@if
+                                </div>
+                                <div class="col-xl-5">
+                                                        @if (statusContext.LastState.Running != null || statusContext.LastState.Waiting != null ||
+                    statusContext.LastState.Terminated != null)
+                                        {
+                        <label class="form-label small"><b>Last State</b></label>
+                        <pre>@statusContext.LastState.ToYaml()</pre>
+                                        }
+                </div>
+                <div class="col-xl-4">
+                    <div class="small mb-2">
+                        <label for="image-@context.PodName.Replace(".","-")-@statusContext.Name"><b>Image:</b></label>
+                        <span id="image-@context.PodName.Replace(".","-")-@statusContext.Name" class="form-item">@if
                             (statusContext.ImageID?.Split('@').Length > 1)
-                                                            {
-                                                @statusContext.ImageID?.Split('@')[0]
-                                                            }
-                                                            else
-                                                            {
-                                                @statusContext.Image?.Split(':')[0]
-                                                            }</span>
-                    </div>
-                    <div class="col-xl-1">
-                        <label for="tag-@statusContext.Image" class="form-label d-xl-none"><b>Tag:</b></label>
-                        <span id="tag-@statusContext.Image" class="form-item">@if
-                            (statusContext.Image.StartsWith("sha"))
-                                                            {
-                                                @statusContext.Image
-                                                            }
-                                                            else
-                                                            {
-                                                @statusContext.Image?.Split(':')[1]}</span>
+                                                {
+                                                    @statusContext.ImageID?.Split('@')[0]
+                                                }
+                                                else
+                                                {
+                                                    @statusContext.Image?.Split(':')[0]}</span>
                         </div>
-                        <div class="col-xl-4">
-                            <label for="image-id-@statusContext.ImageID" class="form-label d-xl-none"><b>Image
+                        <div class="small mb-2">
+                            <label for="tag-@context.PodName.Replace(".","-")-@statusContext.Name"><b>Tag:</b></label>
+                            <span id="tag-@context.PodName.Replace(".","-")-@statusContext.Name" class="form-item">@if
+                            (statusContext.Image.StartsWith("sha"))
+                                                {
+                                                    @statusContext.Image
+                                                }
+                                                else
+                                                {
+                                                    @statusContext.Image?.Split(':')[1]}</span>
+                        </div>
+                        <div class="small mb-2">
+                            <label for="image-id-@context.PodName.Replace(".","-")-@statusContext.Name"><b>Image
                                     ID:</b></label>
-                            <span id="image-id-@statusContext.ImageID" class="form-item">@if
-                            (statusContext.ImageID?.Split('@').Length > 1)
-                                                            {
-                                                @statusContext.ImageID?.Split('@')[1]
-                                                            }
+                            <span id="image-id-@context.PodName.Replace(".","-")-@statusContext.Name" class="form-item">@if
+                            (statusContext.ImageID?.Split('@').Length >
+                            1)
+                                                {
+                                                    @statusContext.ImageID?.Split('@')[1]
+                                                }
                         </span>
                     </div>
                 </div>
-            </td>
-        </RowTemplate>
+            </div>
+        </td>
+    </RowTemplate>
 </TableTemplate>
                                 }
                                 @if (context.Containers != null && context.Containers.Any())
                                 {
                 <h5>Containers</h5>
                 <TableTemplate
-    Items="@context.Containers.Select(s => new { s.ContainerStatus.Name, s.ContainerStatus.Started, s.ContainerStatus.Ready, s.ContainerStatus.RestartCount, s.ContainerStatus.Image, s.ContainerStatus.ImageID }).OrderBy(s => s.Name)"
+    Items="@context.Containers.Select(s => new { s.ContainerStatus.Name, s.ContainerStatus.Started, s.ContainerStatus.Ready, s.ContainerStatus.RestartCount, s.ContainerStatus.Image, s.ContainerStatus.ImageID, s.ContainerStatus.LastState }).OrderBy(s => s.Name)"
     TableClass="table-sm table-striped">
-                    <TableHeader>
-                        <th>
-                            <div class="form-group row">
-                                <div class="col-xl-1">
-                                </div>
-                                <div class="col-xl-1">
-                                    <label class="form-label d-none d-xl-block"><b>Container</b></label>
-                                </div>
-                                <div class="col-xl-1">
-                                    <label class="form-label d-none d-xl-block"><b>Started</b></label>
-                                </div>
-                                <div class="col-xl-1">
-                                    <label class="form-label d-none d-xl-block"><b>Ready</b></label>
-                                </div>
-                                <div class="col-xl-1">
-                                    <label class="form-label d-none d-xl-block"><b>Restart Count</b></label>
-                                </div>
-                                <div class="col-xl-2">
-                                    <label class="form-label d-none d-xl-block"><b>Image</b></label>
-                                </div>
-                                <div class="col-xl-1">
-                                    <label class="form-label d-none d-xl-block"><b>Tag</b></label>
-                                </div>
-                                <div class="col-xl-4">
-                                    <label class="form-label d-none d-xl-block"><b>Image ID</b></label>
-                                </div>
-                            </div>
-                        </th>
-                    </TableHeader>
                     <RowTemplate Context="statusContext">
                         <td>
-                            <div class="form-group row mb-1">
-                                <div class="col-xl-1">
-                                    <button class="btn btn-outline-dark btn-sm"
-                        @onclick="() => GetLogs(context.Namespace, context.PodName, statusContext.Name)">Logs</button>
-                                </div>
-                                <div class="col-xl-1">
-                                    <label for="name-@statusContext.Name" class="form-label d-xl-none"><b>Container:</b></label>
-                                    <span id="name-@statusContext.Name" class="form-item">@statusContext.Name</span>
-                                </div>
-                                <div class="col-xl-1">
-                                    <label for="started-@statusContext.Started" class="form-label d-xl-none"><b>Started:</b></label>
-                                    <span id="started-@statusContext.Started" class="form-item">@statusContext.Started</span>
-                                </div>
-                                <div class="col-xl-1">
-                                    <label for="ready-@statusContext.Ready" class="form-label d-xl-none"><b>Ready:</b></label>
-                                    <span id="ready-@statusContext.Ready" class="form-item">@statusContext.Ready</span>
-                                </div>
-                                <div class="col-xl-1">
-                                    <label for="restart-count-@statusContext.RestartCount" class="form-label d-xl-none"><b>Restart
-                                            Count:</b></label>
-                                    <span id="restart-count-@statusContext.RestartCount"
-                        class="form-item">@statusContext.RestartCount</span>
-                                </div>
+                            <div class="form-group container-fluid row mb-1">
                                 <div class="col-xl-2">
-                                    <label for="image-@statusContext.ImageID" class="form-label d-xl-none"><b>Image:</b></label>
-                                    <span id="image-@statusContext.ImageID" class="form-item">@if
-                        (statusContext.ImageID?.Split('@').Length > 1)
-                                                            {
-                                                @statusContext.ImageID?.Split('@')[0]
-                                                            }
-                                                            else
-                                                            {
-                                                @statusContext.Image?.Split(':')[0]
-                                                            }</span>
+                                    <div class="mb-2">
+                                        <label
+                            for="name-@context.PodName.Replace(".","-")-@statusContext.Name"><b>Container:</b></label>
+                                        <span id="name-@context.PodName.Replace(".","-")-@statusContext.Name"
+                            class="form-item">@statusContext.Name</span>
+                                    </div>
+                                    <div class="row">
+                                        <button class="btn btn-outline-dark btn-sm col-6"
+                            @onclick="() => GetLogs(context.Namespace, context.PodName, statusContext.Name)">Logs</button>
+                                    </div>
+                                </div>
+                                <div class="col-xl-1">
+                                    <div class="small mb-2">
+                                        <label
+                            for="started-@context.PodName.Replace(".","-")-@statusContext.Name"><b>Started:</b></label>
+                                        <span id="started-@context.PodName.Replace(".","-")-@statusContext.Name"
+                            class="form-item">@statusContext.Started</span>
+                                    </div>
+                                    <div class="small mb-2">
+                                        <label for="ready-@context.PodName.Replace(".","-")-@statusContext.Name"><b>Ready:</b></label>
+                                        <span id="ready-@context.PodName.Replace(".","-")-@statusContext.Name"
+                            class="form-item">@statusContext.Ready</span>
+                                    </div>
+                                    <div class="small mb-2">
+                                        <label for="restart-count-@context.PodName.Replace(".","-")-@statusContext.Name"><b>Restart
+                                                Count:</b></label>
+                                        <span id="restart-count-@context.PodName.Replace(".","-")-@statusContext.Name"
+                            class="form-item">@statusContext.RestartCount</span>
+                                    </div>
+                                </div>
+                                <div class="col-xl-5">
+                                                        @if (statusContext.LastState.Running != null || statusContext.LastState.Waiting != null ||
+                    statusContext.LastState.Terminated != null)
+                                        {
+                        <label class="form-label small"><b>Last State</b></label>
+                        <pre>@statusContext.LastState.ToYaml()</pre>
+                                        }
                 </div>
-                <div class="col-xl-1">
-                    <label for="tag-@statusContext.Image" class="form-label d-xl-none"><b>Tag:</b></label>
-                    <span id="tag-@statusContext.Image" class="form-item">@if
-                        (statusContext.Image.StartsWith("sha"))
-                                                            {
-                                                @statusContext.Image
-                                                            }
-                                                            else
-                                                            {
-                                                @statusContext.Image?.Split(':')[1]}</span>
+                <div class="col-xl-4">
+                    <div class="small mb-2">
+                        <label for="image-@context.PodName.Replace(".","-")-@statusContext.Name"><b>Image:</b></label>
+                        <span id="image-@context.PodName.Replace(".","-")-@statusContext.Name" class="form-item">@if
+                            (statusContext.ImageID?.Split('@').Length > 1)
+                                                {
+                                                    @statusContext.ImageID?.Split('@')[0]
+                                                }
+                                                else
+                                                {
+                                                    @statusContext.Image?.Split(':')[0]}</span>
+                        </div>
+                        <div class="small mb-2">
+                            <label for="tag-@context.PodName.Replace(".","-")-@statusContext.Name"><b>Tag:</b></label>
+                            <span id="tag-@context.PodName.Replace(".","-")-@statusContext.Name" class="form-item">@if
+                            (statusContext.Image.StartsWith("sha"))
+                                                {
+                                                    @statusContext.Image
+                                                }
+                                                else
+                                                {
+                                                    @statusContext.Image?.Split(':')[1]}</span>
+                        </div>
+                        <div class="small mb-2">
+                            <label for="image-id-@context.PodName.Replace(".","-")-@statusContext.Name"><b>Image
+                                    ID:</b></label>
+                            <span id="image-id-@context.PodName.Replace(".","-")-@statusContext.Name" class="form-item">@if
+                            (statusContext.ImageID?.Split('@').Length > 1)
+                                                {
+                                                    @statusContext.ImageID?.Split('@')[1]
+                                                }
+                        </span>
                     </div>
-                    <div class="col-xl-4">
-                        <label for="image-id-@statusContext.ImageID" class="form-label d-xl-none"><b>Image
-                                ID:</b></label>
-                        <span id="image-id-@statusContext.ImageID" class="form-item">@if
-                        (statusContext.ImageID?.Split('@').Length > 1)
-                                                            {
-                                                @statusContext.ImageID?.Split('@')[1]
-                                                            }
-                    </span>
                 </div>
             </div>
         </td>
