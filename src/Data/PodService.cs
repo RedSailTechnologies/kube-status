@@ -33,7 +33,7 @@ namespace KubeStatus.Data
 
             foreach (var item in list.Items)
             {
-                var podEvents = events.Items.Where(i => i.InvolvedObject.Uid.Equals(item.Metadata.Uid)).ToList();
+                var podEvents = events.Items.Where(i => i.InvolvedObject.Uid.Equals(item.Metadata.Uid)).OrderByDescending(i => i.LastTimestamp).ToList();
                 
                 pods.Add(new Pod
                 {
