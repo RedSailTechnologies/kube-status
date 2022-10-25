@@ -94,6 +94,7 @@ envVars:
   ASPNETCORE_ENVIRONMENT: Production
   ASPNETCORE_URLS: http://+:5599;http://+:8080
   ENABLE_SWAGGER: "true"
+  UI_HEADER: "My Kube Cluster"
 
 istio:
   enabled: false
