@@ -1,4 +1,4 @@
-@page "/spark-applications"
+@page "/spark-applications/{applicationstatusparam?}"
 
 @inject SparkApplicationService SparkApplicationService
 
@@ -12,6 +12,25 @@ else
 {
     @if (@Applications != null && @Applications.Any())
     {
+        <div class="form-group row mb-3">
+            <div class="col-sm-4">
+                <label for="applicationStatusSelect" class="form-label">Application State Filter</label>
+                <select class="form-select" id="applicationStatusSelect" @onchange="@OnSelect">
+                    @foreach (var status in ApplicationStatuses)
+                    {
+                        @if (@status.Key.Equals(@SelectedApplicationStatus, StringComparison.OrdinalIgnoreCase))
+                        {
+                            <option value=@status.Value selected>@status.Key</option>
+                        }
+                        else
+                        {
+                            <option value=@status.Value>@status.Key</option>
+                        }
+                    }
+                </select>
+            </div>
+        </div>
+
         <TableTemplate Items="Applications" TItem="SparkApplication" TableHeaderClass="thead-light">
             <TableHeader>
                 <th>
@@ -150,9 +169,14 @@ else
 }
 
 @code {
+    [Parameter]
+    public string ApplicationStatusParam { get; set; }
+
     bool GetApplicationsError;
     bool _shouldRender;
     IEnumerable<SparkApplication> Applications;
+    Dictionary<string, string> ApplicationStatuses = new Dictionary<string, string>();
+    string SelectedApplicationStatus;
 
     protected override bool ShouldRender() => _shouldRender;
 
@@ -160,7 +184,13 @@ else
     {
         try
         {
-            Applications = await SparkApplicationService.GetAllSparkApplicationsAsync();
+            ApplicationStatusParam = ApplicationStatusParam ?? "";
+            SelectedApplicationStatus = ApplicationStatusParam;
+            ApplicationStatuses.Add("All", "");
+            ApplicationStatuses.Add("Failed", "FAILED");
+            ApplicationStatuses.Add("Running", "RUNNING");
+
+            await GetSparkApplications();
 
             _shouldRender = true;
         }
@@ -168,5 +198,16 @@ else
         {
             GetApplicationsError = true;
         }
+    }
+
+    async Task OnSelect(ChangeEventArgs e)
+    {
+        SelectedApplicationStatus = e.Value.ToString();
+        await GetSparkApplications();
+    }
+
+    async Task GetSparkApplications()
+    {
+        Applications = await SparkApplicationService.GetSparkApplicationsAsync(SelectedApplicationStatus);
     }
 }

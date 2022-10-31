@@ -25,5 +25,11 @@ namespace KubeStatus.Controllers
         {
             return await _SparkApplicationService.GetAllSparkApplicationsAsync();
         }
+
+        [HttpGet("{filterStatus}")]
+        public async Task<IEnumerable<SparkApplication>> GetSparkApplicationsAsync(string filterStatus = null)
+        {
+            return await _SparkApplicationService.GetSparkApplicationsAsync(filterStatus);
+        }
     }
 }

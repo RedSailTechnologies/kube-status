@@ -34,7 +34,7 @@ namespace KubeStatus.Data
             foreach (var item in list.Items)
             {
                 var podEvents = events.Items.Where(i => i.InvolvedObject.Uid.Equals(item.Metadata.Uid)).OrderByDescending(i => i.LastTimestamp).ToList();
-                
+
                 pods.Add(new Pod
                 {
                     Name = item.Metadata.Labels.ContainsKey("app.kubernetes.io/name") ? item.Metadata.Labels["app.kubernetes.io/name"] : "",

@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Text.Json;
 using System.Text.Json.Nodes;
@@ -20,10 +21,10 @@ namespace KubeStatus.Data
 
         public async Task<IEnumerable<SparkApplication>> GetAllSparkApplicationsAsync()
         {
-            return await GetSparkApplications();
+            return await GetSparkApplicationsAsync();
         }
 
-        private async Task<IEnumerable<SparkApplication>> GetSparkApplications()
+        public async Task<IEnumerable<SparkApplication>> GetSparkApplicationsAsync(string filterStatus = null)
         {
             var sparkApplications = new List<SparkApplication>();
 
@@ -35,10 +36,17 @@ namespace KubeStatus.Data
 
             foreach (var item in itemsNode.AsArray())
             {
+                var status = JsonSerializer.Deserialize<SparkApplicationStatus>(item!["status"]!, _options);
+                var applicationState = status.ApplicationState["state"];
+
+                if (!string.IsNullOrWhiteSpace(filterStatus) && !filterStatus.Equals(applicationState, StringComparison.OrdinalIgnoreCase))
+                {
+                    continue;
+                }
+
                 var apiVersion = item!["apiVersion"]!.ToString();
                 var kind = item!["kind"]!.ToString();
                 var metadata = JsonSerializer.Deserialize<Metadata>(item!["metadata"]!, _options);
-                var status = JsonSerializer.Deserialize<SparkApplicationStatus>(item!["status"]!, _options);
                 var spec = item!["spec"]!.ToString();
 
                 sparkApplications.Add(new SparkApplication
