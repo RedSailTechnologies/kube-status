@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -5,7 +6,7 @@ using System.Threading.Tasks;
 using k8s;
 using k8s.Models;
 using KubeStatus.Models;
-using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Caching.Memory;
 
 namespace KubeStatus.Data
 {
@@ -13,60 +14,72 @@ namespace KubeStatus.Data
     {
         private readonly IKubernetes kubernetesClient;
 
-        public PodService(IKubernetes kubernetesClient)
+        public IMemoryCache MemoryCache { get; }
+
+        public PodService(IKubernetes kubernetesClient, IMemoryCache memoryCache)
         {
             this.kubernetesClient = kubernetesClient;
+            MemoryCache = memoryCache;
         }
 
-        public async Task<IEnumerable<Pod>> GetAllNamespacedPodsAsync(string k8sNamespace = "default")
+        public Task<IEnumerable<Pod>> GetAllNamespacedPodsAsync(string k8sNamespace = "default")
         {
-            var namespaces = await kubernetesClient.CoreV1.ListNamespaceAsync();
-            if (!namespaces.Items.Any(n => n.Metadata.Name.Equals(k8sNamespace, System.StringComparison.OrdinalIgnoreCase)))
+            return MemoryCache.GetOrCreateAsync(k8sNamespace, async e =>
             {
-                return null;
-            }
-
-            var list = await kubernetesClient.CoreV1.ListNamespacedPodAsync(k8sNamespace);
-            var events = await kubernetesClient.CoreV1.ListNamespacedEventAsync(k8sNamespace);
-
-            var pods = new List<Pod>();
-
-            foreach (var item in list.Items)
-            {
-                var podEvents = events.Items.Where(i => i.InvolvedObject.Uid.Equals(item.Metadata.Uid)).OrderByDescending(i => i.LastTimestamp).ToList();
-
-                pods.Add(new Pod
+                e.SetOptions(new MemoryCacheEntryOptions
                 {
-                    Name = item.Metadata.Labels.ContainsKey("app.kubernetes.io/name") ? item.Metadata.Labels["app.kubernetes.io/name"] : "",
-                    Instance = item.Metadata.Labels.ContainsKey("app.kubernetes.io/instance") ? item.Metadata.Labels["app.kubernetes.io/instance"] : "",
-                    Version = item.Metadata.Labels.ContainsKey("app.kubernetes.io/version") ? item.Metadata.Labels["app.kubernetes.io/version"] : "",
-                    Component = item.Metadata.Labels.ContainsKey("app.kubernetes.io/component") ? item.Metadata.Labels["app.kubernetes.io/component"] : "",
-                    PartOf = item.Metadata.Labels.ContainsKey("app.kubernetes.io/part-of") ? item.Metadata.Labels["app.kubernetes.io/part-of"] : "",
-                    ManagedBy = item.Metadata.Labels.ContainsKey("app.kubernetes.io/managed-by") ? item.Metadata.Labels["app.kubernetes.io/managed-by"] : "",
-                    CreatedBy = item.Metadata.Labels.ContainsKey("app.kubernetes.io/created-by") ? item.Metadata.Labels["app.kubernetes.io/created-by"] : "",
-                    PodName = item.Metadata.Name,
-                    Namespace = k8sNamespace,
-                    Labels = item.Metadata.Labels,
-                    Annotations = item.Metadata.Annotations,
-                    Affinity = item.Spec.Affinity,
-                    Tolerations = item.Spec.Tolerations,
-                    PodStatus = item.Status.Phase,
-                    PodStatusMessage = item.Status.Message,
-                    PodStatusReason = item.Status.Reason,
-                    PodStatusPhase = item.Status.Phase,
-                    PodConditions = item.Status.Conditions,
-                    PodCreated = item.Metadata.CreationTimestamp,
-                    PodVolumes = item.Spec.Volumes?.Select(v => v.Name).ToList(),
-                    PodIPs = item.Status.PodIPs?.Select(i => i.Ip).ToList(),
-                    HostIP = item.Status.HostIP,
-                    NodeName = item.Spec.NodeName,
-                    InitContainers = SortContainersAndStatuses(item.Status.InitContainerStatuses, item.Spec.InitContainers),
-                    Containers = SortContainersAndStatuses(item.Status.ContainerStatuses, item.Spec.Containers),
-                    Events = podEvents
+                    AbsoluteExpirationRelativeToNow =
+                        TimeSpan.FromSeconds(10)
                 });
-            }
 
-            return await Task.FromResult(pods.AsEnumerable());
+                var namespaces = await kubernetesClient.CoreV1.ListNamespaceAsync();
+                if (!namespaces.Items.Any(n => n.Metadata.Name.Equals(k8sNamespace, System.StringComparison.OrdinalIgnoreCase)))
+                {
+                    return null;
+                }
+
+                var list = await kubernetesClient.CoreV1.ListNamespacedPodAsync(k8sNamespace);
+                var events = await kubernetesClient.CoreV1.ListNamespacedEventAsync(k8sNamespace);
+
+                var pods = new List<Pod>();
+
+                foreach (var item in list.Items)
+                {
+                    var podEvents = events.Items.Where(i => i.InvolvedObject.Uid.Equals(item.Metadata.Uid)).OrderByDescending(i => i.LastTimestamp).ToList();
+
+                    pods.Add(new Pod
+                    {
+                        Name = item.Metadata.Labels.ContainsKey("app.kubernetes.io/name") ? item.Metadata.Labels["app.kubernetes.io/name"] : "",
+                        Instance = item.Metadata.Labels.ContainsKey("app.kubernetes.io/instance") ? item.Metadata.Labels["app.kubernetes.io/instance"] : "",
+                        Version = item.Metadata.Labels.ContainsKey("app.kubernetes.io/version") ? item.Metadata.Labels["app.kubernetes.io/version"] : "",
+                        Component = item.Metadata.Labels.ContainsKey("app.kubernetes.io/component") ? item.Metadata.Labels["app.kubernetes.io/component"] : "",
+                        PartOf = item.Metadata.Labels.ContainsKey("app.kubernetes.io/part-of") ? item.Metadata.Labels["app.kubernetes.io/part-of"] : "",
+                        ManagedBy = item.Metadata.Labels.ContainsKey("app.kubernetes.io/managed-by") ? item.Metadata.Labels["app.kubernetes.io/managed-by"] : "",
+                        CreatedBy = item.Metadata.Labels.ContainsKey("app.kubernetes.io/created-by") ? item.Metadata.Labels["app.kubernetes.io/created-by"] : "",
+                        PodName = item.Metadata.Name,
+                        Namespace = k8sNamespace,
+                        Labels = item.Metadata.Labels,
+                        Annotations = item.Metadata.Annotations,
+                        Affinity = item.Spec.Affinity,
+                        Tolerations = item.Spec.Tolerations,
+                        PodStatus = item.Status.Phase,
+                        PodStatusMessage = item.Status.Message,
+                        PodStatusReason = item.Status.Reason,
+                        PodStatusPhase = item.Status.Phase,
+                        PodConditions = item.Status.Conditions,
+                        PodCreated = item.Metadata.CreationTimestamp,
+                        PodVolumes = item.Spec.Volumes?.Select(v => v.Name).ToList(),
+                        PodIPs = item.Status.PodIPs?.Select(i => i.Ip).ToList(),
+                        HostIP = item.Status.HostIP,
+                        NodeName = item.Spec.NodeName,
+                        InitContainers = SortContainersAndStatuses(item.Status.InitContainerStatuses, item.Spec.InitContainers),
+                        Containers = SortContainersAndStatuses(item.Status.ContainerStatuses, item.Spec.Containers),
+                        Events = podEvents
+                    });
+                }
+
+                return await Task.FromResult(pods.AsEnumerable());
+            });
         }
 
         private IList<V1ContainerAndStatus> SortContainersAndStatuses(IList<V1ContainerStatus> statuses, IList<V1Container> containers)
