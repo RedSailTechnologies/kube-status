@@ -31,5 +31,19 @@ namespace KubeStatus.Controllers
         {
             return await _SparkApplicationService.GetSparkApplicationsAsync(filterStatus);
         }
+
+        [HttpDelete("{keepDate}")]
+        public async Task<IActionResult> DeleteFailedSparkApplicationsAsync(string keepDate = null)
+        {
+            var deleteResults = await _SparkApplicationService.DeleteFailedSparkApplicationsAsync(keepDate);
+            if (deleteResults < 0)
+            {
+                return BadRequest();
+            }
+            else
+            {
+                return Ok(deleteResults);
+            }
+        }
     }
 }

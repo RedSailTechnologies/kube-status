@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Threading.Tasks;
+using System.Web;
 using k8s;
 using KubeStatus.Models;
 using Microsoft.Extensions.Caching.Memory;
@@ -50,7 +51,7 @@ namespace KubeStatus.Data
                 foreach (var item in itemsNode.AsArray())
                 {
                     var status = JsonSerializer.Deserialize<SparkApplicationStatus>(item!["status"]!, _options);
-                    var applicationState = status.ApplicationState["state"];
+                    var applicationState = status?.ApplicationState["state"];
 
                     if (!string.IsNullOrWhiteSpace(filterStatus) && !filterStatus.Equals(applicationState, StringComparison.OrdinalIgnoreCase))
                     {
@@ -74,6 +75,35 @@ namespace KubeStatus.Data
 
                 return sparkApplications.AsEnumerable();
             });
+        }
+
+        public async Task<int> DeleteFailedSparkApplicationsAsync(string keepDate = null)
+        {
+            try
+            {
+                var date = DateTime.Parse(HttpUtility.UrlDecode(keepDate));
+                var crs = await GetSparkApplicationsAsync("failed");
+                var deleted = 0;
+                foreach (var cr in crs)
+                {
+                    if (cr.Metadata.CreationTimestamp.UtcDateTime < date)
+                    {
+                        await kubernetesClient.CustomObjects.DeleteNamespacedCustomObjectAsync(
+                            Helper.SparkGroup(),
+                            Helper.SparkApplicationVersion(),
+                            cr.Metadata.Namespace ?? "default",
+                            Helper.SparkApplicationPlural(),
+                            cr.Metadata.Name).ConfigureAwait(false);
+
+                        deleted++;
+                    }
+                }
+                return deleted;
+            }
+            catch
+            {
+                return -1;
+            }
         }
     }
 }
