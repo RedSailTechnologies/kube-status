@@ -1,5 +1,6 @@
 @page "/spark-applications/{applicationstatusparam?}"
 
+@using System.Text.RegularExpressions
 @inject SparkApplicationService SparkApplicationService
 
 <h1>Spark Applications Status</h1>
@@ -74,20 +75,46 @@ else
                                     }
                                 }
                             </div>
-                            <div class="col-xl-7">
-                                @if (context.Status.ExecutorState != null)
+                            @if (context.Status.ExecutorState != null)
+                            {
+                                @if (context.Status.ExecutorState.Count < 2)
                                 {
-                                    foreach (var execState in context.Status.ExecutorState)
-                                    {
-                                        <div class="exec-state" id="@context.Metadata.Name-exec-state-@execState.Key">
-                                            <label for="exec-state-@context.Metadata.Name-exec-state-@execState.Key"
+                                    <div class="col-xl-7">
+                                        @foreach (var execState in context.Status.ExecutorState)
+                                        {
+                                            <div class="exec-state" id="@context.Metadata.Name-exec-state-@execState.Key">
+                                                <label for="exec-state-@context.Metadata.Name-exec-state-@execState.Key"
                             class="form-label">@($"{char.ToUpper(@execState.Key[0])}{@execState.Key.Substring(1)}:")</label>
-                                            <span id="exec-state-@context.Metadata.Name-exec-state-@execState.Key"
+                                                <span id="exec-state-@context.Metadata.Name-exec-state-@execState.Key"
                             class="form-item">@execState.Value</span>
-                                        </div>
-                                    }
+                                            </div>
+                                        }
+                                    </div>
                                 }
-                            </div>
+                                else
+                                {
+                                    <div class="col-xl-7">
+                                        <button class="btn btn-outline-dark btn-sm collapsed mb-2" type="button" data-bs-toggle="collapse"
+                        data-bs-target="#@context.Metadata.Name-exec-states" aria-expanded="false"
+                        aria-controls="@context.Metadata.Name-exec-states">
+                                            <span class="show">Show</span><span class="hide">Hide</span> @context.Status.ExecutorState.Count
+                                            Executor States
+                                        </button>
+                                        <div id="@context.Metadata.Name-exec-states" class="exec-states collapse">
+                                            @foreach (var execState in context.Status.ExecutorState.OrderBy(s =>
+                                           SortRegEx.Match(s.Key).Value.PadLeft(10, '0')))
+                                            {
+                                                <div class="exec-state" id="@context.Metadata.Name-exec-state-@execState.Key">
+                                                    <label for="exec-state-@context.Metadata.Name-exec-state-@execState.Key"
+                                class="form-label">@($"{char.ToUpper(@execState.Key[0])}{@execState.Key.Substring(1)}:")</label>
+                                                    <span id="exec-state-@context.Metadata.Name-exec-state-@execState.Key"
+                                class="form-item">@execState.Value</span>
+                                                </div>
+                                            }
+                                        </div>
+                                    </div>
+                                }
+                            }
                         </div>
                         <div class="row mb-2">
                             <div class="col-xl-2">
@@ -177,6 +204,7 @@ else
     IEnumerable<SparkApplication> Applications;
     Dictionary<string, string> ApplicationStatuses = new Dictionary<string, string>();
     string SelectedApplicationStatus;
+    Regex SortRegEx = new Regex(@"([^-]*$)");
 
     protected override bool ShouldRender() => _shouldRender;
 
