@@ -1,0 +1,26 @@
+{{- if .Values.strimzi.networkPolicy.enabled -}}
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: {{ include "kube-status.fullname" . }}
+  namespace: {{ .Values.strimzi.namespace }}
+spec:
+  podSelector:
+    matchLabels:
+      strimzi.io/cluster: redsail-connect-cluster
+      strimzi.io/kind: KafkaConnect
+      strimzi.io/name: redsail-connect-cluster-connect
+  ingress:
+    - ports:
+        - protocol: TCP
+          port: 8083
+      from:
+        - podSelector:
+            matchLabels:
+              {{- include "kube-status.labels" . | nindent 14 }}
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: {{ .Release.Namespace }}
+  policyTypes:
+    - Ingress
+{{- end }}

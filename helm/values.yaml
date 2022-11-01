@@ -66,11 +66,11 @@ ingress:
 
 resources:
   limits:
-    cpu: 200m
-    memory: 256Mi
+    cpu: '1'
+    memory: 1Gi
   requests:
-    cpu: 100m
-    memory: 128Mi
+    cpu: 500m
+    memory: 512Mi
 
 autoscaling:
   enabled: false
@@ -95,6 +95,12 @@ envVars:
   ASPNETCORE_URLS: http://+:5599;http://+:8080
   ENABLE_SWAGGER: "true"
   UI_HEADER: "My Kube Cluster"
+  # STRIMZI__CONNECT_CLUSTER_SERVICE_HOST: http://cluster-connect-api.strimzi.svc.cluster.local:8083/
+
+strimzi:
+  namespace: strimzi
+  networkPolicy:
+    enabled: false
 
 istio:
   enabled: false
@@ -104,5 +110,7 @@ istio:
 oauth2proxy:
   enabled: false
   jwtRules:
-    issuer: "https://sts.windows.net/00000000-0000-0000-0000-000000000000"
-    jwksUri: "https://login.microsoftonline.com/common/discovery/keys"
+    - issuer: "https://sts.windows.net/00000000-0000-0000-0000-000000000000/"
+      jwksUri: "https://login.microsoftonline.com/common/discovery/keys"
+    - issuer: "https://login.microsoftonline.com/00000000-0000-0000-0000-000000000000/v2.0"
+      jwksUri: "https://login.microsoftonline.com/common/discovery/keys"
