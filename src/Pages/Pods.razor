@@ -482,13 +482,13 @@ else
     else if (NamespacedPods == null)
     {
         <div class="alert alert-info" role="alert">
-            Loading Pods in @SelectedNamespace namespace...
+            Loading Pods in @SelectedNamespace Namespace...
         </div>
     }
     else
     {
         <div class="alert alert-primary" role="alert">
-            No Pods Found
+            No Pods Found in @SelectedNamespace Namespace
         </div>
     }
 }
@@ -536,6 +536,7 @@ else
 
     async Task GetPods()
     {
+        NamespacedPods = null;
         NamespacedPods = await PodService.GetAllNamespacedPodsAsync(SelectedNamespace);
     }
 

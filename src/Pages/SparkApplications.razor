@@ -157,13 +157,13 @@ else
     else if (Applications == null)
     {
         <div class="alert alert-info" role="alert">
-            Loading Spark Applications...
+            Loading @SelectedApplicationStatus Spark Applications...
         </div>
     }
     else
     {
         <div class="alert alert-primary" role="alert">
-            No Spark Applications Found
+            No @SelectedApplicationStatus Spark Applications Found
         </div>
     }
 }
@@ -208,6 +208,7 @@ else
 
     async Task GetSparkApplications()
     {
+        Applications = null;
         Applications = await SparkApplicationService.GetSparkApplicationsAsync(SelectedApplicationStatus);
     }
 }
