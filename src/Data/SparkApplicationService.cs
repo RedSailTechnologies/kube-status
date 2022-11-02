@@ -77,11 +77,17 @@ namespace KubeStatus.Data
             });
         }
 
-        public async Task<int> DeleteFailedSparkApplicationsAsync(string keepDate = null)
+        public async Task<int> DeleteFailedSparkApplicationsAsync(string keepHours = "168")
         {
             try
             {
-                var date = DateTime.Parse(HttpUtility.UrlDecode(keepDate));
+                if (!double.TryParse(keepHours, out double hours))
+                {
+                    hours = 168;
+                }
+                hours = hours * -1;
+                var date = DateTime.UtcNow.AddHours(hours);
+
                 var crs = await GetSparkApplicationsAsync("failed");
                 var deleted = 0;
                 foreach (var cr in crs)

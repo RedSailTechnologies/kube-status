@@ -32,10 +32,10 @@ namespace KubeStatus.Controllers
             return await _SparkApplicationService.GetSparkApplicationsAsync(filterStatus);
         }
 
-        [HttpDelete("{keepDate}")]
-        public async Task<IActionResult> DeleteFailedSparkApplicationsAsync(string keepDate = null)
+        [HttpDelete("{keepHours}")]
+        public async Task<IActionResult> DeleteFailedSparkApplicationsAsync(string keepHours = "168")
         {
-            var deleteResults = await _SparkApplicationService.DeleteFailedSparkApplicationsAsync(keepDate);
+            var deleteResults = await _SparkApplicationService.DeleteFailedSparkApplicationsAsync(keepHours);
             if (deleteResults < 0)
             {
                 return BadRequest();

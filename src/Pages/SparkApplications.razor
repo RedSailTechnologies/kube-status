@@ -47,15 +47,15 @@ else
                     <div class="form-group row mb-2">
                         <div class="col-xl-4">
                             <label for="submissionAttempts" class="form-label"><b>Submission Attempts:</b></label>
-                            <span id="submissionAttempts" class="form-item">@context.Status.SubmissionAttempts</span>
+                            <span id="submissionAttempts" class="form-item">@context.Status?.SubmissionAttempts</span>
                         </div>
                         <div class="col-xl-3">
                             <label for="lastSubmissionAttemptTime" class="form-label"><b>Last Submission Attempt
                                     Time:</b></label>
                             <span id="lastSubmissionAttemptTime"
-                        class="form-item">@context.Status.LastSubmissionAttemptTime</span>
+                        class="form-item">@context.Status?.LastSubmissionAttemptTime</span>
                         </div>
-                        @if (context.Status.TerminationTime != null)
+                        @if (context.Status?.TerminationTime != null)
                         {
                             <div class="col-xl-3">
                                 <label for="terminationTime" class="form-label"><b>Termination Time:</b></label>
@@ -63,7 +63,7 @@ else
                             </div>
                         }
                     </div>
-                    @if (context.Status.ApplicationState != null)
+                    @if (context.Status?.ApplicationState != null)
                     {
                         <div class="row mb-2">
                             <div class="col-xl-4">
