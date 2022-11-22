@@ -5,7 +5,8 @@ on:
     # Publish `main` as Docker `latest` image.
     branches:
       - main
-    
+      - 'feature/**'
+
     paths-ignore:
       - '**.md'
       - '.github/**'
@@ -67,6 +68,8 @@ jobs:
 
           # Use Docker `latest` tag convention
           [ "$VERSION" == "main" ] && VERSION=latest
+
+          [[ "$VERSION" =~ ^"feature/".* ]] && VERSION=$(echo $VERSION | sed -e 's|/|-|g')
 
           echo IMAGE_ID=$IMAGE_ID
           echo VERSION=$VERSION
