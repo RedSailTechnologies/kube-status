@@ -14,9 +14,14 @@ namespace KubeStatus.Data
         {
             var config = Helper.GetKubernetesClientConfiguration();
 
-            Console.WriteLine(config.ToYaml());
-
             var stdOutBuffer = new StringBuilder();
+
+            List<string> accessToken = new List<string>(); ;
+            if (!string.IsNullOrWhiteSpace(config.AccessToken))
+            {
+                accessToken.Add("--kube-token");
+                accessToken.Add(config.AccessToken);
+            }
 
             var cmd = Cli.Wrap("helm")
                 .WithArguments(args => args
@@ -27,8 +32,7 @@ namespace KubeStatus.Data
                     .Add("--no-headers")
                     .Add("--kube-apiserver")
                     .Add(config.Host)
-                    .Add("--kube-token")
-                    .Add(config.AccessToken)
+                    .Add(accessToken)
                     .Add(Helper.GetHelmCaOrBypass())
                 ) | stdOutBuffer;
 
