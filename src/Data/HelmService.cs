@@ -45,7 +45,8 @@ namespace KubeStatus.Data
                     .Add(config.Host)
                     .Add(accessToken)
                     .Add(helmCaOrBypass)
-                ) | stdOutBuffer;
+                )
+                .WithValidation(CommandResultValidation.None) | stdOutBuffer;
 
             var result = await cmd
                 .ExecuteAsync();
