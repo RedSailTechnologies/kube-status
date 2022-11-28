@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.IO;
 using System.Text;
 using System.Threading.Tasks;
 using CliWrap;
@@ -23,6 +24,15 @@ namespace KubeStatus.Data
             {
                 accessToken.Add("--kube-token");
                 accessToken.Add(config.AccessToken);
+            }
+            else if (!string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable("KUBE_TOKEN_FILE")))
+            {
+                var token = File.ReadAllText(Environment.GetEnvironmentVariable("KUBE_TOKEN_FILE"));
+                if (!string.IsNullOrWhiteSpace(token))
+                {
+                    accessToken.Add("--kube-token");
+                    accessToken.Add(token);
+                }
             }
 
             List<string> helmCaOrBypass = new List<string>(); ;
@@ -48,7 +58,7 @@ namespace KubeStatus.Data
                     .Add(accessToken)
                     .Add(helmCaOrBypass)
                 ) | stdOutBuffer;
-            
+
             Console.WriteLine(cmd.ToString());
 
             var result = await cmd
