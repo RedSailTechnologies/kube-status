@@ -1,0 +1,176 @@
+@page "/helm/{namespaceparam?}"
+
+@using System
+
+@inject NamespaceService NamespaceService
+@inject HelmService HelmService
+
+<h1>Helm Releases</h1>
+
+@if (GetNamespacesError)
+{
+    <p>Unable to get namespaces. Please try again later.</p>
+}
+else
+{
+    <div class="form-group row mb-3">
+        <div class="col-sm-4">
+            <label for="namespaceSelect" class="form-label">Select a Namespace</label>
+            <select class="form-select" id="namespaceSelect" @onchange="@OnSelect">
+                @foreach (var ns in Namespaces)
+                {
+                    @if (@ns.Equals(@SelectedNamespace))
+                    {
+                        <option value=@ns selected>@ns</option>
+                    }
+                    else
+                    {
+                        <option value=@ns>@ns</option>
+                    }
+                }
+            </select>
+        </div>
+    </div>
+}
+@if (GetHelmError)
+{
+    <p>Unable to get pods. Please try again later.</p>
+}
+else
+{
+    @if (@HelmList != null && @HelmList.Any())
+    {
+        <TableTemplate Items="HelmList" TItem="HelmListItem" TableHeaderClass="thead-light">
+            <TableHeader>
+                <th>
+                    <div class="form-group row">
+                        <div class="col-xl-2 d-none d-xl-block">
+                            <label class="form-label"><b>Name</b></label>
+                        </div>
+                        <div class="col-xl-1 d-none d-xl-block">
+                            <label class="form-label"><b>Namespace</b></label>
+                        </div>
+                        <div class="col-xl-1 d-none d-xl-block">
+                            <label class="form-label"><b>Revision</b></label>
+                        </div>
+                        <div class="col-xl-2 d-none d-xl-block">
+                            <label class="form-label"><b>Chart</b></label>
+                        </div>
+                        <div class="col-xl-2 d-none d-xl-block">
+                            <label class="form-label"><b>App Version</b></label>
+                        </div>
+                        <div class="col-xl-1 d-none d-xl-block">
+                            <label class="form-label"><b>Status</b></label>
+                        </div>
+                        <div class="col-xl-2 d-none d-xl-block">
+                            <label class="form-label"><b>Updated</b></label>
+                        </div>
+                    </div>
+                </th>
+            </TableHeader>
+            <RowTemplate>
+                <td>
+                    <div class="form-group row">
+                        <div class="col-xl-2">
+                            <label for="component-@context.Name.Replace(".","-")"
+                        class="form-label d-xl-none"><b>Name:</b></label>
+                            <span id="component-@context.Name.Replace(".","-")" class="form-item small">@context.Name</span>
+                        </div>
+                        <div class="col-xl-1">
+                            <label for="component-@context.Namespace.Replace(".","-")"
+                        class="form-label d-xl-none"><b>Namespace:</b></label>
+                            <span id="component-@context.Namespace.Replace(".","-")"
+                        class="form-item small">@context.Namespace</span>
+                        </div>
+                        <div class="col-xl-1">
+                            <label for="part-of-@context.Revision.ToString()"
+                        class="form-label d-xl-none"><b>Revision:</b></label>
+                            <span id="part-of-@context.Revision.ToString()" class="form-item small">@context.Revision</span>
+                        </div>
+                        <div class="col-xl-2">
+                            <label for="version-@context.Chart.Replace(".","-")"
+                        class="form-label d-xl-none"><b>Chart:</b></label>
+                            <span id="version-@context.Chart.Replace(".","-")" class="form-item small">@context.Chart</span>
+                        </div>
+                        <div class="col-xl-2">
+                            <label for="status-@context.AppVersion.Replace(".","-")" class="form-label d-xl-none"><b>App
+                                    Version:</b></label>
+                            <span id="status-@context.AppVersion.Replace(".","-")"
+                        class="form-item small">@context.AppVersion</span>
+                        </div>
+                        <div class="col-xl-1">
+                            <label for="created-@context.Status.Replace(".","-")"
+                        class="form-label d-xl-none"><b>Status:</b></label>
+                            <span id="created-@context.Status.Replace(".","-")" class="form-item small">@context.Status</span>
+                        </div>
+                        <div class="col-xl-2">
+                            <label for="created-@context.Updated.ToString("u")"
+                        class="form-label d-xl-none"><b>Updated:</b></label>
+                            <span id="created-@context.Updated.ToString("u")"
+                        class="form-item small">@context.Updated.ToString("u")</span>
+                        </div>
+                    </div>
+                </td>
+            </RowTemplate>
+        </TableTemplate>
+    }
+    else if (HelmList == null)
+    {
+        <div class="alert alert-info" role="alert">
+            Loading Helm Releases in @SelectedNamespace Namespace...
+        </div>
+    }
+    else
+    {
+        <div class="alert alert-primary" role="alert">
+            No Helm Releases Found in @SelectedNamespace Namespace
+        </div>
+    }
+}
+
+@code {
+    [Parameter]
+    public string NamespaceParam { get; set; }
+
+    bool GetNamespacesError;
+    bool GetHelmError;
+    bool _shouldRender;
+    IEnumerable<string> Namespaces = Array.Empty<string>();
+    string SelectedNamespace = "default";
+    IEnumerable<HelmListItem> HelmList;
+
+    protected override bool ShouldRender() => _shouldRender;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            NamespaceParam = NamespaceParam ?? "default";
+            SelectedNamespace = NamespaceParam;
+
+            var namespaces = await NamespaceService.GetAllNamespacesAsync();
+            Namespaces = namespaces.Items.Select(i => i.Metadata.Name);
+
+            await GetHelm();
+
+            _shouldRender = true;
+        }
+        catch
+        {
+            GetNamespacesError = true;
+            GetHelmError = true;
+        }
+    }
+
+    async Task OnSelect(ChangeEventArgs e)
+    {
+        SelectedNamespace = e.Value.ToString();
+        await GetHelm();
+    }
+
+    async Task GetHelm()
+    {
+        HelmList = null;
+        HelmList = await HelmService.GetHelmListAll(SelectedNamespace);
+    }
+}
