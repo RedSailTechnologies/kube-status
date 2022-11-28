@@ -15,8 +15,6 @@ namespace KubeStatus.Data
         {
             var config = Helper.GetKubernetesClientConfiguration();
 
-            Console.WriteLine(config.ToYaml());
-
             var stdOutBuffer = new StringBuilder();
 
             List<string> accessToken = new List<string>(); ;
@@ -58,8 +56,6 @@ namespace KubeStatus.Data
                     .Add(accessToken)
                     .Add(helmCaOrBypass)
                 ) | stdOutBuffer;
-
-            Console.WriteLine(cmd.ToString());
 
             var result = await cmd
                 .ExecuteAsync();
