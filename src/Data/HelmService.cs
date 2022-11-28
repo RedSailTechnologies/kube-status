@@ -23,6 +23,17 @@ namespace KubeStatus.Data
                 accessToken.Add(config.AccessToken);
             }
 
+            List<string> helmCaOrBypass = new List<string>(); ;
+            if (string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable("KUBE_CA_FILE")))
+            {
+                helmCaOrBypass.Add("--kube-insecure-skip-tls-verify");
+            }
+            else
+            {
+                helmCaOrBypass.Add("--kube-ca-file");
+                helmCaOrBypass.Add(Environment.GetEnvironmentVariable("KUBE_CA_FILE"));
+            }
+
             var cmd = Cli.Wrap("helm")
                 .WithArguments(args => args
                     .Add("list")
@@ -33,7 +44,7 @@ namespace KubeStatus.Data
                     .Add("--kube-apiserver")
                     .Add(config.Host)
                     .Add(accessToken)
-                    .Add(Helper.GetHelmCaOrBypass())
+                    .Add(helmCaOrBypass)
                 ) | stdOutBuffer;
 
             var result = await cmd

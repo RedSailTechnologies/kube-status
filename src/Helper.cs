@@ -22,18 +22,6 @@ namespace KubeStatus
             return new Kubernetes(GetKubernetesClientConfiguration());
         }
 
-        public static string GetHelmCaOrBypass()
-        {
-            if (string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable("KUBE_CA_FILE")))
-            {
-                return "--kube-insecure-skip-tls-verify";
-            }
-            else
-            {
-                return $"--kube-ca-file {Environment.GetEnvironmentVariable("KUBE_CA_FILE")}";
-            }
-        }
-
         public static bool EnableSwagger()
         {
             bool.TryParse(Environment.GetEnvironmentVariable("ENABLE_SWAGGER"), out bool enableSwagger);
