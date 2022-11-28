@@ -14,6 +14,8 @@ namespace KubeStatus.Data
         {
             var config = Helper.GetKubernetesClientConfiguration();
 
+            Console.WriteLine(config.ToYaml());
+
             var stdOutBuffer = new StringBuilder();
 
             var cmd = Cli.Wrap("helm")
