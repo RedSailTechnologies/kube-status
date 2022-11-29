@@ -11,38 +11,10 @@ namespace KubeStatus.Data
 {
     public class HelmService
     {
-        public async Task<IEnumerable<HelmListItem>> GetHelmListAll(string k8sNamespace = "default")
+        public async Task<IEnumerable<HelmListItem>> HelmListAll(string k8sNamespace = "default")
         {
-            var config = Helper.GetKubernetesClientConfiguration();
-
+            List<string> cliArgs = GetHelmCliArguments();
             var stdOutBuffer = new StringBuilder();
-
-            List<string> accessToken = new List<string>(); ;
-            if (!string.IsNullOrWhiteSpace(config.AccessToken))
-            {
-                accessToken.Add("--kube-token");
-                accessToken.Add(config.AccessToken);
-            }
-            else if (!string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable("KUBE_TOKEN_FILE")))
-            {
-                var token = File.ReadAllText(Environment.GetEnvironmentVariable("KUBE_TOKEN_FILE"));
-                if (!string.IsNullOrWhiteSpace(token))
-                {
-                    accessToken.Add("--kube-token");
-                    accessToken.Add(token);
-                }
-            }
-
-            List<string> helmCaOrBypass = new List<string>(); ;
-            if (string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable("KUBE_CA_FILE")))
-            {
-                helmCaOrBypass.Add("--kube-insecure-skip-tls-verify");
-            }
-            else
-            {
-                helmCaOrBypass.Add("--kube-ca-file");
-                helmCaOrBypass.Add(Environment.GetEnvironmentVariable("KUBE_CA_FILE"));
-            }
 
             var cmd = Cli.Wrap("helm")
                 .WithArguments(args => args
@@ -51,16 +23,89 @@ namespace KubeStatus.Data
                     .Add("--namespace")
                     .Add(k8sNamespace)
                     .Add("--no-headers")
-                    .Add("--kube-apiserver")
-                    .Add(config.Host)
-                    .Add(accessToken)
-                    .Add(helmCaOrBypass)
+                    .Add(cliArgs)
                 ) | stdOutBuffer;
 
             var result = await cmd
                 .ExecuteAsync();
 
             return ParseListItems(stdOutBuffer);
+        }
+
+        public async Task<string> HelmRollback(string package, string k8sNamespace = "default")
+        {
+            List<string> cliArgs = GetHelmCliArguments();
+            var stdOutBuffer = new StringBuilder();
+
+            var cmd = Cli.Wrap("helm")
+                .WithArguments(args => args
+                    .Add("rollback")
+                    .Add(package)
+                    .Add("--namespace")
+                    .Add(k8sNamespace)
+                    .Add(cliArgs)
+                ) | stdOutBuffer;
+
+            var result = await cmd
+                .ExecuteAsync();
+
+            return stdOutBuffer.ToString();
+        }
+
+        public async Task<string> HelmUninstall(string package, string k8sNamespace = "default")
+        {
+            List<string> cliArgs = GetHelmCliArguments();
+            var stdOutBuffer = new StringBuilder();
+
+            var cmd = Cli.Wrap("helm")
+                .WithArguments(args => args
+                    .Add("uninstall")
+                    .Add(package)
+                    .Add("--namespace")
+                    .Add(k8sNamespace)
+                    .Add(cliArgs)
+                ) | stdOutBuffer;
+
+            var result = await cmd
+                .ExecuteAsync();
+
+            return stdOutBuffer.ToString();
+        }
+
+        private List<string> GetHelmCliArguments()
+        {
+            var config = Helper.GetKubernetesClientConfiguration();
+            List<string> cliArgs = new List<string>();
+
+            cliArgs.Add("--kube-apiserver");
+            cliArgs.Add(config.Host);
+
+            if (!string.IsNullOrWhiteSpace(config.AccessToken))
+            {
+                cliArgs.Add("--kube-token");
+                cliArgs.Add(config.AccessToken);
+            }
+            else if (!string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable("KUBE_TOKEN_FILE")))
+            {
+                var token = File.ReadAllText(Environment.GetEnvironmentVariable("KUBE_TOKEN_FILE"));
+                if (!string.IsNullOrWhiteSpace(token))
+                {
+                    cliArgs.Add("--kube-token");
+                    cliArgs.Add(token);
+                }
+            }
+
+            if (string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable("KUBE_CA_FILE")))
+            {
+                cliArgs.Add("--kube-insecure-skip-tls-verify");
+            }
+            else
+            {
+                cliArgs.Add("--kube-ca-file");
+                cliArgs.Add(Environment.GetEnvironmentVariable("KUBE_CA_FILE"));
+            }
+
+            return cliArgs;
         }
 
         private IEnumerable<HelmListItem> ParseListItems(StringBuilder result)

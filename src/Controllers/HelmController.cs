@@ -21,9 +21,21 @@ namespace KubeStatus.Controllers
         }
 
         [HttpGet("list/{k8sNamespace}")]
-        public async Task<IEnumerable<HelmListItem>> GetHelmListAll(string k8sNamespace = "default")
+        public async Task<IEnumerable<HelmListItem>> HelmListAll(string k8sNamespace = "default")
         {
-            return await _helmService.GetHelmListAll(k8sNamespace);
+            return await _helmService.HelmListAll(k8sNamespace);
+        }
+
+        [HttpPut("rollback/{package}")]
+        public async Task<string> HelmRollback(string package, string k8sNamespace = "default")
+        {
+            return await _helmService.HelmRollback(package, k8sNamespace);
+        }
+
+        [HttpDelete("uninstall/{package}")]
+        public async Task<string> HelmUninstall(string package, string k8sNamespace = "default")
+        {
+            return await _helmService.HelmUninstall(package, k8sNamespace);
         }
     }
 }
