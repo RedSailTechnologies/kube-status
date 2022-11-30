@@ -33,8 +33,16 @@ else
                 </select>
             </div>
         </div>
+        <div class="form-group row mb-3">
+            <div class="col-sm-4">
+                <div class="input-group">
+                    <input type="text" class="form-control" placeholder="Search..." aria-label="Filter" aria-describedby="button-clear" @bind-value="Filter" @oninput="@FilterChange">
+                    <button class="btn btn-outline-secondary" type="button" id="button-clear" @onclick="@ClearFilter">Clear</button>
+                </div>
+            </div>
+        </div>
 
-        <TableTemplate Items="Applications" TItem="SparkApplication" TableHeaderClass="thead-light">
+        <TableTemplate Items="FilteredApplications" TItem="SparkApplication" TableHeaderClass="thead-light">
             <TableHeader>
                 <th>
                 </th>
@@ -204,8 +212,10 @@ else
     bool GetApplicationsError;
     bool _shouldRender;
     IEnumerable<SparkApplication> Applications;
+    IEnumerable<SparkApplication> FilteredApplications;
     Dictionary<string, string> ApplicationStatuses = new Dictionary<string, string>();
     string SelectedApplicationStatus;
+    string Filter;
     Regex SortRegEx = new Regex(@"([^-]*$)");
 
     protected override bool ShouldRender() => _shouldRender;
@@ -239,6 +249,37 @@ else
     async Task GetSparkApplications()
     {
         Applications = null;
+        FilteredApplications = new List<SparkApplication>();
         Applications = await SparkApplicationService.GetSparkApplicationsAsync(SelectedApplicationStatus);
+        FilteredApplications = Applications;
+    }
+
+    async Task FilterChange(ChangeEventArgs e)
+    {
+        Filter = e?.Value?.ToString();
+        await FilterResults();
+    }
+
+    async Task ClearFilter()
+    {
+        Filter = "";
+        await FilterResults();
+    }
+
+    async Task FilterResults()
+    {
+        if (string.IsNullOrWhiteSpace(Filter))
+        {
+            FilteredApplications = Applications;
+        }
+        else
+        {
+            FilteredApplications = Applications.Where(s => s.Metadata.Name.Contains(Filter, StringComparison.OrdinalIgnoreCase)).ToList();
+        }
+        // refresh ui after text change
+        await InvokeAsync(() =>
+        {
+            base.StateHasChanged();
+        });
     }
 }

@@ -41,6 +41,32 @@ else
             <input type="number" class="form-control" id="logRows" @bind-value="LogRows">
         </div>
     </div>
+    <div class="form-group row mb-3">
+        <div class="col-sm-4">
+            <div class="input-group">
+                <input type="text" class="form-control" placeholder="Search..." aria-label="Filter" aria-describedby="button-clear" @bind-value="Filter" @oninput="@FilterChange">
+                <button class="btn btn-outline-secondary" type="button" id="button-clear" @onclick="@ClearFilter">Clear</button>
+            </div>
+        </div>
+        <div class="col-sm-2">
+            <div class="form-check">
+                <input class="form-check-input" id="SearchPodNameCheckbox" type="checkbox" checked="@SearchPodName"
+                @bind-value="SearchPodName" @onclick="@SearchPodNameChange">
+                <label class="form-check-label" for="SearchPodNameCheckbox">Search Pod Names</label>
+            </div>
+            <div class="form-check">
+                <input class="form-check-input" id="SearchContainerNameCheckbox" type="checkbox"
+                checked="@SearchContainerName" @bind-value="SearchContainerName" @onclick="@SearchContainerNameChange">
+                <label class="form-check-label" for="SearchContainerNameCheckbox">Search Container Names</label>
+            </div>
+            <div class="form-check">
+                <input class="form-check-input" id="SearchInitContainerNameCheckbox" type="checkbox"
+                checked="@SearchInitContainerName" @bind-value="SearchInitContainerName"
+                @onclick="@SearchInitContainerNameChange">
+                <label class="form-check-label" for="SearchInitContainerNameCheckbox">Search Init Container Names</label>
+            </div>
+        </div>
+    </div>
 }
 @if (GetPodsError)
 {
@@ -52,7 +78,7 @@ else
 {
     @if (@NamespacedPods != null && @NamespacedPods.Any())
     {
-        <TableTemplate Items="NamespacedPods" TItem="Pod" TableHeaderClass="thead-light">
+        <TableTemplate Items="FilteredPods" TItem="Pod" TableHeaderClass="thead-light">
             <TableHeader>
                 <th>
                     <div class="form-group row">
@@ -506,13 +532,20 @@ else
     [Parameter]
     public string NamespaceParam { get; set; }
 
+    string Filter;
+    bool SearchPodName = true;
+    bool SearchContainerName;
+    bool SearchInitContainerName;
+
     bool GetNamespacesError;
     bool GetPodsError;
     bool _shouldRender;
     IEnumerable<string> Namespaces = Array.Empty<string>();
     string SelectedNamespace = "default";
     IEnumerable<Pod> NamespacedPods;
-    int LogRows = 100;
+    IEnumerable<Pod> FilteredPods;
+    int LogRows = 1000;
+
 
     protected override bool ShouldRender() => _shouldRender;
 
@@ -546,7 +579,9 @@ else
     async Task GetPods()
     {
         NamespacedPods = null;
+        FilteredPods = new List<Pod>();
         NamespacedPods = await PodService.GetAllNamespacedPodsAsync(SelectedNamespace);
+        FilteredPods = NamespacedPods;
     }
 
     async Task GetLogs(string k8sNamespace, string podName, string name)
@@ -559,5 +594,58 @@ else
     {
         var podCsv = $"/api/pods/{SelectedNamespace}/csv";
         await JS.InvokeVoidAsync("triggerFileDownload", "", podCsv);
+    }
+
+    async Task FilterChange(ChangeEventArgs e)
+    {
+        Filter = e?.Value?.ToString();
+        await FilterResults();
+    }
+
+    async Task ClearFilter()
+    {
+        Filter = "";
+        await FilterResults();
+    }
+
+    async Task SearchPodNameChange()
+    {
+        SearchPodName = !SearchPodName;
+        await FilterResults();
+    }
+
+    async Task SearchContainerNameChange()
+    {
+        SearchContainerName = !SearchContainerName;
+        await FilterResults();
+    }
+
+    async Task SearchInitContainerNameChange()
+    {
+        SearchInitContainerName = !SearchInitContainerName;
+        await FilterResults();
+    }
+
+    async Task FilterResults()
+    {
+        if (string.IsNullOrWhiteSpace(Filter) || (!SearchPodName && !SearchContainerName && !SearchInitContainerName))
+        {
+            FilteredPods = NamespacedPods;
+        }
+        else
+        {
+            FilteredPods = NamespacedPods.Where(p =>
+            (SearchPodName && p.Name.Contains(Filter, StringComparison.OrdinalIgnoreCase)) ||
+            (SearchContainerName && p.Containers != null && p.Containers.Any(c => c.ContainerStatus.Name.Contains(Filter,
+            StringComparison.OrdinalIgnoreCase))) ||
+            (SearchInitContainerName && p.InitContainers != null && p.InitContainers.Any(c =>
+            c.ContainerStatus.Name.Contains(Filter, StringComparison.OrdinalIgnoreCase)))
+            ).ToList();
+        }
+        // refresh ui after text change
+        await InvokeAsync(() =>
+        {
+            base.StateHasChanged();
+        });
     }
 }

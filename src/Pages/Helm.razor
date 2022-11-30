@@ -36,6 +36,14 @@ else
             </select>
         </div>
     </div>
+    <div class="form-group row mb-3">
+        <div class="col-sm-4">
+            <div class="input-group">
+                <input type="text" class="form-control" placeholder="Search..." aria-label="Filter" aria-describedby="button-clear" @bind-value="Filter" @oninput="@FilterChange">
+                <button class="btn btn-outline-secondary" type="button" id="button-clear" @onclick="@ClearFilter">Clear</button>
+            </div>
+        </div>
+    </div>
 }
 @if (HelmListError)
 {
@@ -53,7 +61,7 @@ else
     }
     else if (@HelmList != null && @HelmList.Any())
     {
-        <TableTemplate Items="HelmList" TItem="HelmListItem" TableHeaderClass="thead-light">
+        <TableTemplate Items="FilteredHelmList" TItem="HelmListItem" TableHeaderClass="thead-light">
             <TableHeader>
                 <th>
                     <div class="form-group row">
@@ -144,7 +152,9 @@ else
     IEnumerable<string> Namespaces = Array.Empty<string>();
     string SelectedNamespace = "default";
     IEnumerable<HelmListItem> HelmList;
+    IEnumerable<HelmListItem> FilteredHelmList;
     string HelmMessage = "";
+    string Filter;
 
     protected override bool ShouldRender() => _shouldRender;
 
@@ -180,7 +190,9 @@ else
     async Task HelmListAll()
     {
         HelmList = null;
+        FilteredHelmList = new List<HelmListItem>();
         HelmList = await HelmService.HelmListAll(SelectedNamespace);
+        FilteredHelmList = HelmList;
     }
 
     async Task HelmRollback(string package, string k8sNamespace = "default")
@@ -241,6 +253,35 @@ else
             await HelmListAll();
             HelmMessage = "";
         }
+    }
+
+    async Task FilterChange(ChangeEventArgs e)
+    {
+        Filter = e?.Value?.ToString();
+        await FilterResults();
+    }
+
+    async Task ClearFilter()
+    {
+        Filter = "";
+        await FilterResults();
+    }
+
+    async Task FilterResults()
+    {
+        if (string.IsNullOrWhiteSpace(Filter))
+        {
+            FilteredHelmList = HelmList;
+        }
+        else
+        {
+            FilteredHelmList = HelmList.Where(h => h.Name.Contains(Filter, StringComparison.OrdinalIgnoreCase)).ToList();
+        }
+        // refresh ui after text change
+        await InvokeAsync(() =>
+        {
+            base.StateHasChanged();
+        });
     }
 }
 }
