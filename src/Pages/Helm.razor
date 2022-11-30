@@ -1,3 +1,5 @@
+@if (!string.IsNullOrWhiteSpace(@Environment.GetEnvironmentVariable("UI_SHOW_HELM")) && UiShowHelm)
+{
 @page "/helm/{namespaceparam?}"
 
 @using System
@@ -10,7 +12,9 @@
 
 @if (GetNamespacesError)
 {
-    <p>Unable to get namespaces. Please try again later.</p>
+    <div class="alert alert-danger" role="alert">
+        Unable to get namespaces. Please try again later.
+    </div>
 }
 else
 {
@@ -35,7 +39,9 @@ else
 }
 @if (HelmListError)
 {
-    <p>Unable to list helm. Please try again later.</p>
+    <div class="alert alert-danger" role="alert">
+        Unable to list helm. Please try again later.
+    </div>
 }
 else
 {
@@ -131,6 +137,7 @@ else
     [Parameter]
     public string NamespaceParam { get; set; }
 
+    bool UiShowHelm;
     bool GetNamespacesError;
     bool HelmListError;
     bool _shouldRender;
@@ -143,6 +150,8 @@ else
 
     protected override async Task OnInitializedAsync()
     {
+        Boolean.TryParse(@Environment.GetEnvironmentVariable("UI_SHOW_HELM"), out UiShowHelm);
+        
         try
         {
             NamespaceParam = NamespaceParam ?? "default";
@@ -233,4 +242,11 @@ else
             HelmMessage = "";
         }
     }
+}
+}
+else
+{
+    <div class="alert alert-danger" role="alert">
+        Helm is not currently enabled!
+    </div>
 }

@@ -97,6 +97,7 @@ envVars:
   UI_HEADER: "My Kube Cluster"
   KUBE_CA_FILE: "/run/secrets/kubernetes.io/serviceaccount/ca.crt"
   KUBE_TOKEN_FILE: "/run/secrets/kubernetes.io/serviceaccount/token"
+  UI_SHOW_HELM: "true"
   # STRIMZI__CONNECT_CLUSTER_SERVICE_HOST: http://cluster-connect-api.strimzi.svc.cluster.local:8083/
 
 strimzi:

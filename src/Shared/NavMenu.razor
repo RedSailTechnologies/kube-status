@@ -22,11 +22,14 @@
                 <span class="oi oi-monitor" aria-hidden="true"></span> Pods
             </NavLink>
         </li>
-        <li class="nav-item px-3">
-            <NavLink class="nav-link" href="helm">
-                <span class="oi oi-box" aria-hidden="true"></span> Helm Releases
-            </NavLink>
-        </li>
+        @if (!string.IsNullOrWhiteSpace(@Environment.GetEnvironmentVariable("UI_SHOW_HELM")) && UiShowHelm)
+        {
+            <li class="nav-item px-3">
+                <NavLink class="nav-link" href="helm">
+                    <span class="oi oi-box" aria-hidden="true"></span> Helm Releases
+                </NavLink>
+            </li>
+        }
         <li class="nav-item px-3">
             <NavLink class="nav-link" href="kafka-connectors">
                 <span class="oi oi-list-rich" aria-hidden="true"></span> Kafka Connectors
@@ -42,8 +45,13 @@
 
 @code {
     private bool collapseNavMenu = true;
-
     private string NavMenuCssClass => collapseNavMenu ? "collapse" : null;
+    bool UiShowHelm;
+
+    protected override void OnInitialized()
+    {
+        Boolean.TryParse(@Environment.GetEnvironmentVariable("UI_SHOW_HELM"), out UiShowHelm);
+    }
 
     private void ToggleNavMenu()
     {
