@@ -1,4 +1,4 @@
-@if (!string.IsNullOrWhiteSpace(@Environment.GetEnvironmentVariable("UI_SHOW_HELM")) && UiShowHelm)
+@if (UiShowHelm)
 {
 @page "/helm/{namespaceparam?}"
 
