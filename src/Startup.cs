@@ -29,6 +29,7 @@ namespace KubeStatus
             services.AddSingleton<NamespaceService>();
             services.AddSingleton<PodService>();
             services.AddSingleton<LogService>();
+            services.AddSingleton<HelmService>();
             services.AddRazorPages();
             services.AddServerSideBlazor();
             services.AddHealthChecks();

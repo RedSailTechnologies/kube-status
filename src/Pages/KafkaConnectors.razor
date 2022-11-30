@@ -20,7 +20,9 @@ else if (HasFailedTasks)
 
 @if (GetConnectorsError)
 {
-    <p>Unable to get Kafka Connectors. Please try again later.</p>
+    <div class="alert alert-danger" role="alert">
+        Unable to get Kafka Connectors. Please try again later.
+    </div>
 }
 else
 {

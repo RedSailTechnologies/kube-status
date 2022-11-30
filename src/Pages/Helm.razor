@@ -1,0 +1,252 @@
+@if (UiShowHelm)
+{
+@page "/helm/{namespaceparam?}"
+
+@using System
+
+@inject NamespaceService NamespaceService
+@inject HelmService HelmService
+@inject IJSRuntime JsRuntime
+
+<h1>Helm Releases</h1>
+
+@if (GetNamespacesError)
+{
+    <div class="alert alert-danger" role="alert">
+        Unable to get namespaces. Please try again later.
+    </div>
+}
+else
+{
+    <div class="form-group row mb-3">
+        <div class="col-sm-4">
+            <label for="namespaceSelect" class="form-label">Select a Namespace</label>
+            <select class="form-select" id="namespaceSelect" @onchange="@OnSelect">
+                @foreach (var ns in Namespaces)
+                {
+                    @if (@ns.Equals(@SelectedNamespace))
+                    {
+                        <option value=@ns selected>@ns</option>
+                    }
+                    else
+                    {
+                        <option value=@ns>@ns</option>
+                    }
+                }
+            </select>
+        </div>
+    </div>
+}
+@if (HelmListError)
+{
+    <div class="alert alert-danger" role="alert">
+        Unable to list helm. Please try again later.
+    </div>
+}
+else
+{
+    @if (!String.IsNullOrWhiteSpace(HelmMessage))
+    {
+        <div class="alert alert-info" role="alert">
+            @HelmMessage
+        </div>
+    }
+    else if (@HelmList != null && @HelmList.Any())
+    {
+        <TableTemplate Items="HelmList" TItem="HelmListItem" TableHeaderClass="thead-light">
+            <TableHeader>
+                <th>
+                    <div class="form-group row">
+                        <div class="col-xl-2 d-none d-xl-block">
+                            <label class="form-label"><b>Name</b></label>
+                        </div>
+                        <div class="col-xl-1 d-none d-xl-block">
+                            <label class="form-label"><b>Namespace</b></label>
+                        </div>
+                        <div class="col-xl-1 d-none d-xl-block">
+                            <label class="form-label"><b>Revision</b></label>
+                        </div>
+                        <div class="col-xl-2 d-none d-xl-block">
+                            <label class="form-label"><b>Chart</b></label>
+                        </div>
+                        <div class="col-xl-2 d-none d-xl-block">
+                            <label class="form-label"><b>App Version</b></label>
+                        </div>
+                        <div class="col-xl-1 d-none d-xl-block">
+                            <label class="form-label"><b>Status</b></label>
+                        </div>
+                        <div class="col-xl-2 d-none d-xl-block">
+                            <label class="form-label"><b>Updated</b></label>
+                        </div>
+                    </div>
+                </th>
+            </TableHeader>
+            <RowTemplate>
+                <td>
+                    <div class="form-group row">
+                        <div class="col-xl-2">
+                            <label for="component-@context.Name.Replace(".","-")" class="form-label d-xl-none"><b>Name:</b></label>
+                            <span id="component-@context.Name.Replace(".","-")" class="form-item small">@context.Name</span>
+                            <br />
+                            <button class="btn btn-outline-dark btn-sm" @onclick="() => HelmRollback(context.Name, context.Namespace)">Rollback</button>&nbsp;<button class="btn btn-outline-dark btn-sm" @onclick="() => HelmUninstall(context.Name, context.Namespace)">Uninstall</button>
+                        </div>
+                        <div class="col-xl-1">
+                            <label for="component-@context.Namespace.Replace(".","-")" class="form-label d-xl-none"><b>Namespace:</b></label>
+                            <span id="component-@context.Namespace.Replace(".","-")" class="form-item small">@context.Namespace</span>
+                        </div>
+                        <div class="col-xl-1">
+                            <label for="part-of-@context.Revision.ToString()" class="form-label d-xl-none"><b>Revision:</b></label>
+                            <span id="part-of-@context.Revision.ToString()" class="form-item small">@context.Revision</span>
+                        </div>
+                        <div class="col-xl-2">
+                            <label for="version-@context.Chart.Replace(".","-")" class="form-label d-xl-none"><b>Chart:</b></label>
+                            <span id="version-@context.Chart.Replace(".","-")" class="form-item small">@context.Chart</span>
+                        </div>
+                        <div class="col-xl-2">
+                            <label for="status-@context.AppVersion.Replace(".","-")" class="form-label d-xl-none"><b>App Version:</b></label>
+                            <span id="status-@context.AppVersion.Replace(".","-")" class="form-item small">@context.AppVersion</span>
+                        </div>
+                        <div class="col-xl-1">
+                            <label for="created-@context.Status.Replace(".","-")" class="form-label d-xl-none"><b>Status:</b></label>
+                            <span id="created-@context.Status.Replace(".","-")" class="form-item small">@context.Status</span>
+                        </div>
+                        <div class="col-xl-2">
+                            <label for="created-@context.Updated.ToString("u")" class="form-label d-xl-none"><b>Updated:</b></label>
+                            <span id="created-@context.Updated.ToString("u")" class="form-item small">@context.Updated.ToString("u")</span>
+                        </div>
+                    </div>
+                </td>
+            </RowTemplate>
+        </TableTemplate>
+    }
+    else if (HelmList == null)
+    {
+        <div class="alert alert-info" role="alert">
+            Loading Helm Releases in the @SelectedNamespace namespace...
+        </div>
+    }
+    else
+    {
+        <div class="alert alert-primary" role="alert">
+            No Helm Releases found in the @SelectedNamespace namespace
+        </div>
+    }
+}
+
+@code {
+    [Parameter]
+    public string NamespaceParam { get; set; }
+
+    bool UiShowHelm;
+    bool GetNamespacesError;
+    bool HelmListError;
+    bool _shouldRender;
+    IEnumerable<string> Namespaces = Array.Empty<string>();
+    string SelectedNamespace = "default";
+    IEnumerable<HelmListItem> HelmList;
+    string HelmMessage = "";
+
+    protected override bool ShouldRender() => _shouldRender;
+
+    protected override async Task OnInitializedAsync()
+    {
+        Boolean.TryParse(@Environment.GetEnvironmentVariable("UI_SHOW_HELM"), out UiShowHelm);
+        
+        try
+        {
+            NamespaceParam = NamespaceParam ?? "default";
+            SelectedNamespace = NamespaceParam;
+
+            var namespaces = await NamespaceService.GetAllNamespacesAsync();
+            Namespaces = namespaces.Items.Select(i => i.Metadata.Name);
+
+            await HelmListAll();
+
+            _shouldRender = true;
+        }
+        catch
+        {
+            GetNamespacesError = true;
+            HelmListError = true;
+        }
+    }
+
+    async Task OnSelect(ChangeEventArgs e)
+    {
+        SelectedNamespace = e.Value.ToString();
+        await HelmListAll();
+    }
+
+    async Task HelmListAll()
+    {
+        HelmList = null;
+        HelmList = await HelmService.HelmListAll(SelectedNamespace);
+    }
+
+    async Task HelmRollback(string package, string k8sNamespace = "default")
+    {
+        bool confirmed = await JsRuntime.InvokeAsync<bool>("confirm", $"Are you sure you want to rollback {package} in the {k8sNamespace} namespace?");
+        if (confirmed)
+        {
+            HelmMessage = $"Rolling back {package} in the {SelectedNamespace} namespace...";
+            // refresh ui after text change
+            await InvokeAsync(() =>
+            {
+                base.StateHasChanged();
+            });
+
+            HelmMessage = await HelmService.HelmRollback(package, k8sNamespace);
+            // refresh ui after text change
+            await InvokeAsync(() =>
+            {
+                base.StateHasChanged();
+            });
+
+            // allow the error message to be seen
+            if (!HelmMessage.Contains("was a success!", StringComparison.OrdinalIgnoreCase))
+            {
+                System.Threading.Thread.Sleep(10000);
+            }
+
+            await HelmListAll();
+            HelmMessage = "";
+        }
+    }
+
+    async Task HelmUninstall(string package, string k8sNamespace = "default")
+    {
+        bool confirmed = await JsRuntime.InvokeAsync<bool>("confirm", $"Are you sure you want to uninstall {package} in the {k8sNamespace} namespace?");
+        if (confirmed)
+        {
+            HelmMessage = $"Uninstalling {package} in the {SelectedNamespace} namespace...";
+            // refresh ui after text change
+            await InvokeAsync(() =>
+            {
+                base.StateHasChanged();
+            });
+
+            HelmMessage = await HelmService.HelmUninstall(package, k8sNamespace);
+            // refresh ui after text change
+            await InvokeAsync(() =>
+            {
+                base.StateHasChanged();
+            });
+
+            // allow the error message to be seen
+            if (!HelmMessage.Contains($"release \"{package}\" uninstalled", StringComparison.OrdinalIgnoreCase))
+            {
+                System.Threading.Thread.Sleep(10000);
+            }
+
+            await HelmListAll();
+            HelmMessage = "";
+        }
+    }
+}
+}
+else
+{
+    <div class="alert alert-danger" role="alert">
+        Helm is not currently enabled!
+    </div>
+}

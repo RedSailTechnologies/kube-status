@@ -7,7 +7,9 @@
 
 @if (GetApplicationsError)
 {
-    <p>Unable to get Spark Applications. Please try again later.</p>
+    <div class="alert alert-danger" role="alert">
+        Unable to get Spark Applications. Please try again later.
+    </div>
 }
 else
 {

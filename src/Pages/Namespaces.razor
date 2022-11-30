@@ -6,16 +6,20 @@
 
 @if (GetNamespacesError)
 {
-    <p>Unable to get namespaces. Please try again later.</p>
+    <div class="alert alert-danger" role="alert">
+        Unable to get namespaces. Please try again later.
+    </div>
 }
 else
 {
     <TableTemplate Items="NamespaceList" TableClass="table table-striped">
         <TableHeader>
-            <th scope="col">Namesapce</th>
+            <th colspan="3" scope="col">Namesapce</th>
         </TableHeader>
         <RowTemplate>
-            <td><a href="pods/@context">@context</a></td>
+            <td>@context</td>
+            <td><a href="pods/@context" class="btn btn-outline-dark btn-sm">View Pods</a></td>
+            <td><a href="helm/@context" class="btn btn-outline-dark btn-sm">View Helm Releases</a></td>
         </RowTemplate>
     </TableTemplate>
 }
