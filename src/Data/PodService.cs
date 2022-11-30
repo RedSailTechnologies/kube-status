@@ -45,7 +45,19 @@ namespace KubeStatus.Data
 
                 foreach (var item in list.Items)
                 {
-                    var podEvents = events.Items.Where(i => i.InvolvedObject.Uid.Equals(item.Metadata.Uid)).OrderByDescending(i => i.LastTimestamp).ToList();
+                    List<Corev1Event> podEvents = new List<Corev1Event>();
+                    if (item?.Metadata?.Uid != null)
+                    {
+                        foreach (var podEvent in events.Items.OrderByDescending(i => i.LastTimestamp))
+                        {
+                            var itemUid = item.Metadata.Uid;
+                            var eventUid = podEvent.InvolvedObject.Uid;
+                            if (itemUid.Equals(eventUid))
+                            {
+                                podEvents.Add(podEvent);
+                            }
+                        }
+                    }
 
                     pods.Add(new Pod
                     {
