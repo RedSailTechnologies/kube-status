@@ -44,8 +44,10 @@ else
     <div class="form-group row mb-3">
         <div class="col-sm-4">
             <div class="input-group">
-                <input type="text" class="form-control" placeholder="Search..." aria-label="Filter" aria-describedby="button-clear" @bind-value="Filter" @oninput="@FilterChange">
-                <button class="btn btn-outline-secondary" type="button" id="button-clear" @onclick="@ClearFilter">Clear</button>
+                <input type="text" class="form-control" placeholder="Search..." aria-label="Filter"
+                aria-describedby="button-clear" @bind-value="Filter" @oninput="@FilterChange">
+                <button class="btn btn-outline-secondary" type="button" id="button-clear"
+                @onclick="@ClearFilter">Clear</button>
             </div>
         </div>
         <div class="col-sm-2">
@@ -198,6 +200,15 @@ else
                         data-bs-target="#@context.PodName.Replace(".","-")-collapsePodVolumes" aria-expanded="false"
                         aria-controls="collapsePodVolumes">
                                     <span class="show">Show</span><span class="hide">Hide</span> Pod Volumes
+                                </button>
+                            }
+
+                            @if (context.Events != null && context.Events.Any())
+                            {
+                                <button class="btn btn-outline-dark btn-sm m-2 collapsed" type="button" data-bs-toggle="collapse"
+                        data-bs-target="#@context.PodName.Replace(".","-")-collapseEvents" aria-expanded="false"
+                        aria-controls="collapseEvents">
+                                    <span class="show">Show</span><span class="hide">Hide</span> Events
                                 </button>
                             }
                         </div>
@@ -508,6 +519,53 @@ else
                         </RowTemplate>
                     </TableTemplate>
                 </div>
+                        }
+        </div>
+        <div class="row mb-2">
+                        @if (context.Events != null && context.Events.Any())
+                        {
+                <div class="collapse col-sm-12" id="@context.PodName.Replace(".","-")-collapseEvents">
+                    <TableTemplate Items="@context.Events" TableClass="table-sm table-striped">
+                        <TableHeader>
+                            <th>Events</th>
+                        </TableHeader>
+                        <RowTemplate Context="eventsContext">
+                            <td>
+                                <div>
+                                    <b>@eventsContext.Message</b>
+                                </div>
+                                            @if (!string.IsNullOrWhiteSpace(@eventsContext.Source?.Component) ||
+                    !string.IsNullOrWhiteSpace(@eventsContext.Source?.Host))
+                                            {
+                        <div>
+                            <label><b>Source:</b></label>&nbsp;<span class="form-item">@eventsContext.Source?.Component
+                                            @eventsContext.Source?.Host</span>
+                        </div>
+                                            }
+                                @if (eventsContext.Count != null)
+                                            {
+                        <div>
+                            <label><b>Count:</b></label>&nbsp;<span class="form-item">@eventsContext.Count</span>
+                        </div>
+                                            }
+                                @if (!string.IsNullOrWhiteSpace(eventsContext.InvolvedObject?.FieldPath))
+                                            {
+                        <div>
+                            <label><b>Involved Object:</b></label>&nbsp;<span
+                            class="form-item">@eventsContext.InvolvedObject.FieldPath</span>
+                        </div>
+                                            }
+                                @if (eventsContext.LastTimestamp != null)
+                                            {
+                        <div>
+                            <label><b>Last Seen:</b></label>&nbsp;<span
+                            class="form-item">@eventsContext.LastTimestamp</span>
+                        </div>
+                                            }
+                </td>
+            </RowTemplate>
+        </TableTemplate>
+    </div>
                         }
         </div>
         </td>
