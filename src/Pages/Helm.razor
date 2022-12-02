@@ -18,6 +18,16 @@
 }
 else
 {
+    <div class="row">
+        @if(@ItemCountAll == @ItemCountFiltered)
+        {
+            <h6>Items: @ItemCountAll</h6>
+        }
+        else
+        {
+            <h6>Filtered: @ItemCountFiltered / @ItemCountAll</h6>
+        }
+    </div>
     <div class="form-group row mb-3">
         <div class="col-sm-4">
             <label for="namespaceSelect" class="form-label">Select a Namespace</label>
@@ -61,7 +71,7 @@ else
     }
     else if (@HelmList != null && @HelmList.Any())
     {
-        <TableTemplate Items="FilteredHelmList" TItem="HelmListItem" TableHeaderClass="thead-light">
+        <TableTemplate Items="FilteredHelmList" TItem="HelmListItem" TableHeaderClass="thead-light" TableClass="mb-5">
             <TableHeader>
                 <th>
                     <div class="form-group row">
@@ -155,6 +165,8 @@ else
     IEnumerable<HelmListItem> FilteredHelmList;
     string HelmMessage = "";
     string Filter;
+    int ItemCountAll = 0;
+    int ItemCountFiltered = 0;
 
     protected override bool ShouldRender() => _shouldRender;
 
@@ -192,7 +204,9 @@ else
         HelmList = null;
         FilteredHelmList = new List<HelmListItem>();
         HelmList = await HelmService.HelmListAll(SelectedNamespace);
+        ItemCountAll = HelmList.Count();
         FilteredHelmList = HelmList;
+        ItemCountFiltered = FilteredHelmList.Count();
     }
 
     async Task HelmRollback(string package, string k8sNamespace = "default")
@@ -272,10 +286,12 @@ else
         if (string.IsNullOrWhiteSpace(Filter))
         {
             FilteredHelmList = HelmList;
+            ItemCountFiltered = FilteredHelmList.Count();
         }
         else
         {
             FilteredHelmList = HelmList.Where(h => h.Name.Contains(Filter, StringComparison.OrdinalIgnoreCase)).ToList();
+            ItemCountFiltered = FilteredHelmList.Count();
         }
         // refresh ui after text change
         await InvokeAsync(() =>

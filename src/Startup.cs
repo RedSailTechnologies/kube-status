@@ -28,6 +28,7 @@ namespace KubeStatus
             services.AddSingleton<KafkaConnectorService>();
             services.AddSingleton<NamespaceService>();
             services.AddSingleton<PodService>();
+            services.AddSingleton<DeploymentService>();
             services.AddSingleton<LogService>();
             services.AddSingleton<HelmService>();
             services.AddRazorPages();

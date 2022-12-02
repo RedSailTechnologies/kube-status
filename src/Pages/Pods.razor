@@ -16,6 +16,16 @@
 }
 else
 {
+    <div class="row">
+        @if (@ItemCountAll == @ItemCountFiltered)
+        {
+            <h6>Items: @ItemCountAll</h6>
+        }
+        else
+        {
+            <h6>Filtered: @ItemCountFiltered / @ItemCountAll</h6>
+        }
+    </div>
     <div class="form-group row mb-3">
         <div class="col-sm-4">
             <label for="namespaceSelect" class="form-label">Select a Namespace</label>
@@ -80,7 +90,7 @@ else
 {
     @if (@NamespacedPods != null && @NamespacedPods.Any())
     {
-        <TableTemplate Items="FilteredPods" TItem="Pod" TableHeaderClass="thead-light">
+        <TableTemplate Items="FilteredPods" TItem="Pod" TableHeaderClass="thead-light" TableClass="mb-5">
             <TableHeader>
                 <th>
                     <div class="form-group row">
@@ -602,6 +612,8 @@ else
     string SelectedNamespace = "default";
     IEnumerable<Pod> NamespacedPods;
     IEnumerable<Pod> FilteredPods;
+    int ItemCountAll = 0;
+    int ItemCountFiltered = 0;
     int LogRows = 1000;
 
 
@@ -639,7 +651,9 @@ else
         NamespacedPods = null;
         FilteredPods = new List<Pod>();
         NamespacedPods = await PodService.GetAllNamespacedPodsAsync(SelectedNamespace);
+        ItemCountAll = NamespacedPods.Count();
         FilteredPods = NamespacedPods;
+        ItemCountFiltered = FilteredPods.Count();
     }
 
     async Task GetLogs(string k8sNamespace, string podName, string name)
@@ -689,6 +703,7 @@ else
         if (string.IsNullOrWhiteSpace(Filter) || (!SearchPodName && !SearchContainerName && !SearchInitContainerName))
         {
             FilteredPods = NamespacedPods;
+            ItemCountFiltered = FilteredPods.Count();
         }
         else
         {
@@ -699,6 +714,7 @@ else
             (SearchInitContainerName && p.InitContainers != null && p.InitContainers.Any(c =>
             c.ContainerStatus.Name.Contains(Filter, StringComparison.OrdinalIgnoreCase)))
             ).ToList();
+            ItemCountFiltered = FilteredPods.Count();
         }
         // refresh ui after text change
         await InvokeAsync(() =>

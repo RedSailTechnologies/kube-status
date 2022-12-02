@@ -1,0 +1,325 @@
+@page "/deployments/{namespaceparam?}"
+
+@using System
+@using k8s.Models
+
+@inject NamespaceService NamespaceService
+@inject DeploymentService DeploymentService
+@inject IJSRuntime JsRuntime
+
+<h1>Deployments</h1>
+
+@if (GetNamespacesError)
+{
+    <div class="alert alert-danger" role="alert">
+        Unable to get namespaces. Please try again later.
+    </div>
+}
+else
+{
+    <div class="row">
+        @if (@ItemCountAll == @ItemCountFiltered)
+        {
+            <h6>Items: @ItemCountAll</h6>
+        }
+        else
+        {
+            <h6>Filtered: @ItemCountFiltered / @ItemCountAll</h6>
+        }
+    </div>
+    <div class="form-group row mb-3">
+        <div class="col-sm-4">
+            <label for="namespaceSelect" class="form-label">Select a Namespace</label>
+            <select class="form-select" id="namespaceSelect" @onchange="@OnSelect">
+                @foreach (var ns in Namespaces)
+                {
+                    @if (@ns.Equals(@SelectedNamespace))
+                    {
+                        <option value=@ns selected>@ns</option>
+                    }
+                    else
+                    {
+                        <option value=@ns>@ns</option>
+                    }
+                }
+            </select>
+        </div>
+        <div class="col-sm-2 offset-sm-4">
+            <button class="btn btn-outline-dark btn-sm" @onclick="() => RestartNamespacedDeploymentAsync()">Restart All
+                @SelectedNamespace.ToUpper() Deployments</button>
+        </div>
+    </div>
+    <div class="form-group row mb-3">
+        <div class="col-sm-4">
+            <div class="input-group">
+                <input type="text" class="form-control" placeholder="Search..." aria-label="Filter"
+                aria-describedby="button-clear" @bind-value="Filter" @oninput="@FilterChange">
+                <button class="btn btn-outline-secondary" type="button" id="button-clear"
+                @onclick="@ClearFilter">Clear</button>
+            </div>
+        </div>
+    </div>
+}
+@if (DeploymentListError)
+{
+    <div class="alert alert-danger" role="alert">
+        Unable to list deployments. Please try again later.
+    </div>
+}
+else
+{
+    @if (!String.IsNullOrWhiteSpace(DeploymentMessage))
+    {
+        <div class="alert alert-info" role="alert">
+            @DeploymentMessage
+        </div>
+    }
+    else if (@DeploymentList != null && DeploymentList.Items != null && @DeploymentList.Items.Any())
+    {
+        <TableTemplate Items="FilteredDeploymentList" TItem="V1Deployment" TableHeaderClass="thead-light" TableClass="mb-5">
+            <TableHeader>
+                <th>
+                    <div class="form-group row">
+                        <div class="col-xl-2 d-none d-xl-block">
+                            <label class="form-label"><b>Name</b></label>
+                        </div>
+                        <div class="col-xl-1 d-none d-xl-block">
+                            <label class="form-label"><b>Replicas</b></label>
+                        </div>
+                        <div class="col-xl-1 d-none d-xl-block">
+                            <label class="form-label"><b>Pods<br /><span class="small">(Ready / Total)</span></b></label>
+                        </div>
+                        <div class="col-xl-2 d-none d-xl-block">
+                            <label class="form-label"><b>Created</b></label>
+                        </div>
+                        <div class="col-xl-3 d-none d-xl-block">
+                            <label class="form-label"><b>Conditions</b></label>
+                        </div>
+                    </div>
+                </th>
+            </TableHeader>
+            <RowTemplate>
+                <td>
+                    <div class="form-group row">
+                        <div class="col-xl-2">
+                            <label for="@context.Metadata.Name.Replace(".","-")"
+                        class="form-label d-xl-none"><b>Name:</b></label>
+                            <span id="@context.Metadata.Name.Replace(".","-")"
+                        class="form-item small">@context.Metadata.Name</span><br />
+                            <button class="btn btn-outline-dark btn-sm"
+                        @onclick="() => RestartDeployment(context.Metadata.Name, context.Metadata.NamespaceProperty)">Restart</button>
+                        </div>
+                        <div class="col-xl-1">
+                            <label for="replicas-@context.Metadata.Name.Replace(".","-")"
+                        class="form-label d-xl-none"><b>Replicas:</b></label>
+                            <span id="replicas-@context.Metadata.Name.Replace(".","-")"
+                        class="form-item small">@context.Status.Replicas</span>
+                        </div>
+                        <div class="col-xl-1">
+                            <label for="pods-@context.Metadata.Name.ToString()" class="form-label d-xl-none"><b>Pods <span
+                                class="small">(Ready / Total)</span>:</b></label>
+                            <span id="pods-@context.Metadata.Name.ToString()"
+                        class="form-item small">@context.Status.ReadyReplicas / @context.Status.Replicas</span>
+                        </div>
+                        <div class="col-xl-2">
+                            <label for="created-@context.Metadata.Name.Replace(".","-")"
+                        class="form-label d-xl-none"><b>Created:</b></label>
+                            <span id="created-@context.Metadata.Name.Replace(".","-")"
+                        class="form-item small">@context.Metadata.CreationTimestamp</span>
+                        </div>
+                        <div class="col-xl-3">
+                            <label for="conditions-@context.Metadata.Name.Replace(".","-")"
+                        class="form-label d-xl-none"><b>Conditions:</b></label>
+                            <span id="conditions-@context.Metadata.Name.Replace(".","-")" class="form-item small">@foreach (var
+                        condition in context.Status.Conditions.OrderBy(c => c.Type))
+                                {
+                                    <span class="ms-1">@condition.Type</span>}</span>
+                            </div>
+                        </div>
+                    </td>
+                </RowTemplate>
+            </TableTemplate>
+    }
+    else if (DeploymentList == null)
+    {
+        <div class="alert alert-info" role="alert">
+            Loading Deployment in the @SelectedNamespace namespace...
+        </div>
+    }
+    else
+    {
+        <div class="alert alert-primary" role="alert">
+            No Deployment found in the @SelectedNamespace namespace
+        </div>
+    }
+}
+
+@code {
+    [Parameter]
+    public string NamespaceParam { get; set; }
+
+    bool GetNamespacesError;
+    bool DeploymentListError;
+    bool _shouldRender;
+    IEnumerable<string> Namespaces = Array.Empty<string>();
+    string SelectedNamespace = "default";
+    V1DeploymentList DeploymentList;
+    List<V1Deployment> FilteredDeploymentList;
+    string DeploymentMessage = "";
+    string Filter;
+    int ItemCountAll = 0;
+    int ItemCountFiltered = 0;
+
+    protected override bool ShouldRender() => _shouldRender;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            NamespaceParam = NamespaceParam ?? "default";
+            SelectedNamespace = NamespaceParam;
+
+            var namespaces = await NamespaceService.GetAllNamespacesAsync();
+            Namespaces = namespaces.Items.Select(i => i.Metadata.Name);
+
+            await DeploymentListAll();
+
+            _shouldRender = true;
+        }
+        catch
+        {
+            GetNamespacesError = true;
+            DeploymentListError = true;
+        }
+    }
+
+    async Task OnSelect(ChangeEventArgs e)
+    {
+        SelectedNamespace = e.Value.ToString();
+        await DeploymentListAll();
+    }
+
+    async Task DeploymentListAll()
+    {
+        DeploymentList = null;
+        FilteredDeploymentList = new List<V1Deployment>();
+        DeploymentList = await DeploymentService.GetAllNamespacedDeploymentsAsync(SelectedNamespace);
+        FilteredDeploymentList = DeploymentList.Items.ToList();
+        ItemCountAll = DeploymentList.Items.Count;
+        ItemCountFiltered = FilteredDeploymentList.Count;
+    }
+
+    async Task FilterChange(ChangeEventArgs e)
+    {
+        Filter = e?.Value?.ToString();
+        await FilterResults();
+    }
+
+    async Task ClearFilter()
+    {
+        Filter = "";
+        await FilterResults();
+    }
+
+    async Task FilterResults()
+    {
+        if (string.IsNullOrWhiteSpace(Filter))
+        {
+            FilteredDeploymentList = DeploymentList.Items.ToList();
+            ItemCountFiltered = FilteredDeploymentList.Count;
+        }
+        else
+        {
+            FilteredDeploymentList = DeploymentList.Items.Where(d => d.Metadata.Name.Contains(Filter,
+            StringComparison.OrdinalIgnoreCase)).ToList();
+            ItemCountFiltered = FilteredDeploymentList.Count;
+        }
+        // refresh ui after text change
+        await InvokeAsync(() =>
+        {
+            base.StateHasChanged();
+        });
+    }
+
+    async Task RestartNamespacedDeploymentAsync()
+    {
+        bool confirmed = await JsRuntime.InvokeAsync<bool>("confirm", $"Are you sure you want to restart all Deployments in the {SelectedNamespace} namespace?");
+        
+        if (confirmed)
+        {
+            DeploymentMessage = $"Restarting all deployments in the {SelectedNamespace} namespace...";
+            // refresh ui after text change
+            await InvokeAsync(() =>
+            {
+                base.StateHasChanged();
+            });
+
+            var success = await DeploymentService.RestartNamespacedDeploymentAsync(SelectedNamespace);
+
+            if (success)
+            {
+                DeploymentMessage = $"All deployments in {SelectedNamespace} successfully restarted!";
+                // refresh ui after text change
+                await InvokeAsync(() =>
+                {
+                    base.StateHasChanged();
+                });
+                System.Threading.Thread.Sleep(3000);
+            }
+            else
+            {
+                DeploymentMessage = $"There was a problem restarting all deployments in the {SelectedNamespace}!";
+                // refresh ui after text change
+                await InvokeAsync(() =>
+                {
+                    base.StateHasChanged();
+                });
+                System.Threading.Thread.Sleep(10000);
+            }
+
+            await DeploymentListAll();
+            DeploymentMessage = "";
+        }
+    }
+
+    async Task RestartDeployment(string name, string k8sNamespace)
+    {
+        bool confirmed = await JsRuntime.InvokeAsync<bool>("confirm", $"Are you sure you want to restart {name} in the {k8sNamespace} namespace?");
+
+        if (confirmed)
+        {
+            DeploymentMessage = $"Restarting {name} in the {k8sNamespace} namespace...";
+            // refresh ui after text change
+            await InvokeAsync(() =>
+            {
+                base.StateHasChanged();
+            });
+
+            var success = await DeploymentService.RestartDeploymentAsync(name, k8sNamespace);
+
+            if (success)
+            {
+                DeploymentMessage = $"Successfully restarted {name} in the {k8sNamespace} namespace!";
+                // refresh ui after text change
+                await InvokeAsync(() =>
+                {
+                    base.StateHasChanged();
+                });
+                System.Threading.Thread.Sleep(3000);
+            }
+            else
+            {
+                DeploymentMessage = $"There was a problem restaring {name}in the {k8sNamespace} namespace!";
+                // refresh ui after text change
+                await InvokeAsync(() =>
+                {
+                    base.StateHasChanged();
+                });
+                System.Threading.Thread.Sleep(10000);
+            }
+
+            await DeploymentListAll();
+            DeploymentMessage = "";
+        }
+    }
+}

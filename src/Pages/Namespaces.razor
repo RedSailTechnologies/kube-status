@@ -12,14 +12,24 @@
 }
 else
 {
+    <div class="row">
+        <h6>Items: @ItemCountAll</h6>
+    </div>
     <TableTemplate Items="NamespaceList" TableClass="table table-striped">
         <TableHeader>
-            <th colspan="3" scope="col">Namesapce</th>
+            <th scope="col">Namespaces</th>
         </TableHeader>
         <RowTemplate>
-            <td>@context</td>
-            <td><a href="pods/@context" class="btn btn-outline-dark btn-sm">View Pods</a></td>
-            <td><a href="helm/@context" class="btn btn-outline-dark btn-sm">View Helm Releases</a></td>
+            <td>
+                <div class="row">
+                    <div class="col-sm-1">@context</div>
+                    <div class="col-sm-4">
+                        <a href="pods/@context" class="btn btn-outline-dark btn-sm ms-1">View Pods</a>
+                        <a href="deployments/@context" class="btn btn-outline-dark btn-sm ms-1">View Deployments</a>
+                        <a href="helm/@context" class="btn btn-outline-dark btn-sm ms-1">View Helm Releases</a>
+                    </div>
+                </div>
+            </td>
         </RowTemplate>
     </TableTemplate>
 }
@@ -28,6 +38,7 @@ else
     bool GetNamespacesError;
     bool _shouldRender;
     IEnumerable<string> NamespaceList = Array.Empty<string>();
+    int ItemCountAll = 0;
 
     protected override bool ShouldRender() => _shouldRender;
 
@@ -37,6 +48,7 @@ else
         {
             var namespaces = await NamespaceService.GetAllNamespacesAsync();
             NamespaceList = namespaces.Items.Select(i => i.Metadata.Name);
+            ItemCountAll = NamespaceList.Count();
 
             _shouldRender = true;
         }

@@ -28,6 +28,9 @@ else
 {
     @if (@Connectors != null && @Connectors.Any())
     {
+        <div class="row">
+            <h6>Items: @ItemCountAll</h6>
+        </div>
         <TableTemplate Items="Connectors" TItem="KafkaConnector" TableHeaderClass="thead-light">
             <TableHeader>
                 <th>
@@ -141,6 +144,7 @@ else
     bool ConnectorsRestarted;
     bool _shouldRender;
     IEnumerable<KafkaConnector> Connectors;
+    int ItemCountAll = 0;
     bool HasFailedTasks;
     bool FailedButtonIsDisabled;
     bool ShowKafkaApiButtons;
@@ -154,6 +158,7 @@ else
         try
         {
             Connectors = await KafkaConnectorService.GetAllKafkaConnectorsAsync();
+            ItemCountAll = Connectors.Count();
             HasFailedTasks = Connectors.Any(c =>
             c.TaskState.Equals("failed", StringComparison.OrdinalIgnoreCase) ||
             c.ConnectorState.Equals("failed", StringComparison.OrdinalIgnoreCase)
@@ -178,6 +183,7 @@ else
 
         FailedButtonIsDisabled = true;
         Connectors = await KafkaConnectorService.RestartAllFailedKafkaConnectorsAsync();
+        ItemCountAll = Connectors.Count();
 
         ConnectorsRestarted = true;
     }

@@ -26,7 +26,7 @@ namespace KubeStatus.Controllers
             return await _helmService.HelmListAll(k8sNamespace);
         }
 
-        [HttpPut("rollback/{package}")]
+        [HttpPatch("rollback/{package}")]
         public async Task<string> HelmRollback(string package, string k8sNamespace = "default")
         {
             return await _helmService.HelmRollback(package, k8sNamespace);
