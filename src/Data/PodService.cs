@@ -118,6 +118,96 @@ namespace KubeStatus.Data
             return list;
         }
 
+        public async Task<List<EnvironmentVariable>> GetContainerEnvironmentVariablesAsync(string k8sNamespace, string podName, string containerName)
+        {
+            var pod = await kubernetesClient.CoreV1.ReadNamespacedPodAsync(podName, k8sNamespace);
+            List<V1Container> containers = new List<V1Container>();
+            containers.AddRange(pod.Spec.Containers);
+            containers.AddRange(pod.Spec.InitContainers);
+            var container = containers.FirstOrDefault(c => c.Name.Equals(containerName));
+            if (container != null)
+            {
+                return await GetEnvironmentVariablesAndValues(container, k8sNamespace);
+            }
+            else
+            {
+                return new List<EnvironmentVariable>();
+            }
+        }
+
+        private async Task<List<EnvironmentVariable>> GetEnvironmentVariablesAndValues(V1Container container, string k8sNamespace)
+        {
+            List<EnvironmentVariable> envVars = new List<EnvironmentVariable>();
+
+            if (container.Env != null && container.Env.Any())
+            {
+                foreach (var envVar in container.Env)
+                {
+                    if (envVar.ValueFrom == null)
+                    {
+                        envVars.Add(new EnvironmentVariable() { Key = envVar.Name, Value = envVar.Value, Type = "Simple" });
+                    }
+                    else
+                    {
+                        if (envVar.ValueFrom.SecretKeyRef != null)
+                        {
+                            // don't add the secret value for security
+                            // var secret = await kubernetesClient.CoreV1.ReadNamespacedSecretAsync(envVar.ValueFrom.SecretKeyRef.Name, k8sNamespace);
+                            // envVars.Add(new EnvironmentVariable() { Key = envVar.Name, Value = System.Text.Encoding.UTF8.GetString(secret.Data.FirstOrDefault(d => d.Key.Equals(envVar.ValueFrom.SecretKeyRef.Key)).Value), Type = "Secret" });
+                            envVars.Add(new EnvironmentVariable() { Key = envVar.Name, Value = "***", Type = "Secret" });
+                        }
+                        else if (envVar.ValueFrom.ConfigMapKeyRef != null)
+                        {
+                            var configMap = await kubernetesClient.CoreV1.ReadNamespacedConfigMapAsync(envVar.ValueFrom.ConfigMapKeyRef.Name, k8sNamespace);
+                            envVars.Add(new EnvironmentVariable() { Key = envVar.Name, Value = configMap.Data.FirstOrDefault(d => d.Key.Equals(envVar.ValueFrom.ConfigMapKeyRef.Key)).Value, Type = "ConfigMap" });
+                        }
+                        else if (envVar.ValueFrom.FieldRef != null)
+                        {
+                            envVars.Add(new EnvironmentVariable() { Key = envVar.Name, Value = envVar.ValueFrom.ToYaml(), Type = "FieldRef" });
+                        }
+                        else
+                        {
+                            envVars.Add(new EnvironmentVariable() { Key = envVar.Name, Value = envVar.ValueFrom.ToYaml(), Type = "ValueFrom" });
+                        }
+                    }
+                }
+            }
+
+            if (container.EnvFrom != null && container.EnvFrom.Any())
+            {
+                foreach (var envVarRef in container.EnvFrom)
+                {
+                    if (envVarRef.ConfigMapRef != null)
+                    {
+                        var configMap = await kubernetesClient.CoreV1.ReadNamespacedConfigMapAsync(envVarRef.ConfigMapRef.Name, k8sNamespace);
+                        if (configMap.Data != null && configMap.Data.Any())
+                        {
+                            foreach (var val in configMap.Data)
+                            {
+                                envVars.Add(new EnvironmentVariable() { Key = val.Key, Value = val.Value, Type = "ConfigMap" });
+                            }
+                        }
+                    }
+
+                    if (envVarRef.SecretRef != null)
+                    {
+                        var secret = await kubernetesClient.CoreV1.ReadNamespacedSecretAsync(envVarRef.SecretRef.Name, k8sNamespace);
+                        if (secret.Data != null && secret.Data.Any())
+                        {
+                            foreach (var val in secret.Data)
+                            {
+                                // don't add the secret value for security
+                                // envVars.Add(new EnvironmentVariable() { Key = val.Key, Value = System.Text.Encoding.UTF8.GetString(val.Value), Type = "Secret" });
+                                envVars.Add(new EnvironmentVariable() { Key = val.Key, Value = "***", Type = "Secret" });
+                            }
+                        }
+                    }
+                }
+            }
+
+            return envVars;
+        }
+
         public async Task<byte[]> GetAllNamespacedPodsFileAsync(string k8sNamespace = "default")
         {
             try

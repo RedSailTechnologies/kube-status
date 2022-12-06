@@ -234,11 +234,7 @@ else
             StringComparison.OrdinalIgnoreCase)).ToList();
             ItemCountFiltered = FilteredDeploymentList.Count;
         }
-        // refresh ui after text change
-        await InvokeAsync(() =>
-        {
-            base.StateHasChanged();
-        });
+        await InvokeAsync(() => { base.StateHasChanged(); });
     }
 
     async Task RestartNamespacedDeploymentAsync()
@@ -248,32 +244,20 @@ else
         if (confirmed)
         {
             DeploymentMessage = $"Restarting all deployments in the {SelectedNamespace} namespace...";
-            // refresh ui after text change
-            await InvokeAsync(() =>
-            {
-                base.StateHasChanged();
-            });
+            await InvokeAsync(() => { base.StateHasChanged(); });
 
             var success = await DeploymentService.RestartNamespacedDeploymentAsync(SelectedNamespace);
 
             if (success)
             {
                 DeploymentMessage = $"All deployments in {SelectedNamespace} successfully restarted!";
-                // refresh ui after text change
-                await InvokeAsync(() =>
-                {
-                    base.StateHasChanged();
-                });
+                await InvokeAsync(() => { base.StateHasChanged(); });
                 System.Threading.Thread.Sleep(3000);
             }
             else
             {
                 DeploymentMessage = $"There was a problem restarting all deployments in the {SelectedNamespace}!";
-                // refresh ui after text change
-                await InvokeAsync(() =>
-                {
-                    base.StateHasChanged();
-                });
+                await InvokeAsync(() => { base.StateHasChanged(); });
                 System.Threading.Thread.Sleep(10000);
             }
 
@@ -289,32 +273,20 @@ else
         if (confirmed)
         {
             DeploymentMessage = $"Restarting {name} in the {k8sNamespace} namespace...";
-            // refresh ui after text change
-            await InvokeAsync(() =>
-            {
-                base.StateHasChanged();
-            });
+            await InvokeAsync(() => { base.StateHasChanged(); });
 
             var success = await DeploymentService.RestartDeploymentAsync(name, k8sNamespace);
 
             if (success)
             {
                 DeploymentMessage = $"Successfully restarted {name} in the {k8sNamespace} namespace!";
-                // refresh ui after text change
-                await InvokeAsync(() =>
-                {
-                    base.StateHasChanged();
-                });
+                await InvokeAsync(() => { base.StateHasChanged(); });
                 System.Threading.Thread.Sleep(3000);
             }
             else
             {
                 DeploymentMessage = $"There was a problem restaring {name}in the {k8sNamespace} namespace!";
-                // refresh ui after text change
-                await InvokeAsync(() =>
-                {
-                    base.StateHasChanged();
-                });
+                await InvokeAsync(() => { base.StateHasChanged(); });
                 System.Threading.Thread.Sleep(10000);
             }
 

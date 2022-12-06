@@ -44,7 +44,7 @@ else
                         <div class="col-xl-2 d-none d-xl-block">
                             <label for="taskState"><b>Task State</b></label>
                         </div>
-                        <div class="col-xl-3 d-none d-xl-block">
+                        <div class="col-xl-4 d-none d-xl-block">
                             <label for="lastTransitionTime"><b>Last Transition Time</b></label>
                         </div>
                     </div>
@@ -59,50 +59,51 @@ else
                         </div>
                         <div class="col-xl-2">
                             <label for="connectorState" class="form-label d-xl-none"><b>Connector State:</b></label>
-                            <span id="connectorState" class="form-item">@context.ConnectorState</span </div>
-                            <div class="col-xl-2">
-                                <label for="taskState" class="form-label d-xl-none"><b>Task State:</b></label>
-                                <span id="taskState" class="form-item">@context.TaskState</span>
-                            </div>
-                            <div class="col-xl-3">
-                                <label for="lastTransitionTime" class="form-label d-xl-none"><b>Last Transition
-                                        Time:</b></label>
-                                <span id="lastTransitionTime" class="form-item">@context.LastTransitionTime</span>
-                            </div>
+                            <span id="connectorState" class="form-item">@context.ConnectorState</span>
                         </div>
+                        <div class="col-xl-2">
+                            <label for="taskState" class="form-label d-xl-none"><b>Task State:</b></label>
+                            <span id="taskState" class="form-item">@context.TaskState</span>
+                        </div>
+                        <div class="col-xl-4">
+                            <label for="lastTransitionTime" class="form-label d-xl-none"><b>Last Transition
+                                    Time:</b></label>
+                            <span id="lastTransitionTime" class="form-item">@context.LastTransitionTime</span>
+                        </div>
+                    </div>
                     @if (@context.Topics.Any())
                     {
-                            <div class="row mb-1">
-                                <div class="col-xl-12">
-                                    <button class="btn btn-outline-dark btn-sm collapsed" type="button" data-bs-toggle="collapse"
-                            data-bs-target="#@context.Name-topics" aria-expanded="false"
-                            aria-controls="@context.Name-topics"><span class="show">Show</span><span
-                                class="hide">Hide</span> Topics</button>
-                                    <div class="collapse mt-3" id="@context.Name-topics">
-                                        <ul>
+                        <div class="row mb-1">
+                            <div class="col-xl-12">
+                                <button class="btn btn-outline-dark btn-sm collapsed" type="button" data-bs-toggle="collapse"
+                        data-bs-target="#@context.Name-topics" aria-expanded="false"
+                        aria-controls="@context.Name-topics"><span class="show">Show</span><span
+                            class="hide">Hide</span> Topics</button>
+                                <div class="collapse mt-3" id="@context.Name-topics">
+                                    <ul>
                                         @foreach (var topic in @context.Topics)
                                         {
-                                                <li>@topic</li>
+                                            <li>@topic</li>
                                         }
-                                        </ul>
-                                    </div>
+                                    </ul>
                                 </div>
                             </div>
+                        </div>
                     }
 
                     @if (!string.IsNullOrWhiteSpace(@context.TaskTrace))
                     {
-                            <div class="row mb-1">
-                                <div class="col-xl-12">
-                                    <button class="btn btn-outline-dark btn-sm collapsed" type="button" data-bs-toggle="collapse"
-                            data-bs-target="#@context.Name-trace" aria-expanded="false"
-                            aria-controls="@context.Name-trace"><span class="show">Show</span><span
-                                class="hide">Hide</span> Task Trace</button>
-                                    <div class="collapse mt-3" id="@context.Name-trace">
-                                        <pre>@context.TaskTrace</pre>
-                                    </div>
+                        <div class="row mb-1">
+                            <div class="col-xl-12">
+                                <button class="btn btn-outline-dark btn-sm collapsed" type="button" data-bs-toggle="collapse"
+                        data-bs-target="#@context.Name-trace" aria-expanded="false"
+                        aria-controls="@context.Name-trace"><span class="show">Show</span><span class="hide">Hide</span>
+                                    Task Trace</button>
+                                <div class="collapse mt-3" id="@context.Name-trace">
+                                    <pre>@context.TaskTrace</pre>
                                 </div>
                             </div>
+                        </div>
                     }
                 </td>
             </RowTemplate>

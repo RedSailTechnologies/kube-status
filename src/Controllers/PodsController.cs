@@ -39,6 +39,27 @@ namespace KubeStatus.Controllers
             }
         }
 
+        [HttpGet("{k8sNamespace}/{pod}/{container}/env")]
+        public async Task<IActionResult> GetContainerEnvironmentVariablesAsync(string k8sNamespace, string pod, string container)
+        {
+            var envVars = await _podService.GetContainerEnvironmentVariablesAsync(k8sNamespace, pod, container);
+
+            if (envVars == null)
+            {
+                return NotFound();
+            }
+            else
+            {
+                return Ok(envVars);
+            }
+        }
+
+        [HttpGet("{k8sNamespace}/{pod}/{container}/logs")]
+        public IActionResult GetContainerLogs(string k8sNamespace, string pod, string container, int tail = 100)
+        {
+            return Redirect($"/api/Logs/{k8sNamespace}/{pod}/{container}?tail={tail}");
+        }
+
         [HttpGet("{k8sNamespace}/csv")]
         public async Task<IActionResult> GetAllNamespacedPodsFileAsync(string k8sNamespace = "default")
         {

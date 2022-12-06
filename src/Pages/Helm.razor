@@ -215,18 +215,10 @@ else
         if (confirmed)
         {
             HelmMessage = $"Rolling back {package} in the {SelectedNamespace} namespace...";
-            // refresh ui after text change
-            await InvokeAsync(() =>
-            {
-                base.StateHasChanged();
-            });
+            await InvokeAsync(() => { base.StateHasChanged(); });
 
             HelmMessage = await HelmService.HelmRollback(package, k8sNamespace);
-            // refresh ui after text change
-            await InvokeAsync(() =>
-            {
-                base.StateHasChanged();
-            });
+            await InvokeAsync(() => { base.StateHasChanged(); });
 
             // allow the error message to be seen
             if (!HelmMessage.Contains("was a success!", StringComparison.OrdinalIgnoreCase))
@@ -245,18 +237,10 @@ else
         if (confirmed)
         {
             HelmMessage = $"Uninstalling {package} in the {SelectedNamespace} namespace...";
-            // refresh ui after text change
-            await InvokeAsync(() =>
-            {
-                base.StateHasChanged();
-            });
+            await InvokeAsync(() => { base.StateHasChanged(); });
 
             HelmMessage = await HelmService.HelmUninstall(package, k8sNamespace);
-            // refresh ui after text change
-            await InvokeAsync(() =>
-            {
-                base.StateHasChanged();
-            });
+            await InvokeAsync(() => { base.StateHasChanged(); });
 
             // allow the error message to be seen
             if (!HelmMessage.Contains($"release \"{package}\" uninstalled", StringComparison.OrdinalIgnoreCase))
@@ -293,11 +277,7 @@ else
             FilteredHelmList = HelmList.Where(h => h.Name.Contains(Filter, StringComparison.OrdinalIgnoreCase)).ToList();
             ItemCountFiltered = FilteredHelmList.Count();
         }
-        // refresh ui after text change
-        await InvokeAsync(() =>
-        {
-            base.StateHasChanged();
-        });
+        await InvokeAsync(() => { base.StateHasChanged(); });
     }
 }
 }

@@ -295,10 +295,6 @@ else
             StringComparison.OrdinalIgnoreCase)).ToList();
             ItemCountFiltered = FilteredApplications.Count();
         }
-        // refresh ui after text change
-        await InvokeAsync(() =>
-        {
-            base.StateHasChanged();
-        });
+        await InvokeAsync(() => { base.StateHasChanged(); });
     }
 }

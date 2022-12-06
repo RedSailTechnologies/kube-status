@@ -19,7 +19,7 @@ namespace KubeStatus.Controllers
         }
 
         [HttpGet("{k8sNamespace}/{pod}/{container}")]
-        public async Task<IActionResult> GetContainerLogsAsync(string pod, string container, string k8sNamespace = "default", int tail = 100)
+        public async Task<IActionResult> GetContainerLogsAsync(string k8sNamespace, string pod, string container, int tail = 100)
         {
             var fileName = $"{k8sNamespace}-{pod}-{container}.log";
             var stream = await _logService.GetContainerLogsAsync(pod, container, k8sNamespace, tail);

@@ -271,7 +271,7 @@ else
                                 {
                                     <h5>Init Containers</h5>
                                     <TableTemplate
-                        Items="@context.InitContainers.Select(s => new { s.ContainerStatus.Name, s.ContainerStatus.Started, s.ContainerStatus.Ready, s.ContainerStatus.RestartCount, s.ContainerStatus.Image, s.ContainerStatus.ImageID, s.ContainerStatus.LastState }).OrderBy(s => s.Name)"
+                        Items="@context.InitContainers.Select(s => new { s.ContainerStatus.Name, s.ContainerStatus.Started, s.ContainerStatus.Ready, s.ContainerStatus.RestartCount, s.ContainerStatus.Image, s.ContainerStatus.ImageID, s.ContainerStatus.LastState, s.Container.Env, s.Container.EnvFrom }).OrderBy(s => s.Name)"
                         TableClass="table-sm table-striped">
                                         <RowTemplate Context="statusContext">
                         <td>
@@ -283,10 +283,18 @@ else
                                         <span id="name-@context.PodName.Replace(".","-")-@statusContext.Name"
                             class="form-item">@statusContext.Name</span>
                                     </div>
-                                    <div class="row">
+                                    <div class="row  mb-2">
                                         <button class="btn btn-outline-dark btn-sm col-6"
                             @onclick="() => GetLogs(context.Namespace, context.PodName, statusContext.Name)">Logs</button>
                                     </div>
+                                    @if ((@statusContext.Env != null && statusContext.Env.Any()) || (@statusContext.EnvFrom != null && statusContext.EnvFrom.Any()))
+                                    {
+                                    <div class="row  mb-2">
+                                        <button type="button" class="btn btn-outline-dark btn-sm" data-bs-toggle="modal" data-bs-target="#envVarModal" @onclick="() => GetEnvironmentVariables(context.Namespace, context.PodName, statusContext.Name)">
+                                        View Environment Variables
+                                        </button>
+                                    </div>
+                                    }
                                 </div>
                                 <div class="col-xl-1">
                                     <div class="small mb-2">
@@ -362,7 +370,7 @@ else
                                 {
                 <h5>Containers</h5>
                 <TableTemplate
-    Items="@context.Containers.Select(s => new { s.ContainerStatus.Name, s.ContainerStatus.Started, s.ContainerStatus.Ready, s.ContainerStatus.RestartCount, s.ContainerStatus.Image, s.ContainerStatus.ImageID, s.ContainerStatus.LastState }).OrderBy(s => s.Name)"
+    Items="@context.Containers.Select(s => new { s.ContainerStatus.Name, s.ContainerStatus.Started, s.ContainerStatus.Ready, s.ContainerStatus.RestartCount, s.ContainerStatus.Image, s.ContainerStatus.ImageID, s.ContainerStatus.LastState, s.Container.Env, s.Container.EnvFrom }).OrderBy(s => s.Name)"
     TableClass="table-sm table-striped">
                     <RowTemplate Context="statusContext">
                         <td>
@@ -374,10 +382,18 @@ else
                                         <span id="name-@context.PodName.Replace(".","-")-@statusContext.Name"
                             class="form-item">@statusContext.Name</span>
                                     </div>
-                                    <div class="row">
+                                    <div class="row mb-2">
                                         <button class="btn btn-outline-dark btn-sm col-6"
                             @onclick="() => GetLogs(context.Namespace, context.PodName, statusContext.Name)">Logs</button>
                                     </div>
+                                    @if ((@statusContext.Env != null && statusContext.Env.Any()) || (@statusContext.EnvFrom != null && statusContext.EnvFrom.Any()))
+                                    {
+                                    <div class="row  mb-2">
+                                        <button type="button" class="btn btn-outline-dark btn-sm" data-bs-toggle="modal" data-bs-target="#envVarModal" @onclick="() => GetEnvironmentVariables(context.Namespace, context.PodName, statusContext.Name)">
+                                        View Environment Variables
+                                        </button>
+                                    </div>
+                                    }
                                 </div>
                                 <div class="col-xl-1">
                                     <div class="small mb-2">
@@ -581,6 +597,41 @@ else
         </td>
         </RowTemplate>
         </TableTemplate>
+<div class="modal fade" id="envVarModal" tabindex="-1" aria-labelledby="envVarModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-xl modal-dialog-scrollable">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="envVarModalLabel">@EnvVarHeading</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+            @if (EnvironmentVariables != null && EnvironmentVariables.Any())
+            {
+                
+                <TableTemplate Items="EnvironmentVariables" TableClass="table-sm table-striped">
+                    <TableHeader>
+                        <th colspan="3">Environment Variables</th>
+                    </TableHeader>
+                    <RowTemplate Context="envVarContext">
+                        <td>@envVarContext.Key</td>
+                        <td>@envVarContext.Value</td>
+                        <td>(@envVarContext.Type)</td>
+                    </RowTemplate>
+                </TableTemplate>
+            }
+            else
+            {
+                <div class="alert alert-info" role="alert">
+                    @EnvVarMessage
+                </div>
+            }
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
     }
     else if (NamespacedPods == null)
     {
@@ -612,6 +663,9 @@ else
     string SelectedNamespace = "default";
     IEnumerable<Pod> NamespacedPods;
     IEnumerable<Pod> FilteredPods;
+    IEnumerable<EnvironmentVariable> EnvironmentVariables;
+    string EnvVarHeading = "";
+    string EnvVarMessage = "";
     int ItemCountAll = 0;
     int ItemCountFiltered = 0;
     int LogRows = 1000;
@@ -668,6 +722,26 @@ else
         await JS.InvokeVoidAsync("triggerFileDownload", "", podCsv);
     }
 
+    async Task GetEnvironmentVariables(string k8sNamespace, string podName, string containerName)
+    {
+        EnvVarHeading = $"{k8sNamespace} > {podName} > {containerName}";
+        EnvVarMessage = $"Loading environment variables for {containerName}...";
+        await InvokeAsync(() => { base.StateHasChanged(); });
+        
+        EnvironmentVariables = null;
+        EnvironmentVariables = await PodService.GetContainerEnvironmentVariablesAsync(k8sNamespace, podName, containerName);
+        
+        if (EnvironmentVariables != null && EnvironmentVariables.Any())
+        {
+            EnvVarMessage = "";
+        }
+        else
+        {
+            EnvVarMessage = $"No environment variables set for {containerName}.";
+        }
+        await InvokeAsync(() => { base.StateHasChanged(); });
+    }
+
     async Task FilterChange(ChangeEventArgs e)
     {
         Filter = e?.Value?.ToString();
@@ -716,10 +790,6 @@ else
             ).ToList();
             ItemCountFiltered = FilteredPods.Count();
         }
-        // refresh ui after text change
-        await InvokeAsync(() =>
-        {
-            base.StateHasChanged();
-        });
+        await InvokeAsync(() => { base.StateHasChanged(); });
     }
 }
