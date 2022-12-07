@@ -103,7 +103,11 @@ namespace KubeStatus.Data
                 foreach (var container in containers.OrderBy(c => c.Name))
                 {
                     var name = container.Name;
-                    var status = statuses.Where(s => s.Name.Equals(name)).FirstOrDefault();
+                    var status = statuses?.FirstOrDefault(s => s.Name.Equals(name));
+                    if (status == null)
+                    {
+                        status = new V1ContainerStatus();
+                    }
                     list.Add(new V1ContainerAndStatus { ContainerStatus = status, Container = container });
                 }
             }
