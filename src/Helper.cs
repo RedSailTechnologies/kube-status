@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using k8s;
 using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
@@ -7,6 +8,28 @@ namespace KubeStatus
 {
     public static class Helper
     {
+        static Dictionary<string, string> _podStatusDictionary;
+
+        static Helper()
+        {
+            _podStatusDictionary = new Dictionary<string, string>();
+        }
+
+        public static void BuildPodStatusDictionary()
+        {
+            _podStatusDictionary.Add("All", "");
+            _podStatusDictionary.Add("Pending", "Pending");
+            _podStatusDictionary.Add("Running", "Running");
+            _podStatusDictionary.Add("Succeeded", "Succeeded");
+            _podStatusDictionary.Add("Failed", "Failed");
+            _podStatusDictionary.Add("Unknown", "Unknown");
+        }
+
+        public static Dictionary<string, string> ReturnPodStatusDictionary()
+        {
+            return _podStatusDictionary;
+        }
+
         public static KubernetesClientConfiguration GetKubernetesClientConfiguration()
         {
             if (bool.TryParse(Environment.GetEnvironmentVariable("BUILD_CONFIG_FROM_CONFIG_FILE"), out bool localContext) && localContext)

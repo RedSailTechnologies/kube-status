@@ -29,7 +29,7 @@ else
     <div class="form-group row mb-3">
         <div class="col-sm-4">
             <label for="namespaceSelect" class="form-label">Select a Namespace</label>
-            <select class="form-select" id="namespaceSelect" @onchange="@OnSelect">
+            <select class="form-select" id="namespaceSelect" @onchange="@OnNamespaceSelect">
                 @foreach (var ns in Namespaces)
                 {
                     @if (@ns.Equals(@SelectedNamespace))
@@ -77,6 +77,22 @@ else
                 @onclick="@SearchInitContainerNameChange">
                 <label class="form-check-label" for="SearchInitContainerNameCheckbox">Search Init Container Names</label>
             </div>
+        </div>
+        <div class="col-sm-4">
+            <label for="podStatusSelect" class="form-label">Pod Status</label>
+            <select class="form-select" id="podStatusSelect" @onchange="@OnPodStatusSelect">
+                @foreach (var status in Helper.ReturnPodStatusDictionary())
+                {
+                    @if (@status.Value.Equals(@PodStatus))
+                    {
+                        <option value=@status.Value selected>@status.Key</option>
+                    }
+                    else
+                    {
+                        <option value=@status.Value>@status.Key</option>
+                    }
+                }
+            </select>
         </div>
     </div>
 }
@@ -661,7 +677,8 @@ else
     [Parameter]
     public string NamespaceParam { get; set; }
 
-    string Filter;
+    string PodStatus = "";
+    string Filter = "";
     bool SearchPodName = true;
     bool SearchContainerName;
     bool SearchInitContainerName;
@@ -704,7 +721,7 @@ else
         }
     }
 
-    async Task OnSelect(ChangeEventArgs e)
+    async Task OnNamespaceSelect(ChangeEventArgs e)
     {
         SelectedNamespace = e.Value.ToString();
         await GetPods();
@@ -752,6 +769,12 @@ else
         await InvokeAsync(() => { base.StateHasChanged(); });
     }
 
+    async Task OnPodStatusSelect(ChangeEventArgs e)
+    {
+        PodStatus = e.Value.ToString();
+        await FilterResults();
+    }
+
     async Task FilterChange(ChangeEventArgs e)
     {
         Filter = e?.Value?.ToString();
@@ -784,20 +807,32 @@ else
 
     async Task FilterResults()
     {
-        if (string.IsNullOrWhiteSpace(Filter) || (!SearchPodName && !SearchContainerName && !SearchInitContainerName))
+        if ((string.IsNullOrWhiteSpace(Filter) || (!SearchPodName && !SearchContainerName && !SearchInitContainerName)) && string.IsNullOrWhiteSpace(PodStatus))
         {
             FilteredPods = NamespacedPods;
             ItemCountFiltered = FilteredPods.Count();
         }
         else
         {
-            FilteredPods = NamespacedPods.Where(p =>
-            (SearchPodName && p.Name.Contains(Filter, StringComparison.OrdinalIgnoreCase)) ||
-            (SearchContainerName && p.Containers != null && p.Containers.Any(c => c.ContainerStatus.Name.Contains(Filter,
-            StringComparison.OrdinalIgnoreCase))) ||
-            (SearchInitContainerName && p.InitContainers != null && p.InitContainers.Any(c =>
-            c.ContainerStatus.Name.Contains(Filter, StringComparison.OrdinalIgnoreCase)))
-            ).ToList();
+            var filterResults = NamespacedPods;
+            
+            if (!string.IsNullOrWhiteSpace(PodStatus))
+            {
+                filterResults = filterResults.Where(p =>
+                    (!string.IsNullOrWhiteSpace(PodStatus) && (p.PodStatus ?? "").Equals(PodStatus, StringComparison.OrdinalIgnoreCase))
+                ).ToList();
+            }
+
+            if (!string.IsNullOrWhiteSpace(Filter))
+            {
+                filterResults = filterResults.Where(p =>
+                    (SearchPodName && ((p.PodName ?? "").Contains(Filter, StringComparison.OrdinalIgnoreCase) || (p.Name ?? "").Contains(Filter, StringComparison.OrdinalIgnoreCase))) ||
+                    (SearchContainerName && p.Containers != null && p.Containers.Any(c => c.ContainerStatus != null && (c.ContainerStatus.Name ?? "").Contains(Filter, StringComparison.OrdinalIgnoreCase))) ||
+                    (SearchInitContainerName && p.InitContainers != null && p.InitContainers.Any(c => c.ContainerStatus != null && (c.ContainerStatus.Name ?? "").Contains(Filter, StringComparison.OrdinalIgnoreCase)))
+                ).ToList();
+            }
+
+            FilteredPods = filterResults;
             ItemCountFiltered = FilteredPods.Count();
         }
         await InvokeAsync(() => { base.StateHasChanged(); });

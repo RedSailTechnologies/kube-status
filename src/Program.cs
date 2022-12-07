@@ -7,6 +7,7 @@ namespace KubeStatus
     {
         public static void Main(string[] args)
         {
+            Helper.BuildPodStatusDictionary();
             CreateHostBuilder(args).Build().Run();
         }
 
