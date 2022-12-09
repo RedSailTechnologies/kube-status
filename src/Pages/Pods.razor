@@ -287,7 +287,7 @@ else
                                 {
                                     <h5>Init Containers</h5>
                                     <TableTemplate
-                        Items="@context.InitContainers.Select(s => new { s.ContainerStatus.Name, s.ContainerStatus.Started, s.ContainerStatus.Ready, s.ContainerStatus.RestartCount, s.ContainerStatus.Image, s.ContainerStatus.ImageID, s.ContainerStatus.LastState, s.Container.Env, s.Container.EnvFrom }).OrderBy(s => s.Name)"
+                        Items="@context.InitContainers.Select(s => new { s.ContainerStatus.Name, s.ContainerStatus.Started, s.ContainerStatus.Ready, s.ContainerStatus.RestartCount, s.ContainerStatus.Image, s.ContainerStatus.ImageID, s.ContainerStatus.LastState, s.Container.Env, s.Container.EnvFrom, s.Container.VolumeMounts }).OrderBy(s => s.Name)"
                         TableClass="table-sm table-striped">
                                         <RowTemplate Context="statusContext">
                                             @if (statusContext != null)
@@ -301,15 +301,23 @@ else
                                         <span id="name-@context.PodName.Replace(".","-")-@statusContext.Name"
                             class="form-item">@statusContext.Name</span>
                                     </div>
-                                    <div class="row  mb-2">
-                                        <button class="btn btn-outline-dark btn-sm col-6"
+                                    <div class="row mb-2">
+                                        <button class="btn btn-outline-dark btn-sm"
                             @onclick="() => GetLogs(context.Namespace, context.PodName, statusContext.Name)">Logs</button>
                                     </div>
                                     @if ((@statusContext.Env != null && statusContext.Env.Any()) || (@statusContext.EnvFrom != null && statusContext.EnvFrom.Any()))
                                     {
-                                    <div class="row  mb-2">
+                                    <div class="row mb-2">
                                         <button type="button" class="btn btn-outline-dark btn-sm" data-bs-toggle="modal" data-bs-target="#envVarModal" @onclick="() => GetEnvironmentVariables(context.Namespace, context.PodName, statusContext.Name)">
                                         View Environment Variables
+                                        </button>
+                                    </div>
+                                    }
+                                    @if ((@statusContext.VolumeMounts != null && statusContext.VolumeMounts.Any()))
+                                    {
+                                    <div class="row mb-2">
+                                        <button class="btn btn-outline-dark btn-sm collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#@context.PodName.Replace(".","-")-@statusContext.Name-volume-mounts" aria-expanded="false" aria-controls="collapseEvents">
+                                        <span class="show">Show</span><span class="hide">Hide</span> Volume Mounts
                                         </button>
                                     </div>
                                     }
@@ -382,6 +390,27 @@ else
                 </div>
                 }
             </div>
+            <div id="@context.PodName.Replace(".","-")-@statusContext.Name-volume-mounts" class="collapse container-fluid row mb-1">
+                <TableTemplate Items="@statusContext.VolumeMounts" TableClass="table-sm table-striped">
+                    <TableHeader>
+                        <th>Mounts</th>
+                    </TableHeader>
+                    <RowTemplate Context="mountsContext">
+                        <td>
+                            <b>Volume:</b> @mountsContext.Name
+                            @if(mountsContext.ReadOnlyProperty ?? false)
+                            {
+                                <span class="badge rounded-pill bg-dark text-light ms-1">Read Only</span>
+                            }
+                            else
+                            {
+                                <span class="badge rounded-pill bg-dark text-light ms-1">Read/Write</span>
+                            }<br />
+                            <code>@mountsContext.MountPath</code>
+                        </td>
+                    </RowTemplate>
+                </TableTemplate>
+            </div>
         </td>
                                 }
     </RowTemplate>
@@ -391,7 +420,7 @@ else
                                 {
                 <h5>Containers</h5>
                 <TableTemplate
-    Items="@context.Containers.Select(s => new { s.ContainerStatus.Name, s.ContainerStatus.Started, s.ContainerStatus.Ready, s.ContainerStatus.RestartCount, s.ContainerStatus.Image, s.ContainerStatus.ImageID, s.ContainerStatus.LastState, s.Container.Env, s.Container.EnvFrom }).OrderBy(s => s.Name)"
+    Items="@context.Containers.Select(s => new { s.ContainerStatus.Name, s.ContainerStatus.Started, s.ContainerStatus.Ready, s.ContainerStatus.RestartCount, s.ContainerStatus.Image, s.ContainerStatus.ImageID, s.ContainerStatus.LastState, s.Container.Env, s.Container.EnvFrom, s.Container.VolumeMounts }).OrderBy(s => s.Name)"
     TableClass="table-sm table-striped">
                     <RowTemplate Context="statusContext">
                         @if (statusContext != null)
@@ -406,14 +435,22 @@ else
                             class="form-item">@statusContext.Name</span>
                                     </div>
                                     <div class="row mb-2">
-                                        <button class="btn btn-outline-dark btn-sm col-6"
+                                        <button class="btn btn-outline-dark btn-sm"
                             @onclick="() => GetLogs(context.Namespace, context.PodName, statusContext.Name)">Logs</button>
                                     </div>
                                     @if ((@statusContext.Env != null && statusContext.Env.Any()) || (@statusContext.EnvFrom != null && statusContext.EnvFrom.Any()))
                                     {
-                                    <div class="row  mb-2">
+                                    <div class="row mb-2">
                                         <button type="button" class="btn btn-outline-dark btn-sm" data-bs-toggle="modal" data-bs-target="#envVarModal" @onclick="() => GetEnvironmentVariables(context.Namespace, context.PodName, statusContext.Name)">
                                         View Environment Variables
+                                        </button>
+                                    </div>
+                                    }
+                                    @if ((@statusContext.VolumeMounts != null && statusContext.VolumeMounts.Any()))
+                                    {
+                                    <div class="row mb-2">
+                                        <button class="btn btn-outline-dark btn-sm collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#@context.PodName.Replace(".","-")-@statusContext.Name-volume-mounts" aria-expanded="false" aria-controls="collapseEvents">
+                                        <span class="show">Show</span><span class="hide">Hide</span> Volume Mounts
                                         </button>
                                     </div>
                                     }
@@ -485,6 +522,27 @@ else
                     </div>
                 </div>
                 }
+            </div>
+            <div id="@context.PodName.Replace(".","-")-@statusContext.Name-volume-mounts" class="collapse container-fluid row mb-1">
+                <TableTemplate Items="@statusContext.VolumeMounts" TableClass="table-sm table-striped">
+                    <TableHeader>
+                        <th>Mounts</th>
+                    </TableHeader>
+                    <RowTemplate Context="mountsContext">
+                        <td>
+                            <b>Volume:</b> @mountsContext.Name
+                            @if(mountsContext.ReadOnlyProperty ?? false)
+                            {
+                                <span class="badge rounded-pill bg-dark text-light ms-1">Read Only</span>
+                            }
+                            else
+                            {
+                                <span class="badge rounded-pill bg-dark text-light ms-1">Read/Write</span>
+                            }<br />
+                            <code>@mountsContext.MountPath</code>
+                        </td>
+                    </RowTemplate>
+                </TableTemplate>
             </div>
         </td>
                         }
