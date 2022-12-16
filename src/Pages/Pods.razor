@@ -420,7 +420,7 @@ else
                                 {
                 <h5>Containers</h5>
                 <TableTemplate
-    Items="@context.Containers.Select(s => new { s.ContainerStatus.Name, s.ContainerStatus.Started, s.ContainerStatus.Ready, s.ContainerStatus.RestartCount, s.ContainerStatus.Image, s.ContainerStatus.ImageID, s.ContainerStatus.LastState, s.Container.Env, s.Container.EnvFrom, s.Container.VolumeMounts }).OrderBy(s => s.Name)"
+    Items="@context.Containers.Select(s => new { s.ContainerStatus.Name, s.ContainerStatus.Started, s.ContainerStatus.Ready, s.ContainerStatus.RestartCount, s.ContainerStatus.Image, s.ContainerStatus.ImageID, s.ContainerStatus.LastState, s.Container.Env, s.Container.EnvFrom, s.Container.VolumeMounts, s.Container.Ports }).OrderBy(s => s.Name)"
     TableClass="table-sm table-striped">
                     <RowTemplate Context="statusContext">
                         @if (statusContext != null)
@@ -452,6 +452,13 @@ else
                                         <button class="btn btn-outline-dark btn-sm collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#@context.PodName.Replace(".","-")-@statusContext.Name-volume-mounts" aria-expanded="false" aria-controls="collapseEvents">
                                         <span class="show">Show</span><span class="hide">Hide</span> Volume Mounts
                                         </button>
+                                    </div>
+                                    }
+                                    @if (@statusContext.Ports != null && Helper.ShowMetricsDownload() && @context.PodIPs.Any() && @statusContext.Ports.Any(p => p.Name.Equals(Helper.MetricsPortName())))
+                                    {
+                                    <div class="row mb-2">
+                                        <button class="btn btn-outline-dark btn-sm"
+                            @onclick="() => GetMetrics(context.PodIPs.FirstOrDefault(), statusContext.Ports.FirstOrDefault(p => p.Name.Equals(Helper.MetricsPortName())).ContainerPort)">Metrics</button>
                                     </div>
                                     }
                                 </div>
@@ -799,6 +806,12 @@ else
     {
         var logApi = $"/api/logs/{k8sNamespace}/{podName}/{name}?tail={LogRows}";
         await JS.InvokeVoidAsync("triggerFileDownload", "", logApi);
+    }
+
+    async Task GetMetrics(string podIP, int port)
+    {
+        var containerMetrics = $"/api/pods/metrics?podIP={podIP}&port={port}";
+        await JS.InvokeVoidAsync("triggerFileDownload", "", containerMetrics);
     }
 
     async Task GetPodCsv()

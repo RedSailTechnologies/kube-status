@@ -75,5 +75,21 @@ namespace KubeStatus.Controllers
                 return File(bytes, "text/csv", fileName);
             }
         }
+
+        [HttpGet("metrics")]
+        public async Task<IActionResult> GetContainerLogsAsync(string podIP, int port)
+        {
+            var fileName = $"{podIP.Replace(".", "-")}-metrics.txt";
+            var stream = await _podService.GetContainerMetricsAsync(podIP, port);
+
+            if (stream == null)
+            {
+                return NotFound();
+            }
+            else
+            {
+                return File(stream, "application/octet-stream", fileName);
+            }
+        }
     }
 }

@@ -27,7 +27,8 @@
                 "ENABLE_SWAGGER": "true",
                 "STRIMZI__CONNECT_CLUSTER_SERVICE_HOST": "http://localhost:63009/",
                 "UI_HEADER": "Local Debug",
-                "UI_SHOW_HELM": "true"
+                "UI_SHOW_HELM": "true",
+                "POD_METRIC_PORT_PAGE": "metrics|metrics"
             },
             "sourceFileMap": {
                 "/Views": "${workspaceFolder}/src/Views"

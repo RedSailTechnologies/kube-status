@@ -86,6 +86,21 @@ namespace KubeStatus
             return Environment.GetEnvironmentVariable("SPARK__APPLICATION_PLURAL") ?? "sparkapplications";
         }
 
+        public static bool ShowMetricsDownload()
+        {
+            return !string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable("POD_METRIC_PORT_PAGE"));
+        }
+
+        public static string MetricsPortName()
+        {
+            return Environment.GetEnvironmentVariable("POD_METRIC_PORT_PAGE").Split("|")[0];
+        }
+
+        public static string MetricsRoute()
+        {
+            return Environment.GetEnvironmentVariable("POD_METRIC_PORT_PAGE").Split("|")[1];
+        }
+
         /// <summary>
         /// Converts an object to yaml.
         /// </summary>

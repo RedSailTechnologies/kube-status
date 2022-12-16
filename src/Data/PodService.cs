@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Net.Http;
 using System.Threading.Tasks;
 using k8s;
 using k8s.Models;
@@ -13,6 +14,7 @@ namespace KubeStatus.Data
     public class PodService
     {
         private readonly IKubernetes kubernetesClient;
+        static readonly HttpClient httpClient = new HttpClient();
 
         public IMemoryCache MemoryCache { get; }
 
@@ -248,6 +250,19 @@ namespace KubeStatus.Data
 
                     return bytesInStream;
                 }
+            }
+            catch
+            {
+                return null;
+            }
+        }
+
+        public async Task<System.IO.Stream> GetContainerMetricsAsync(string podIP, int port)
+        {
+            try
+            {
+                var uri = $"http://{podIP}:{port}/{Helper.MetricsRoute()}";
+                return await httpClient.GetStreamAsync(uri);
             }
             catch
             {
