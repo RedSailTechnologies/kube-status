@@ -235,7 +235,9 @@ namespace KubeStatus.Data
                             PartOf = p.PartOf,
                             PodStatus = p.PodStatus
                         })
-                        .DistinctBy(p => p.Name)
+                        .DistinctBy(p => p.Name + ":" + p.Component)
+                        .OrderBy(p => p.Name)
+                        .ThenBy(p => p.Component)
                         .ToList();
 
                     using (var memoryStream = new MemoryStream())
