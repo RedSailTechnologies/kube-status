@@ -1,10 +1,11 @@
-@page "/pods/{namespaceparam?}"
+@page "/pods/{namespaceparam?}/{filterparam?}"
 
 @using System
 
 @inject NamespaceService NamespaceService
 @inject PodService PodService
 @inject IJSRuntime JS
+@inject NavigationManager Navigator
 
 <h1>Pods</h1>
 
@@ -135,8 +136,18 @@ else
                 <td>
                     <div class="form-group row">
                         <div class="col-xl-4">
-                            <h5 id="name-@context.PodName.Replace(".","-")" class="form-item">
-                                @(string.IsNullOrWhiteSpace(context.Name) ? context.PodName : context.Name)</h5>
+                            <span id="name-@context.PodName.Replace(".","-")" class="form-item h5">
+                                @(string.IsNullOrWhiteSpace(context.Name) ? context.PodName : context.Name)
+                            </span>
+                            @if (!string.IsNullOrWhiteSpace(context.Name))
+                            {
+                                <span class="small ms-2">(@context.PodName)</span>
+                            }
+                            <button type="button" class="btn btn-link btn-copy js-tooltip" data-toggle="tooltip"
+                        data-placement="top" title="Copy link to clipboard"
+                        @onclick="() => CopyTextToClipboard(context.PodName)">
+                                <span class="oi oi-link-intact" aria-hidden="true"></span>
+                            </button>
                         </div>
                         <div class="col-xl-1">
                             @if (!string.IsNullOrWhiteSpace(context.Component))
@@ -244,7 +255,6 @@ else
                        context.InitContainers.Any()))
                         {
                             <div class="collapse col-sm-12" id="@context.PodName.Replace(".","-")-collapseMoreDetails">
-                                <div class="alert alert-info mb-2"><strong>Pod Name:</strong> @context.PodName</div>
                                 <div class="row">
                                     <div class="col-md-4">
                                         <label for="node-name-@context.PodName.Replace(".","-")" class="form-label"><b>Node
@@ -741,6 +751,8 @@ else
 @code {
     [Parameter]
     public string NamespaceParam { get; set; }
+    [Parameter]
+    public string FilterParam { get; set; }
 
     string PodStatus = "";
     string Filter = "";
@@ -772,6 +784,9 @@ else
             NamespaceParam = NamespaceParam ?? "default";
             SelectedNamespace = NamespaceParam;
 
+            FilterParam = FilterParam ?? "";
+            Filter = FilterParam;
+
             var namespaces = await NamespaceService.GetAllNamespacesAsync();
             Namespaces = namespaces.Items.Select(i => i.Metadata.Name);
 
@@ -784,6 +799,11 @@ else
             GetNamespacesError = true;
             GetPodsError = true;
         }
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        await JS.InvokeVoidAsync("addCopyTooltips");
     }
 
     async Task OnNamespaceSelect(ChangeEventArgs e)
@@ -800,6 +820,11 @@ else
         ItemCountAll = NamespacedPods.Count();
         FilteredPods = NamespacedPods;
         ItemCountFiltered = FilteredPods.Count();
+
+        if (!string.IsNullOrWhiteSpace(Filter))
+        {
+            await FilterResults();
+        }
     }
 
     async Task GetLogs(string k8sNamespace, string podName, string name)
@@ -907,5 +932,11 @@ else
             ItemCountFiltered = FilteredPods.Count();
         }
         await InvokeAsync(() => { base.StateHasChanged(); });
+    }
+
+    async Task CopyTextToClipboard(string podName)
+    {
+        var text = $"{Navigator.BaseUri}pods/{SelectedNamespace}/{podName}";
+        await JS.InvokeVoidAsync("clipboardCopy.copyText", text);
     }
 }
