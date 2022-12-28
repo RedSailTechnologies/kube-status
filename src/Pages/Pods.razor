@@ -464,7 +464,7 @@ else
                                         </button>
                                     </div>
                                     }
-                                    @if (Helper.ShowMetricsDownload() && @statusContext.Ports != null && @context.PodIPs != null && @context.PodIPs.Any() && @statusContext.Ports.Any(p => p.Name.Equals(Helper.MetricsPortName())))
+                                    @if (Helper.ShowMetricsDownload() && @statusContext.Ports != null && @context.PodIPs != null && @context.PodIPs.Any() && @statusContext.Ports.Any(p => p.Name != null && p.Name.Equals(Helper.MetricsPortName())))
                                     {
                                     <div class="row mb-2">
                                         <button class="btn btn-outline-dark btn-sm"
