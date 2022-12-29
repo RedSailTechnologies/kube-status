@@ -146,4 +146,4 @@ Okay, I know, I know... This is awful to schedule. It is. I'm just saying that t
 
 ## License
 
-Distributed under the MIT License. See `LICENSE` for more information.
+Distributed under the MIT License. See [LICENSE](https://github.com/RedSailTechnologies/kube-status/blob/master/LICENSE) for more information.
