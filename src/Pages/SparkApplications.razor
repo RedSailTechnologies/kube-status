@@ -294,8 +294,12 @@ else
 
     async Task FilterChange(ChangeEventArgs e)
     {
-        Filter = e?.Value?.ToString();
-        await FilterResults();
+        Filter = e?.Value?.ToString().Trim();
+        
+        if (!string.IsNullOrWhiteSpace(Filter))
+        {
+            await FilterResults();
+        }
     }
 
     async Task ClearFilter()
