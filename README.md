@@ -1,3 +1,14 @@
+[contributors-shield]: https://img.shields.io/github/contributors/RedSailTechnologies/kube-status.svg
+[contributors-url]: https://github.com/RedSailTechnologies/kube-status/graphs/contributors
+[forks-shield]: https://img.shields.io/github/forks/RedSailTechnologies/kube-status.svg
+[forks-url]: https://github.com/RedSailTechnologies/kube-status/network/members
+[stars-shield]: https://img.shields.io/github/stars/RedSailTechnologies/kube-status.svg
+[stars-url]: https://github.com/RedSailTechnologies/kube-status/stargazers
+[issues-shield]: https://img.shields.io/github/issues/RedSailTechnologies/kube-status.svg
+[issues-url]: https://github.com/RedSailTechnologies/kube-status/issues
+[license-shield]: https://img.shields.io/github/license/RedSailTechnologies/kube-status.svg
+[license-url]: https://github.com/RedSailTechnologies/kube-status/blob/master/LICENSE
+
 [![Contributors][contributors-shield]][contributors-url]
 [![Forks][forks-shield]][forks-url]
 [![Stargazers][stars-shield]][stars-url]
@@ -119,7 +130,7 @@ Targeting `/api/KafkaConnectors/RestartFailed` with a curl command from another 
 
 #### Failed Spark Applications Cleanup
 
-Targeting `/api/SparkApplications/168` with a curl command from another Pod will delete any Failed Spark CR that is older than 168 hours (7 days).  We chose 7 days, however the URL accepts any hour amount - pick what works best for you. If you use Airflow and Spark, you likely know how past Failed CRs can clog up the system. We run this command every 30 minutes.
+Targeting `/api/SparkApplications/168` with a curl command from another Pod will delete any Failed Spark CR that is older than 168 hours (7 days). We chose 7 days, however the URL accepts any hour amount - pick what works best for you. If you use Airflow and Spark, you likely know how past Failed CRs can clog up the system. We run this command every 30 minutes.
 
 #### Restart All Deployments In A Namespace
 
