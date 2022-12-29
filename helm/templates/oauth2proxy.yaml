@@ -102,9 +102,9 @@ spec:
                 - prefix: x-forwarded
             server_uri:
               # URIs here should be to the oauth2-proxy service inside your cluster
-              cluster: outbound|80||oauth2-proxy.infrastructure.svc.cluster.local
+              cluster: outbound|80||oauth2-proxy.{{ .Release.Namespace }}.svc.cluster.local
               timeout: 1.5s
-              uri: http://oauth2-proxy.infrastructure.svc.cluster.local
+              uri: http://oauth2-proxy.{{ .Release.Namespace }}.svc.cluster.local
 ---
 {{- end }}
 {{- end }}

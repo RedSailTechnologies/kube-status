@@ -87,12 +87,12 @@ affinity: {}
 
 containerPort: 8080
 
-metricsPort: 5599
+metricsPort: 58080
 
 envVars:
   COMPlus_EnableDiagnostics: "0"
   ASPNETCORE_ENVIRONMENT: Production
-  ASPNETCORE_URLS: http://+:5599;http://+:8080
+  ASPNETCORE_URLS: http://+:8080;http://+:58080
   ENABLE_SWAGGER: "true"
   UI_HEADER: "My Kube Cluster"
   KUBE_CA_FILE: "/run/secrets/kubernetes.io/serviceaccount/ca.crt"
