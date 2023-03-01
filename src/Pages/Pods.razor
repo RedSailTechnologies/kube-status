@@ -4,7 +4,7 @@
 
 @inject NamespaceService NamespaceService
 @inject PodService PodService
-@inject IJSRuntime JS
+@inject IJSRuntime JsRuntime
 @inject NavigationManager Navigator
 
 <h1>Pods</h1>
@@ -195,7 +195,7 @@ else
                     <div class="row">
                         <div class="col-8 col-lg-12">
                             @if ((context.Containers != null && context.Containers.Any()) || (context.InitContainers != null &&
-                           context.InitContainers.Any()))
+                        context.InitContainers.Any()))
                             {
                                 <button class="btn btn-outline-dark btn-sm m-2 collapsed" type="button" data-bs-toggle="collapse"
                         data-bs-target="#@context.PodName.Replace(".","-")-collapseMoreDetails" aria-expanded="false"
@@ -252,7 +252,7 @@ else
                     </div>
                     <div class="row mb-2">
                         @if ((context.Containers != null && context.Containers.Any()) || (context.InitContainers != null &&
-                       context.InitContainers.Any()))
+                    context.InitContainers.Any()))
                         {
                             <div class="collapse col-sm-12" id="@context.PodName.Replace(".","-")-collapseMoreDetails">
                                 <div class="row">
@@ -699,13 +699,13 @@ else
         </RowTemplate>
         </TableTemplate>
 <div class="modal fade" id="envVarModal" tabindex="-1" aria-labelledby="envVarModalLabel" aria-hidden="true">
-  <div class="modal-dialog modal-xl modal-dialog-scrollable">
+<div class="modal-dialog modal-xl modal-dialog-scrollable">
     <div class="modal-content">
-      <div class="modal-header">
+    <div class="modal-header">
         <h5 class="modal-title" id="envVarModalLabel">@EnvVarHeading</h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-      </div>
-      <div class="modal-body">
+    </div>
+    <div class="modal-body">
             @if (EnvironmentVariables != null && EnvironmentVariables.Any())
             {
                 
@@ -726,18 +726,18 @@ else
                     @EnvVarMessage
                 </div>
             }
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-      </div>
     </div>
-  </div>
+    <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+    </div>
+    </div>
+</div>
 </div>
     }
     else if (NamespacedPods == null)
     {
         <div class="alert alert-info" role="alert">
-            Loading Pods in the @SelectedNamespace namespace...
+            Loading Pods...
         </div>
     }
     else
@@ -764,7 +764,7 @@ else
     bool GetPodsError;
     bool _shouldRender;
     IEnumerable<string> Namespaces = Array.Empty<string>();
-    string SelectedNamespace = "default";
+    string SelectedNamespace = string.Empty;
     IEnumerable<Pod> NamespacedPods;
     IEnumerable<Pod> FilteredPods;
     IEnumerable<EnvironmentVariable> EnvironmentVariables;
@@ -781,14 +781,20 @@ else
     {
         try
         {
-            NamespaceParam = NamespaceParam ?? "default";
-            SelectedNamespace = NamespaceParam;
-
+            if (!string.IsNullOrWhiteSpace(NamespaceParam))
+            {
+                SelectedNamespace = NamespaceParam;
+                await SetNamespaceCookie();
+            }
+            else
+            {
+                SelectedNamespace = await GetNamespaceCookie();
+            }
+            
             FilterParam = FilterParam ?? "";
             Filter = FilterParam;
 
-            var namespaces = await NamespaceService.GetAllNamespacesAsync();
-            Namespaces = namespaces.Items.Select(i => i.Metadata.Name);
+            Namespaces = await NamespaceService.GetAllNamespaceNamesAsync();
 
             await GetPods();
 
@@ -803,13 +809,36 @@ else
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        await JS.InvokeVoidAsync("addCopyTooltips");
+        await JsRuntime.InvokeVoidAsync("addCopyTooltips");
     }
 
     async Task OnNamespaceSelect(ChangeEventArgs e)
     {
         SelectedNamespace = e.Value.ToString();
+        await SetNamespaceCookie();
         await GetPods();
+    }
+
+    async Task SetNamespaceCookie()
+    {
+        await JsRuntime.InvokeAsync<object>("WriteCookie.WriteCookie", "selectedNamespace", SelectedNamespace, DateTime.Now.AddDays(1));
+    }
+
+    async Task<string> GetNamespaceCookie()
+    {
+        try
+        {
+            var namespaceCookie = await JsRuntime.InvokeAsync<string>("ReadCookie.ReadCookie", "selectedNamespace");
+            if (string.IsNullOrWhiteSpace(namespaceCookie))
+            {
+                namespaceCookie = "default";
+            }
+            return namespaceCookie;
+        }
+        catch
+        {
+            return "default";
+        }
     }
 
     async Task GetPods()
@@ -830,19 +859,19 @@ else
     async Task GetLogs(string k8sNamespace, string podName, string name)
     {
         var logApi = $"/api/logs/{k8sNamespace}/{podName}/{name}?tail={LogRows}";
-        await JS.InvokeVoidAsync("triggerFileDownload", "", logApi);
+        await JsRuntime.InvokeVoidAsync("triggerFileDownload", "", logApi);
     }
 
     async Task GetMetrics(string podIP, int port)
     {
         var containerMetrics = $"/api/pods/metrics?podIP={podIP}&port={port}";
-        await JS.InvokeVoidAsync("triggerFileDownload", "", containerMetrics);
+        await JsRuntime.InvokeVoidAsync("triggerFileDownload", "", containerMetrics);
     }
 
     async Task GetPodCsv()
     {
         var podCsv = $"/api/pods/{SelectedNamespace}/csv";
-        await JS.InvokeVoidAsync("triggerFileDownload", "", podCsv);
+        await JsRuntime.InvokeVoidAsync("triggerFileDownload", "", podCsv);
     }
 
     async Task GetEnvironmentVariables(string k8sNamespace, string podName, string containerName)
@@ -941,6 +970,6 @@ else
     async Task CopyTextToClipboard(string podName)
     {
         var text = $"{Navigator.BaseUri}pods/{SelectedNamespace}/{podName}";
-        await JS.InvokeVoidAsync("clipboardCopy.copyText", text);
+        await JsRuntime.InvokeVoidAsync("clipboardCopy.copyText", text);
     }
 }

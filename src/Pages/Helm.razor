@@ -140,7 +140,7 @@ else
     else if (HelmList == null)
     {
         <div class="alert alert-info" role="alert">
-            Loading Helm Releases in the @SelectedNamespace namespace...
+            Loading Helm Releases...
         </div>
     }
     else
@@ -160,7 +160,7 @@ else
     bool HelmListError;
     bool _shouldRender;
     IEnumerable<string> Namespaces = Array.Empty<string>();
-    string SelectedNamespace = "default";
+    string SelectedNamespace = string.Empty;
     IEnumerable<HelmListItem> HelmList;
     IEnumerable<HelmListItem> FilteredHelmList;
     string HelmMessage = "";
@@ -176,11 +176,17 @@ else
         
         try
         {
-            NamespaceParam = NamespaceParam ?? "default";
-            SelectedNamespace = NamespaceParam;
+            if (!string.IsNullOrWhiteSpace(NamespaceParam))
+            {
+                SelectedNamespace = NamespaceParam;
+                await SetNamespaceCookie();
+            }
+            else
+            {
+                SelectedNamespace = await GetNamespaceCookie();
+            }
 
-            var namespaces = await NamespaceService.GetAllNamespacesAsync();
-            Namespaces = namespaces.Items.Select(i => i.Metadata.Name);
+            Namespaces = await NamespaceService.GetAllNamespaceNamesAsync();
 
             await HelmListAll();
 
@@ -196,7 +202,30 @@ else
     async Task OnSelect(ChangeEventArgs e)
     {
         SelectedNamespace = e.Value.ToString();
+        await SetNamespaceCookie();
         await HelmListAll();
+    }
+
+    async Task SetNamespaceCookie()
+    {
+        await JsRuntime.InvokeAsync<object>("WriteCookie.WriteCookie", "selectedNamespace", SelectedNamespace, DateTime.Now.AddDays(1));
+    }
+
+    async Task<string> GetNamespaceCookie()
+    {
+        try
+        {
+            var namespaceCookie = await JsRuntime.InvokeAsync<string>("ReadCookie.ReadCookie", "selectedNamespace");
+            if (string.IsNullOrWhiteSpace(namespaceCookie))
+            {
+                namespaceCookie = "default";
+            }
+            return namespaceCookie;
+        }
+        catch
+        {
+            return "default";
+        }
     }
 
     async Task HelmListAll()

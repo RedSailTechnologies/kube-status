@@ -143,13 +143,13 @@ else
     else if (DeploymentList == null)
     {
         <div class="alert alert-info" role="alert">
-            Loading Deployment in the @SelectedNamespace namespace...
+            Loading Deployments...
         </div>
     }
     else
     {
         <div class="alert alert-primary" role="alert">
-            No Deployment found in the @SelectedNamespace namespace
+            No Deployments found in the @SelectedNamespace namespace
         </div>
     }
 }
@@ -162,7 +162,7 @@ else
     bool DeploymentListError;
     bool _shouldRender;
     IEnumerable<string> Namespaces = Array.Empty<string>();
-    string SelectedNamespace = "default";
+    string SelectedNamespace = string.Empty;
     V1DeploymentList DeploymentList;
     List<V1Deployment> FilteredDeploymentList;
     string DeploymentMessage = "";
@@ -176,11 +176,17 @@ else
     {
         try
         {
-            NamespaceParam = NamespaceParam ?? "default";
-            SelectedNamespace = NamespaceParam;
+            if (!string.IsNullOrWhiteSpace(NamespaceParam))
+            {
+                SelectedNamespace = NamespaceParam;
+                await SetNamespaceCookie();
+            }
+            else
+            {
+                SelectedNamespace = await GetNamespaceCookie();
+            }
 
-            var namespaces = await NamespaceService.GetAllNamespacesAsync();
-            Namespaces = namespaces.Items.Select(i => i.Metadata.Name);
+            Namespaces = await NamespaceService.GetAllNamespaceNamesAsync();
 
             await DeploymentListAll();
 
@@ -196,7 +202,30 @@ else
     async Task OnSelect(ChangeEventArgs e)
     {
         SelectedNamespace = e.Value.ToString();
+        await SetNamespaceCookie();
         await DeploymentListAll();
+    }
+
+    async Task SetNamespaceCookie()
+    {
+        await JsRuntime.InvokeAsync<object>("WriteCookie.WriteCookie", "selectedNamespace", SelectedNamespace, DateTime.Now.AddDays(1));
+    }
+
+    async Task<string> GetNamespaceCookie()
+    {
+        try
+        {
+            var namespaceCookie = await JsRuntime.InvokeAsync<string>("ReadCookie.ReadCookie", "selectedNamespace");
+            if (string.IsNullOrWhiteSpace(namespaceCookie))
+            {
+                namespaceCookie = "default";
+            }
+            return namespaceCookie;
+        }
+        catch
+        {
+            return "default";
+        }
     }
 
     async Task DeploymentListAll()

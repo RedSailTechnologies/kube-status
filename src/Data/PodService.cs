@@ -26,7 +26,7 @@ namespace KubeStatus.Data
 
         public Task<IEnumerable<Pod>> GetAllNamespacedPodsAsync(string k8sNamespace = "default")
         {
-            return MemoryCache.GetOrCreateAsync(k8sNamespace, async e =>
+            return MemoryCache.GetOrCreateAsync($"{k8sNamespace}_pods", async e =>
             {
                 e.SetOptions(new MemoryCacheEntryOptions
                 {
@@ -35,7 +35,7 @@ namespace KubeStatus.Data
                 });
 
                 var namespaces = await kubernetesClient.CoreV1.ListNamespaceAsync();
-                if (!namespaces.Items.Any(n => n.Metadata.Name.Equals(k8sNamespace, System.StringComparison.OrdinalIgnoreCase)))
+                if (namespaces == null || !namespaces.Items.Any(n => n.Metadata.Name.Equals(k8sNamespace, System.StringComparison.OrdinalIgnoreCase)))
                 {
                     return null;
                 }
