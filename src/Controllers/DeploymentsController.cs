@@ -68,5 +68,20 @@ namespace KubeStatus.Controllers
                 return Problem();
             }
         }
+
+        [HttpPatch("scale/{name}/{replicas}")]
+        public async Task<IActionResult> ScaleDeploymentAsync(string name, int replicas, string k8sNamespace = "default")
+        {
+            var scaled = await _deploymentService.ScaleDeploymentAsync(name, replicas, k8sNamespace);
+
+            if (scaled)
+            {
+                return Ok();
+            }
+            else
+            {
+                return Problem();
+            }
+        }
     }
 }

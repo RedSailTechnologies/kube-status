@@ -97,5 +97,27 @@ namespace KubeStatus.Data
                 return false;
             }
         }
+
+        public async Task<Boolean> ScaleDeploymentAsync(string name, int replicas, string k8sNamespace = "default")
+        {
+            try
+            {
+                var namespaces = await kubernetesClient.CoreV1.ListNamespaceAsync();
+                if (!namespaces.Items.Any(n => n.Metadata.Name.Equals(k8sNamespace, System.StringComparison.OrdinalIgnoreCase)))
+                {
+                    return false;
+                }
+
+                var patchStr = $"{{\"spec\": {{\"replicas\": {replicas}}}}}";
+
+                await kubernetesClient.AppsV1.PatchNamespacedDeploymentAsync(new V1Patch(patchStr, V1Patch.PatchType.MergePatch), name, k8sNamespace);
+
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
+        }
     }
 }

@@ -84,7 +84,10 @@ else
                             <label class="form-label">Name</label>
                         </div>
                         <div class="col-xl-1 d-none d-xl-block">
-                            <label class="form-label">Replicas</label>
+                            <label class="form-label">Replicas<br /><span class="small">(Spec)</span></label>
+                        </div>
+                        <div class="col-xl-1 d-none d-xl-block">
+                            <label class="form-label">Replicas<br /><span class="small">(Status)</span></label>
                         </div>
                         <div class="col-xl-1 d-none d-xl-block">
                             <label class="form-label">Pods<br /><span class="small">(Ready / Total)</span></label>
@@ -108,10 +111,17 @@ else
                         class="form-item small">@context.Metadata.Name</span><br />
                             <button class="btn btn-outline-dark btn-sm"
                         @onclick="() => RestartDeployment(context.Metadata.Name, context.Metadata.NamespaceProperty)">Restart</button>
+                        <button type="button" class="btn btn-outline-dark btn-sm" data-bs-toggle="modal" data-bs-target="#scaleModal" @onclick="() => OpenScaleModal(context.Metadata.NamespaceProperty, context.Metadata.Name, context.Spec.Replicas)">Scale</button>
                         </div>
                         <div class="col-xl-1">
                             <label for="replicas-@context.Metadata.Name.Replace(".","-")"
-                        class="form-label d-xl-none"><b>Replicas:</b></label>
+                        class="form-label d-xl-none"><b>Replicas <span class="small">(Spec)</span>:</b></label>
+                            <span id="replicas-@context.Metadata.Name.Replace(".","-")"
+                        class="form-item small">@context.Spec.Replicas</span>
+                        </div>
+                        <div class="col-xl-1">
+                            <label for="replicas-@context.Metadata.Name.Replace(".","-")"
+                        class="form-label d-xl-none"><b>Replicas <span class="small">(Status)</span>:</b></label>
                             <span id="replicas-@context.Metadata.Name.Replace(".","-")"
                         class="form-item small">@context.Status.Replicas</span>
                         </div>
@@ -139,6 +149,26 @@ else
                     </td>
                 </RowTemplate>
             </TableTemplate>
+<div class="modal fade" id="scaleModal" tabindex="-1" aria-labelledby="scaleModalLabel" aria-hidden="true">
+<div class="modal-dialog modal-xl modal-dialog-scrollable">
+    <div class="modal-content">
+    <div class="modal-header">
+        <h5 class="modal-title" id="scaleModalLabel">@ScaleHeading</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+    </div>
+    <div class="modal-body">
+        <div class="form-group">
+            <label for="replicas">Replicas</label>
+            <input type="number" min="0" id="replicas" class="form-control" @bind-value="Replicas" />
+        </div>
+    </div>
+    <div class="modal-footer">
+        <button type="button" class="btn btn-link" data-bs-dismiss="modal">Cancel</button>
+        <button type="button" class="btn btn-primary" data-bs-dismiss="modal" @onclick="() => ScaleDeployment()">Save</button>
+    </div>
+    </div>
+</div>
+</div>
     }
     else if (DeploymentList == null)
     {
@@ -167,6 +197,11 @@ else
     List<V1Deployment> FilteredDeploymentList;
     string DeploymentMessage = "";
     string Filter;
+    string ScaleHeading = "";
+    string DeploymentNamespace = "";
+    string DeploymentName = "";
+    int Replicas = 0;
+    int PreviousReplicas = 0;
     int ItemCountAll = 0;
     int ItemCountFiltered = 0;
 
@@ -326,5 +361,39 @@ else
             await DeploymentListAll();
             DeploymentMessage = "";
         }
+    }
+
+    async Task OpenScaleModal(string k8sNamespace, string deployment, int? replicas)
+    {
+        ScaleHeading = $"{k8sNamespace} > {deployment}";
+        DeploymentNamespace = k8sNamespace;
+        DeploymentName = deployment;
+        Replicas = replicas ?? 0;
+        PreviousReplicas = Replicas;
+        await InvokeAsync(() => { base.StateHasChanged(); });
+    }
+
+    async Task ScaleDeployment()
+    {
+        if (!string.IsNullOrWhiteSpace(DeploymentNamespace) && !string.IsNullOrWhiteSpace(DeploymentName) && Replicas > -1)
+        {
+            if (PreviousReplicas != Replicas)
+            {
+                var scaled = await DeploymentService.ScaleDeploymentAsync(DeploymentName, Replicas, DeploymentNamespace);
+                if (scaled)
+                {
+                    var plural = Replicas == 1 ? "replica" : "replicas";
+                    DeploymentMessage = $"Successfully scaled {DeploymentName} to {Replicas} {plural}.";
+                    await InvokeAsync(() => { base.StateHasChanged(); });
+                    System.Threading.Thread.Sleep(5000);
+                }
+            }
+        }
+
+        await DeploymentListAll();
+        DeploymentMessage = "";
+        DeploymentNamespace = "";
+        DeploymentName = "";
+        Replicas = 0;
     }
 }
