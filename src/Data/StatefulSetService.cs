@@ -24,7 +24,7 @@ namespace KubeStatus.Data
 
         public Task<V1StatefulSetList> GetAllNamespacedStatefulSetsAsync(string k8sNamespace = "default")
         {
-            return MemoryCache.GetOrCreateAsync($"{k8sNamespace}_StatefulSets", async e =>
+            return MemoryCache.GetOrCreateAsync($"{k8sNamespace}_statefulsets", async e =>
             {
                 e.SetOptions(new MemoryCacheEntryOptions
                 {
