@@ -5,18 +5,20 @@
 
 <h1>Kafka Connectors Status</h1>
 
-@if (ConnectorsRestarted)
-{
-    <div class="alert alert-success" role="alert">
-        Connectors Successfully Restarted!
-    </div>
-}
-else if (HasFailedTasks)
-{
-    <button @onclick="RestartFailed" class="btn btn-primary my-3" disabled="@FailedButtonIsDisabled">
-        Restart All Failed Tasks
-    </button>
-}
+<AuthorizeView Policy="RequireEditorRole" Context="auth">
+    @if (ConnectorsRestarted)
+    {
+        <div class="alert alert-success" role="alert">
+            Connectors Successfully Restarted!
+        </div>
+    }
+    else if (HasFailedTasks)
+    {
+        <button @onclick="RestartFailed" class="btn btn-primary my-3" disabled="@FailedButtonIsDisabled">
+            Restart All Failed Tasks
+        </button>
+    }
+</AuthorizeView>
 
 @if (GetConnectorsError)
 {
@@ -76,9 +78,10 @@ else
                         <div class="row mb-1">
                             <div class="col-xl-12">
                                 <button class="btn btn-outline-dark btn-sm collapsed" type="button" data-bs-toggle="collapse"
-                        data-bs-target="#@context.Name-topics" aria-expanded="false"
-                        aria-controls="@context.Name-topics"><span class="show">Show</span><span
-                            class="hide">Hide</span> Topics</button>
+                                    data-bs-target="#@context.Name-topics" aria-expanded="false"
+                                    aria-controls="@context.Name-topics">
+                                    <span><span class="show">Show</span><span class="hide">Hide</span> Topics</span>
+                                </button>
                                 <div class="collapse mt-3" id="@context.Name-topics">
                                     <ul>
                                         @foreach (var topic in @context.Topics)
@@ -96,9 +99,9 @@ else
                         <div class="row mb-1">
                             <div class="col-xl-12">
                                 <button class="btn btn-outline-dark btn-sm collapsed" type="button" data-bs-toggle="collapse"
-                        data-bs-target="#@context.Name-trace" aria-expanded="false"
-                        aria-controls="@context.Name-trace"><span class="show">Show</span><span class="hide">Hide</span>
-                                    Task Trace</button>
+                                    data-bs-target="#@context.Name-trace" aria-expanded="false" aria-controls="@context.Name-trace">
+                                    <span><span class="show">Show</span><span class="hide">Hide</span> Task Trace</span>
+                                </button>
                                 <div class="collapse mt-3" id="@context.Name-trace">
                                     <pre>@context.TaskTrace</pre>
                                 </div>

@@ -4,10 +4,13 @@ using System.IO;
 using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
+
+using Microsoft.Extensions.Caching.Memory;
+
 using k8s;
 using k8s.Models;
+
 using KubeStatus.Models;
-using Microsoft.Extensions.Caching.Memory;
 
 namespace KubeStatus.Data
 {
@@ -124,7 +127,7 @@ namespace KubeStatus.Data
             return list;
         }
 
-        public async Task<List<EnvironmentVariable>> GetContainerEnvironmentVariablesAsync(string k8sNamespace, string podName, string containerName)
+        public async Task<List<EnvironmentVariable>> GetContainerEnvironmentVariablesAsync(string k8sNamespace, string podName, string containerName, bool showSecrets)
         {
             var pod = await kubernetesClient.CoreV1.ReadNamespacedPodAsync(podName, k8sNamespace);
             List<V1Container> containers = new List<V1Container>();
@@ -133,7 +136,7 @@ namespace KubeStatus.Data
             var container = containers.FirstOrDefault(c => c.Name.Equals(containerName));
             if (container != null)
             {
-                return await GetEnvironmentVariablesAndValues(container, k8sNamespace);
+                return await GetEnvironmentVariablesAndValues(container, k8sNamespace, showSecrets);
             }
             else
             {
@@ -141,7 +144,7 @@ namespace KubeStatus.Data
             }
         }
 
-        private async Task<List<EnvironmentVariable>> GetEnvironmentVariablesAndValues(V1Container container, string k8sNamespace)
+        private async Task<List<EnvironmentVariable>> GetEnvironmentVariablesAndValues(V1Container container, string k8sNamespace, bool showSecrets)
         {
             List<EnvironmentVariable> envVars = new List<EnvironmentVariable>();
 
@@ -157,10 +160,15 @@ namespace KubeStatus.Data
                     {
                         if (envVar.ValueFrom.SecretKeyRef != null)
                         {
-                            // don't add the secret value for security
-                            // var secret = await kubernetesClient.CoreV1.ReadNamespacedSecretAsync(envVar.ValueFrom.SecretKeyRef.Name, k8sNamespace);
-                            // envVars.Add(new EnvironmentVariable() { Key = envVar.Name, Value = System.Text.Encoding.UTF8.GetString(secret.Data.FirstOrDefault(d => d.Key.Equals(envVar.ValueFrom.SecretKeyRef.Key)).Value), Type = "Secret" });
-                            envVars.Add(new EnvironmentVariable() { Key = envVar.Name, Value = "***", Type = "Secret" });
+                            if (showSecrets)
+                            {
+                                var secret = await kubernetesClient.CoreV1.ReadNamespacedSecretAsync(envVar.ValueFrom.SecretKeyRef.Name, k8sNamespace);
+                                envVars.Add(new EnvironmentVariable() { Key = envVar.Name, Value = System.Text.Encoding.UTF8.GetString(secret.Data.FirstOrDefault(d => d.Key.Equals(envVar.ValueFrom.SecretKeyRef.Key)).Value), Type = "Secret" });
+                            }
+                            else
+                            {
+                                envVars.Add(new EnvironmentVariable() { Key = envVar.Name, Value = "***", Type = "Secret" });
+                            }
                         }
                         else if (envVar.ValueFrom.ConfigMapKeyRef != null)
                         {
@@ -202,9 +210,14 @@ namespace KubeStatus.Data
                         {
                             foreach (var val in secret.Data)
                             {
-                                // don't add the secret value for security
-                                // envVars.Add(new EnvironmentVariable() { Key = val.Key, Value = System.Text.Encoding.UTF8.GetString(val.Value), Type = "Secret" });
-                                envVars.Add(new EnvironmentVariable() { Key = val.Key, Value = "***", Type = "Secret" });
+                                if (showSecrets)
+                                {
+                                    envVars.Add(new EnvironmentVariable() { Key = val.Key, Value = System.Text.Encoding.UTF8.GetString(val.Value), Type = "Secret" });
+                                }
+                                else
+                                {
+                                    envVars.Add(new EnvironmentVariable() { Key = val.Key, Value = "***", Type = "Secret" });
+                                }
                             }
                         }
                     }

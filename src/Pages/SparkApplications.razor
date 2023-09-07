@@ -126,8 +126,7 @@ else
                                         <button class="btn btn-outline-dark btn-sm collapsed mb-2" type="button" data-bs-toggle="collapse"
                         data-bs-target="#@context.Metadata.Name-exec-states" aria-expanded="false"
                         aria-controls="@context.Metadata.Name-exec-states">
-                                            <span class="show">Show</span><span class="hide">Hide</span> @context.Status.ExecutorState.Count
-                                            Executor States
+                                            <span><span class="show">Show</span><span class="hide">Hide</span> @context.Status.ExecutorState.Count Executor States</span>
                                         </button>
                                         <div id="@context.Metadata.Name-exec-states" class="exec-states collapse">
                                             @foreach (var execState in context.Status.ExecutorState.OrderBy(s =>
@@ -169,7 +168,7 @@ else
                                             <button class="btn btn-outline-dark btn-sm collapsed" type="button" data-bs-toggle="collapse"
                         data-bs-target="#@context.Metadata.Name-app-state-@appState.Key" aria-expanded="false"
                         aria-controls="@context.Metadata.Name-app-state-@appState.Key">
-                                                <span class="show">Show</span><span class="hide">Hide</span> Errors
+                                                <span><span class="show">Show</span><span class="hide">Hide</span> Errors</span>
                                             </button>
                                         </div>
                                         <div class="app-state collapse col-sm-12" id="@context.Metadata.Name-app-state-@appState.Key">
@@ -198,7 +197,7 @@ else
                                 <button class="btn btn-outline-dark btn-sm collapsed" type="button" data-bs-toggle="collapse"
                         data-bs-target="#@context.Metadata.Name-spec" aria-expanded="false"
                         aria-controls="@context.Metadata.Name-spec">
-                                    <span class="show">Show</span><span class="hide">Hide</span> Spec
+                                    <span><span class="show">Show</span><span class="hide">Hide</span> Spec</span>
                                 </button>
                             </div>
                             <div class="collapse col-sm-12" id="@context.Metadata.Name-spec">

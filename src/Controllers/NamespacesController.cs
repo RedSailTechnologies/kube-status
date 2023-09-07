@@ -1,11 +1,17 @@
 ﻿using System.Threading.Tasks;
-using k8s.Models;
-using KubeStatus.Data;
+
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 
+using k8s.Models;
+
+using KubeStatus.Data;
+
 namespace KubeStatus.Controllers
 {
+    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
     [ApiController]
     [Route("api/[controller]")]
     public class NamespacesController : ControllerBase

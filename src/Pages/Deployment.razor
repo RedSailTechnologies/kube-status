@@ -18,44 +18,43 @@
 else
 {
     <div class="row">
-        @if (@ItemCountAll == @ItemCountFiltered)
-        {
-            <h6>Items: @ItemCountAll</h6>
-        }
-        else
-        {
-            <h6>Filtered: @ItemCountFiltered / @ItemCountAll</h6>
-        }
+    @if (@ItemCountAll == @ItemCountFiltered)
+    {
+        <h6>Items: @ItemCountAll</h6>
+    }
+    else
+    {
+        <h6>Filtered: @ItemCountFiltered / @ItemCountAll</h6>
+    }
     </div>
     <div class="form-group row mb-3">
         <div class="col-sm-4">
             <label for="namespaceSelect" class="form-label">Select a Namespace</label>
             <select class="form-select" id="namespaceSelect" @onchange="@OnSelect">
-                @foreach (var ns in Namespaces)
+            @foreach (var ns in Namespaces)
+            {
+                @if (@ns.Equals(@SelectedNamespace))
                 {
-                    @if (@ns.Equals(@SelectedNamespace))
-                    {
-                        <option value=@ns selected>@ns</option>
-                    }
-                    else
-                    {
-                        <option value=@ns>@ns</option>
-                    }
+                                <option value=@ns selected>@ns</option>
                 }
+                else
+                {
+                                <option value=@ns>@ns</option>
+                }
+            }
             </select>
         </div>
         <div class="col-sm-2 offset-sm-4">
-            <button class="btn btn-outline-dark btn-sm" @onclick="() => RestartNamespacedDeploymentAsync()">Restart All
-                @SelectedNamespace.ToUpper() Deployments</button>
+            <AuthorizeView Policy="RequireEditorRole" Context="auth">
+                <button class="btn btn-outline-dark btn-sm" @onclick="() => RestartNamespacedDeploymentAsync()">Restart All @SelectedNamespace.ToUpper() Deployments</button>
+            </AuthorizeView>
         </div>
     </div>
     <div class="form-group row mb-3">
         <div class="col-sm-4">
             <div class="input-group">
-                <input type="text" class="form-control" placeholder="Search..." aria-label="Filter"
-                aria-describedby="button-clear" @bind-value="Filter" @oninput="@FilterChange">
-                <button class="btn btn-outline-secondary" type="button" id="button-clear"
-                @onclick="@ClearFilter">Clear</button>
+                <input type="text" class="form-control" placeholder="Search..." aria-label="Filter" aria-describedby="button-clear" @bind-value="Filter" @oninput="@FilterChange">
+                <button class="btn btn-outline-secondary" type="button" id="button-clear"@onclick="@ClearFilter">Clear</button>
             </div>
         </div>
     </div>
@@ -105,70 +104,64 @@ else
                 <td>
                     <div class="form-group row">
                         <div class="col-xl-2">
-                            <label for="@context.Metadata.Name.Replace(".","-")"
-                        class="form-label d-xl-none"><b>Name:</b></label>
-                            <span id="@context.Metadata.Name.Replace(".","-")"
-                        class="form-item small">@context.Metadata.Name</span><br />
-                            <button class="btn btn-outline-dark btn-sm"
-                        @onclick="() => RestartDeployment(context.Metadata.Name, context.Metadata.NamespaceProperty)">Restart</button>
-                        <button type="button" class="btn btn-outline-dark btn-sm" data-bs-toggle="modal" data-bs-target="#scaleModal" @onclick="() => OpenScaleModal(context.Metadata.NamespaceProperty, context.Metadata.Name, context.Spec.Replicas)">Scale</button>
+                            <label for="@context.Metadata.Name.Replace(".","-")" class="form-label d-xl-none"><b>Name:</b></label>
+                            <span id="@context.Metadata.Name.Replace(".","-")" class="form-item small">@context.Metadata.Name</span>
+                            <AuthorizeView Policy="RequireEditorRole" Context="auth">
+                            <div class="my-1">
+                                <button class="btn btn-outline-dark btn-sm me-1" @onclick="() => RestartDeployment(context.Metadata.Name, context.Metadata.NamespaceProperty)">Restart</button>
+                                <button type="button" class="btn btn-outline-dark btn-sm ms-1" data-bs-toggle="modal" data-bs-target="#scaleModal" @onclick="() => OpenScaleModal(context.Metadata.NamespaceProperty, context.Metadata.Name, context.Spec.Replicas)">Scale</button>
+                            </div>
+                            </AuthorizeView>
                         </div>
                         <div class="col-xl-1">
-                            <label for="replicas-@context.Metadata.Name.Replace(".","-")"
-                        class="form-label d-xl-none"><b>Replicas <span class="small">(Spec)</span>:</b></label>
-                            <span id="replicas-@context.Metadata.Name.Replace(".","-")"
-                        class="form-item small">@context.Spec.Replicas</span>
+                            <label for="replicas-@context.Metadata.Name.Replace(".","-")" class="form-label d-xl-none"><b>Replicas <span class="small">(Spec)</span>:</b></label>
+                            <span id="replicas-@context.Metadata.Name.Replace(".","-")" class="form-item small">@context.Spec.Replicas</span>
                         </div>
                         <div class="col-xl-1">
-                            <label for="replicas-@context.Metadata.Name.Replace(".","-")"
-                        class="form-label d-xl-none"><b>Replicas <span class="small">(Status)</span>:</b></label>
-                            <span id="replicas-@context.Metadata.Name.Replace(".","-")"
-                        class="form-item small">@context.Status.Replicas</span>
+                            <label for="replicas-@context.Metadata.Name.Replace(".","-")" class="form-label d-xl-none"><b>Replicas <span class="small">(Status)</span>:</b></label>
+                            <span id="replicas-@context.Metadata.Name.Replace(".","-")" class="form-item small">@context.Status.Replicas</span>
                         </div>
                         <div class="col-xl-1">
-                            <label for="pods-@context.Metadata.Name.ToString()" class="form-label d-xl-none"><b>Pods <span
-                                class="small">(Ready / Total)</span>:</b></label>
-                            <span id="pods-@context.Metadata.Name.ToString()"
-                        class="form-item small">@context.Status.ReadyReplicas / @context.Status.Replicas</span>
+                            <label for="pods-@context.Metadata.Name.ToString()" class="form-label d-xl-none"><b>Pods <span class="small">(Ready / Total)</span>:</b></label>
+                            <span id="pods-@context.Metadata.Name.ToString()" class="form-item small">@context.Status.ReadyReplicas / @context.Status.Replicas</span>
                         </div>
                         <div class="col-xl-2">
-                            <label for="created-@context.Metadata.Name.Replace(".","-")"
-                        class="form-label d-xl-none"><b>Created:</b></label>
-                            <span id="created-@context.Metadata.Name.Replace(".","-")"
-                        class="form-item small">@context.Metadata.CreationTimestamp</span>
+                            <label for="created-@context.Metadata.Name.Replace(".","-")" class="form-label d-xl-none"><b>Created:</b></label>
+                            <span id="created-@context.Metadata.Name.Replace(".","-")" class="form-item small">@context.Metadata.CreationTimestamp</span>
                         </div>
                         <div class="col-xl-3">
-                            <label for="conditions-@context.Metadata.Name.Replace(".","-")"
-                        class="form-label d-xl-none"><b>Conditions:</b></label>
-                            <span id="conditions-@context.Metadata.Name.Replace(".","-")" class="form-item small">@foreach (var
-                        condition in context.Status.Conditions.OrderBy(c => c.Type))
-                                {
-                                    <span class="ms-1">@condition.Type</span>}</span>
-                            </div>
+                            <label for="conditions-@context.Metadata.Name.Replace(".","-")" class="form-label d-xl-none"><b>Conditions:</b></label>
+                            <span id="conditions-@context.Metadata.Name.Replace(".","-")" class="form-item small">
+                            @foreach (var condition in context.Status.Conditions.OrderBy(c => c.Type))
+                            {
+                                <span class="ms-1">@condition.Type</span>
+                            }
+                            </span>
                         </div>
-                    </td>
-                </RowTemplate>
-            </TableTemplate>
-<div class="modal fade" id="scaleModal" tabindex="-1" aria-labelledby="scaleModalLabel" aria-hidden="true">
-<div class="modal-dialog modal-xl modal-dialog-scrollable">
-    <div class="modal-content">
-    <div class="modal-header">
-        <h5 class="modal-title" id="scaleModalLabel">@ScaleHeading</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-    </div>
-    <div class="modal-body">
-        <div class="form-group">
-            <label for="replicas">Replicas</label>
-            <input type="number" min="0" id="replicas" class="form-control" @bind-value="Replicas" />
+                    </div>
+                </td>
+            </RowTemplate>
+        </TableTemplate>
+        <div class="modal fade" id="scaleModal" tabindex="-1" aria-labelledby="scaleModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-xl modal-dialog-scrollable">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="scaleModalLabel">@ScaleHeading</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="form-group">
+                            <label for="replicas">Replicas</label>
+                            <input type="number" min="0" id="replicas" class="form-control" @bind-value="Replicas" />
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-link" data-bs-dismiss="modal">Cancel</button>
+                        <button type="button" class="btn btn-primary" data-bs-dismiss="modal" @onclick="() => ScaleDeployment()">Save</button>
+                    </div>
+                </div>
+            </div>
         </div>
-    </div>
-    <div class="modal-footer">
-        <button type="button" class="btn btn-link" data-bs-dismiss="modal">Cancel</button>
-        <button type="button" class="btn btn-primary" data-bs-dismiss="modal" @onclick="() => ScaleDeployment()">Save</button>
-    </div>
-    </div>
-</div>
-</div>
     }
     else if (DeploymentList == null)
     {
@@ -276,7 +269,7 @@ else
     async Task FilterChange(ChangeEventArgs e)
     {
         Filter = e?.Value?.ToString().Trim();
-        
+
         if (!string.IsNullOrWhiteSpace(Filter))
         {
             await FilterResults();
@@ -308,7 +301,7 @@ else
     async Task RestartNamespacedDeploymentAsync()
     {
         bool confirmed = await JsRuntime.InvokeAsync<bool>("confirm", $"Are you sure you want to restart all Deployments in the {SelectedNamespace} namespace?");
-        
+
         if (confirmed)
         {
             DeploymentMessage = $"Restarting all deployments in the {SelectedNamespace} namespace...";

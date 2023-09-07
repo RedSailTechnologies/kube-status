@@ -45,17 +45,16 @@ else
             </select>
         </div>
         <div class="col-sm-2 offset-sm-4">
-            <button class="btn btn-outline-dark btn-sm" @onclick="() => RestartNamespacedStatefulSetAsync()">Restart All
-                @SelectedNamespace.ToUpper() StatefulSets</button>
+            <AuthorizeView Policy="RequireEditorRole" Context="auth">
+                <button class="btn btn-outline-dark btn-sm" @onclick="() => RestartNamespacedStatefulSetAsync()">Restart All @SelectedNamespace.ToUpper() StatefulSets</button>
+            </AuthorizeView>
         </div>
     </div>
     <div class="form-group row mb-3">
         <div class="col-sm-4">
             <div class="input-group">
-                <input type="text" class="form-control" placeholder="Search..." aria-label="Filter"
-                aria-describedby="button-clear" @bind-value="Filter" @oninput="@FilterChange">
-                <button class="btn btn-outline-secondary" type="button" id="button-clear"
-                @onclick="@ClearFilter">Clear</button>
+                <input type="text" class="form-control" placeholder="Search..." aria-label="Filter" aria-describedby="button-clear" @bind-value="Filter" @oninput="@FilterChange">
+                <button class="btn btn-outline-secondary" type="button" id="button-clear" @onclick="@ClearFilter">Clear</button>
             </div>
         </div>
     </div>
@@ -102,37 +101,31 @@ else
                 <td>
                     <div class="form-group row">
                         <div class="col-xl-2">
-                            <label for="@context.Metadata.Name.Replace(".","-")"
-                        class="form-label d-xl-none"><b>Name:</b></label>
-                            <span id="@context.Metadata.Name.Replace(".","-")"
-                        class="form-item small">@context.Metadata.Name</span><br />
-                            <button class="btn btn-outline-dark btn-sm"
-                        @onclick="() => RestartStatefulSet(context.Metadata.Name, context.Metadata.NamespaceProperty)">Restart</button>
-                        <button type="button" class="btn btn-outline-dark btn-sm" data-bs-toggle="modal" data-bs-target="#scaleModal" @onclick="() => OpenScaleModal(context.Metadata.NamespaceProperty, context.Metadata.Name, context.Spec.Replicas)">Scale</button>
+                            <label for="@context.Metadata.Name.Replace(".","-")" class="form-label d-xl-none"><b>Name:</b></label>
+                            <span id="@context.Metadata.Name.Replace(".","-")" class="form-item small">@context.Metadata.Name</span>
+                            <AuthorizeView Policy="RequireEditorRole" Context="auth">
+                            <div class="my-1">
+                                <button class="btn btn-outline-dark btn-sm me-1" @onclick="() => RestartStatefulSet(context.Metadata.Name, context.Metadata.NamespaceProperty)">Restart</button>
+                                <button type="button" class="btn btn-outline-dark btn-sm ms-1" data-bs-toggle="modal" data-bs-target="#scaleModal" @onclick="() => OpenScaleModal(context.Metadata.NamespaceProperty, context.Metadata.Name, context.Spec.Replicas)">Scale</button>
+                            </div>
+                            </AuthorizeView>
                         </div>
                         <div class="col-xl-1">
-                            <label for="replicas-@context.Metadata.Name.Replace(".","-")"
-                        class="form-label d-xl-none"><b>Replicas <span class="small">(Spec)</span>:</b></label>
-                            <span id="replicas-@context.Metadata.Name.Replace(".","-")"
-                        class="form-item small">@context.Spec.Replicas</span>
+                            <label for="replicas-@context.Metadata.Name.Replace(".","-")" class="form-label d-xl-none"><b>Replicas <span class="small">(Spec)</span>:</b></label>
+                            <span id="replicas-@context.Metadata.Name.Replace(".","-")" class="form-item small">@context.Spec.Replicas</span>
                         </div>
                         <div class="col-xl-1">
-                            <label for="replicas-@context.Metadata.Name.Replace(".","-")"
-                        class="form-label d-xl-none"><b>Replicas <span class="small">(Status)</span>:</b></label>
-                            <span id="replicas-@context.Metadata.Name.Replace(".","-")"
-                        class="form-item small">@context.Status.Replicas</span>
+                            <label for="replicas-@context.Metadata.Name.Replace(".","-")" class="form-label d-xl-none"><b>Replicas <span class="small">(Status)</span>:</b></label>
+                            <span id="replicas-@context.Metadata.Name.Replace(".","-")" class="form-item small">@context.Status.Replicas</span>
                         </div>
                         <div class="col-xl-1">
                             <label for="pods-@context.Metadata.Name.ToString()" class="form-label d-xl-none"><b>Pods <span
                                 class="small">(Ready / Total)</span>:</b></label>
-                            <span id="pods-@context.Metadata.Name.ToString()"
-                        class="form-item small">@context.Status.ReadyReplicas / @context.Status.Replicas</span>
+                            <span id="pods-@context.Metadata.Name.ToString()" class="form-item small">@context.Status.ReadyReplicas / @context.Status.Replicas</span>
                         </div>
                         <div class="col-xl-2">
-                            <label for="created-@context.Metadata.Name.Replace(".","-")"
-                        class="form-label d-xl-none"><b>Created:</b></label>
-                            <span id="created-@context.Metadata.Name.Replace(".","-")"
-                        class="form-item small">@context.Metadata.CreationTimestamp</span>
+                            <label for="created-@context.Metadata.Name.Replace(".","-")" class="form-label d-xl-none"><b>Created:</b></label>
+                            <span id="created-@context.Metadata.Name.Replace(".","-")" class="form-item small">@context.Metadata.CreationTimestamp</span>
                         </div>
                         </div>
                     </td>

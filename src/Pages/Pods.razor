@@ -1,11 +1,14 @@
 @page "/pods/{namespaceparam?}/{filterparam?}"
 
 @using System
+@using System.IO
 
 @inject NamespaceService NamespaceService
 @inject PodService PodService
+@inject LogService LogService
 @inject IJSRuntime JsRuntime
 @inject NavigationManager Navigator
+@inject IAuthorizationService AuthorizationService
 
 <h1>Pods</h1>
 
@@ -200,7 +203,7 @@ else
                                 <button class="btn btn-outline-dark btn-sm m-2 collapsed" type="button" data-bs-toggle="collapse"
                         data-bs-target="#@context.PodName.Replace(".","-")-collapseMoreDetails" aria-expanded="false"
                         aria-controls="collapseMoreDetails">
-                                    <span class="show">Show</span><span class="hide">Hide</span> More Details
+                                    <span><span class="show">Show</span><span class="hide">Hide</span> More Details</span>
                                 </button>
                             }
 
@@ -209,7 +212,7 @@ else
                                 <button class="btn btn-outline-dark btn-sm m-2 collapsed" type="button" data-bs-toggle="collapse"
                         data-bs-target="#@context.PodName.Replace(".","-")-collapseLabels" aria-expanded="false"
                         aria-controls="collapseLabels">
-                                    <span class="show">Show</span><span class="hide">Hide</span> Pod Labels
+                                    <span><span class="show">Show</span><span class="hide">Hide</span> Pod Labels</span>
                                 </button>
                             }
 
@@ -218,7 +221,7 @@ else
                                 <button class="btn btn-outline-dark btn-sm m-2 collapsed" type="button" data-bs-toggle="collapse"
                         data-bs-target="#@context.PodName.Replace(".","-")-collapseAnnotations" aria-expanded="false"
                         aria-controls="collapseAnnotations">
-                                    <span class="show">Show</span><span class="hide">Hide</span> Pod Annotations
+                                    <span><span class="show">Show</span><span class="hide">Hide</span> Pod Annotations</span>
                                 </button>
                             }
 
@@ -227,7 +230,7 @@ else
                                 <button class="btn btn-outline-dark btn-sm m-2 collapsed" type="button" data-bs-toggle="collapse"
                         data-bs-target="#@context.PodName.Replace(".","-")-collapseAffinityAndTolerations"
                         aria-expanded="false" aria-controls="collapseAffinityAndTolerations">
-                                    <span class="show">Show</span><span class="hide">Hide</span> Affinity & Tolerations
+                                    <span><span class="show">Show</span><span class="hide">Hide</span> Affinity & Tolerations</span>
                                 </button>
                             }
 
@@ -236,7 +239,7 @@ else
                                 <button class="btn btn-outline-dark btn-sm m-2 collapsed" type="button" data-bs-toggle="collapse"
                         data-bs-target="#@context.PodName.Replace(".","-")-collapsePodVolumes" aria-expanded="false"
                         aria-controls="collapsePodVolumes">
-                                    <span class="show">Show</span><span class="hide">Hide</span> Pod Volumes
+                                    <span><span class="show">Show</span><span class="hide">Hide</span> Pod Volumes</span>
                                 </button>
                             }
 
@@ -245,7 +248,7 @@ else
                                 <button class="btn btn-outline-dark btn-sm m-2 collapsed" type="button" data-bs-toggle="collapse"
                         data-bs-target="#@context.PodName.Replace(".","-")-collapseEvents" aria-expanded="false"
                         aria-controls="collapseEvents">
-                                    <span class="show">Show</span><span class="hide">Hide</span> Events
+                                    <span><span class="show">Show</span><span class="hide">Hide</span> Events</span>
                                 </button>
                             }
                         </div>
@@ -327,7 +330,7 @@ else
                                     {
                                     <div class="row mb-2">
                                         <button class="btn btn-outline-dark btn-sm collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#@context.PodName.Replace(".","-")-@statusContext.Name-volume-mounts" aria-expanded="false" aria-controls="collapseEvents">
-                                        <span class="show">Show</span><span class="hide">Hide</span> Volume Mounts
+                                        <span><span class="show">Show</span><span class="hide">Hide</span> Volume Mounts</span>
                                         </button>
                                     </div>
                                     }
@@ -415,8 +418,10 @@ else
                             else
                             {
                                 <span class="badge rounded-pill bg-dark text-light ms-1">Read/Write</span>
-                            }<br />
-                            <code>@mountsContext.MountPath</code>
+                            }
+                            <div>
+                                <code>@mountsContext.MountPath</code>
+                            </div>
                         </td>
                     </RowTemplate>
                 </TableTemplate>
@@ -460,7 +465,7 @@ else
                                     {
                                     <div class="row mb-2">
                                         <button class="btn btn-outline-dark btn-sm collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#@context.PodName.Replace(".","-")-@statusContext.Name-volume-mounts" aria-expanded="false" aria-controls="collapseEvents">
-                                        <span class="show">Show</span><span class="hide">Hide</span> Volume Mounts
+                                        <span><span class="show">Show</span><span class="hide">Hide</span> Volume Mounts</span>
                                         </button>
                                     </div>
                                     }
@@ -555,8 +560,10 @@ else
                             else
                             {
                                 <span class="badge rounded-pill bg-dark text-light ms-1">Read/Write</span>
-                            }<br />
-                            <code>@mountsContext.MountPath</code>
+                            }
+                            <div>
+                                <code>@mountsContext.MountPath</code>
+                            </div>
                         </td>
                     </RowTemplate>
                 </TableTemplate>
@@ -754,6 +761,9 @@ else
     [Parameter]
     public string FilterParam { get; set; }
 
+    [CascadingParameter]
+    private Task<AuthenticationState>? authenticationState { get; set; }
+
     string PodStatus = "";
     string Filter = "";
     bool SearchPodName = true;
@@ -858,20 +868,38 @@ else
 
     async Task GetLogs(string k8sNamespace, string podName, string name)
     {
-        var logApi = $"/api/logs/{k8sNamespace}/{podName}/{name}?tail={LogRows}";
-        await JsRuntime.InvokeVoidAsync("triggerFileDownload", "", logApi);
+        var fileStream = await LogService.GetContainerLogsAsync(podName, name, k8sNamespace, LogRows);
+        var fileName = $"{k8sNamespace}-{podName}-{name}.log";
+
+        if (fileStream != null)
+        {
+            using var streamRef = new DotNetStreamReference(stream: fileStream);
+            await JsRuntime.InvokeVoidAsync("downloadFileFromStream", fileName, streamRef);
+        }
     }
 
     async Task GetMetrics(string podIP, int port)
     {
-        var containerMetrics = $"/api/pods/metrics?podIP={podIP}&port={port}";
-        await JsRuntime.InvokeVoidAsync("triggerFileDownload", "", containerMetrics);
+        var fileStream = await PodService.GetContainerMetricsAsync(podIP, port);
+        var fileName = $"{podIP.Replace(".", "-")}-metrics.txt";
+
+        if (fileStream != null)
+        {
+            using var streamRef = new DotNetStreamReference(stream: fileStream);
+            await JsRuntime.InvokeVoidAsync("downloadFileFromStream", fileName, streamRef);
+        }
     }
 
     async Task GetPodCsv()
     {
-        var podCsv = $"/api/pods/{SelectedNamespace}/csv";
-        await JsRuntime.InvokeVoidAsync("triggerFileDownload", "", podCsv);
+        var fileStream = new MemoryStream(await PodService.GetAllNamespacedPodsFileAsync(SelectedNamespace));
+        var fileName = $"{SelectedNamespace}.csv";
+
+        if (fileStream != null)
+        {
+            using var streamRef = new DotNetStreamReference(stream: fileStream);
+            await JsRuntime.InvokeVoidAsync("downloadFileFromStream", fileName, streamRef);
+        }
     }
 
     async Task GetEnvironmentVariables(string k8sNamespace, string podName, string containerName)
@@ -880,8 +908,20 @@ else
         EnvVarMessage = $"Loading environment variables for {containerName}...";
         await InvokeAsync(() => { base.StateHasChanged(); });
         
+        var showSecrets = false;
+        if (authenticationState is not null)
+        {
+            var authState = await authenticationState;
+            var user = authState?.User;
+            if (user is not null)
+            {
+                var isAdminEvaluationResult = await AuthorizationService.AuthorizeAsync(user, null, "RequireAdminRole");
+                showSecrets = isAdminEvaluationResult.Succeeded;
+            }
+        }
+
         EnvironmentVariables = null;
-        EnvironmentVariables = await PodService.GetContainerEnvironmentVariablesAsync(k8sNamespace, podName, containerName);
+        EnvironmentVariables = await PodService.GetContainerEnvironmentVariablesAsync(k8sNamespace, podName, containerName, showSecrets);
         
         if (EnvironmentVariables != null && EnvironmentVariables.Any())
         {

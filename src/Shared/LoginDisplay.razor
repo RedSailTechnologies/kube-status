@@ -1,0 +1,13 @@
+﻿<AuthorizeView>
+    <Authorized>
+            <div class="float-end">
+                <div class="small">Hello, @context.User.Identity?.Name!</div>
+                <a href="MicrosoftIdentity/Account/SignOut" class="btn btn-outline-dark btn-sm float-end">Log out</a>
+            </div>
+    </Authorized>
+    <NotAuthorized>
+            <div class="float-end">
+                <a href="MicrosoftIdentity/Account/SignIn" class="btn btn-primary btn-sm">Log in</a>
+            </div>
+    </NotAuthorized>
+</AuthorizeView>

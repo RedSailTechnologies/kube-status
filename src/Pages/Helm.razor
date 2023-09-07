@@ -105,8 +105,12 @@ else
                         <div class="col-xl-2">
                             <label for="component-@context.Name.Replace(".","-")" class="form-label d-xl-none"><b>Name:</b></label>
                             <span id="component-@context.Name.Replace(".","-")" class="form-item small">@context.Name</span>
-                            <br />
-                            <button class="btn btn-outline-dark btn-sm" @onclick="() => HelmRollback(context.Name, context.Namespace)">Rollback</button>&nbsp;<button class="btn btn-outline-dark btn-sm" @onclick="() => HelmUninstall(context.Name, context.Namespace)">Uninstall</button>
+                            <AuthorizeView Policy="RequireEditorRole" Context="auth">
+                            <div class="my-1">
+                                <button class="btn btn-outline-dark btn-sm me-1" @onclick="() => HelmRollback(context.Name, context.Namespace)">Rollback</button>
+                                <button class="btn btn-outline-dark btn-sm ms-1" @onclick="() => HelmUninstall(context.Name, context.Namespace)">Uninstall</button>
+                            </div>
+                            </AuthorizeView>
                         </div>
                         <div class="col-xl-1">
                             <label for="component-@context.Namespace.Replace(".","-")" class="form-label d-xl-none"><b>Namespace:</b></label>

@@ -39,13 +39,105 @@ It is also safe to say that this project is very opinionated. The tool is meant 
 
 ### Security
 
-Most importantly, as of today, **Kube Status does _NOT_ have any built in authentication**. If you deploy this app and expose an ingress with no proxy, it could be very dangerous to your environment. Depending on future use and needs, there are plans for native auth roles and access limitation, but as of now, there is no timeline for this [enhancement](https://github.com/RedSailTechnologies/kube-status/issues/4).
+Azure AD is required for Kube Status.  After creating a new App Registration, modify the following Manifest values.  
+_Please note the GUID values that will need to be generated/replaced._
 
-> If it's wide open, how do I safely use Kube Status?
+```
+	"appRoles": [
+		{
+			"allowedMemberTypes": [
+				"User",
+				"Application"
+			],
+			"description": "Is an application user",
+			"displayName": "Users",
+			"id": "UNIQUE_GUID_FOR_USERS",
+			"isEnabled": true,
+			"lang": null,
+			"origin": "Application",
+			"value": "App.User"
+		},
+		{
+			"allowedMemberTypes": [
+				"User",
+				"Application"
+			],
+			"description": "Has the ability to edit",
+			"displayName": "Editors",
+			"id": "UNIQUE_GUID_FOR_EDITORS",
+			"isEnabled": true,
+			"lang": null,
+			"origin": "Application",
+			"value": "App.Edit"
+		},
+		{
+			"allowedMemberTypes": [
+				"User",
+				"Application"
+			],
+			"description": "Has the ability to edit and delete",
+			"displayName": "Administrators",
+			"id": "UNIQUE_GUID_FOR_ADMINISTRATORS",
+			"isEnabled": true,
+			"lang": null,
+			"origin": "Application",
+			"value": "App.Admin"
+		}
+	],
+...
+	"oauth2AllowIdTokenImplicitFlow": true,
+	"oauth2AllowImplicitFlow": true,
+...
+	"optionalClaims": {
+		"idToken": [],
+		"accessToken": [],
+		"saml2Token": []
+	},
+...
+  	"replyUrlsWithType": [
+		{
+			"url": "https://localhost:8443/swagger/oauth2-redirect.html",
+			"type": "Web"
+		},
+		{
+			"url": "https://localhost:8443/signin-oidc",
+			"type": "Web"
+		}
+	],
+...
+	"requiredResourceAccess": [
+		{
+			"resourceAppId": "GUID_OF_AZURE_APP",
+			"resourceAccess": [
+				{
+					"id": "GUID_FOR_ADMINISTRATORS_ROLE_ABOVE",
+					"type": "Role"
+				}
+			]
+		},
+		{
+			"resourceAppId": "00000003-0000-0000-c000-000000000000",
+			"resourceAccess": [
+				{
+					"id": "64a6cdd6-aab1-4aaf-94b8-3cc8405e90d0",
+					"type": "Scope"
+				},
+				{
+					"id": "14dad69e-099b-42c9-810b-d002981feec1",
+					"type": "Scope"
+				},
+				{
+					"id": "e1fe6dd8-ba31-4d61-89e7-88639da4683d",
+					"type": "Scope"
+				}
+			]
+		}
+	],
+```
 
-Great question! We use [Istio](https://istio.io/) as our service mesh and ingress in Kubernetes. Additionally, we use [Oauth2Proxy](https://oauth2-proxy.github.io/oauth2-proxy/) in conjunction with Istio to secure access into Kube Status. There are a lot of great blog posts and community posts for how to deploy either or both of these tools if you search the web.
+Once the Manifest is updated, open the API Permissions tab and Grant admin consent.
 
-To simplify deployment, the provided Helm chart can create the necessary Istio assets if enabled.
+Finally, as Users or Groups are assigned to the directory application, ensure that a role is assigned.
 
 ### UI And API All In One
 

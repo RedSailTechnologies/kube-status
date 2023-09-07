@@ -1,12 +1,17 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
-using KubeStatus.Data;
-using KubeStatus.Models;
+
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 
+using KubeStatus.Data;
+using KubeStatus.Models;
+
 namespace KubeStatus.Controllers
 {
+    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
     [ApiController]
     [Route("api/[controller]")]
     public class SparkApplicationsController : ControllerBase
@@ -32,6 +37,7 @@ namespace KubeStatus.Controllers
             return await _SparkApplicationService.GetSparkApplicationsAsync(filterStatus);
         }
 
+        [Authorize(Policy = "RequireAdminRole")]
         [HttpDelete("{keepHours}")]
         public async Task<IActionResult> DeleteFailedSparkApplicationsAsync(string keepHours = "168")
         {

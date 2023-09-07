@@ -1,14 +1,17 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text.RegularExpressions;
+﻿using System.Collections.Generic;
 using System.Threading.Tasks;
-using KubeStatus.Data;
-using KubeStatus.Models;
+
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 
+using KubeStatus.Data;
+using KubeStatus.Models;
+
 namespace KubeStatus.Controllers
 {
+    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
     [ApiController]
     [Route("api/[controller]")]
     public class KafkaConnectorsController : ControllerBase
@@ -41,6 +44,7 @@ namespace KubeStatus.Controllers
             return await _kafkaConnectorService.GetKafkaConnectorsByTaskStateAsync(taskState);
         }
 
+        [Authorize(Policy = "RequireEditorRole")]
         [HttpPatch("RestartFailed")]
         public async Task<IEnumerable<KafkaConnector>> RestartAllFailedKafkaConnectorsAsync()
         {

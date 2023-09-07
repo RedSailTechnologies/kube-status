@@ -62,6 +62,17 @@ spec:
             failureThreshold: 3
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
+          {{- if or .Values.configMaps .Values.secrets }}
+          envFrom:
+            {{- range .Values.configMaps }}
+            - configMapRef:
+                name: {{ . | quote }}
+            {{- end }}
+            {{- range .Values.secrets }}
+            - secretRef:
+                name: {{ . | quote }}
+            {{- end }}
+          {{- end }}
           {{- if .Values.envVars }}
           env:
           {{- range $k, $v := .Values.envVars }}

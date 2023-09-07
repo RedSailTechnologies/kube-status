@@ -1,10 +1,15 @@
 ﻿using System.Threading.Tasks;
-using KubeStatus.Data;
+
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 
+using KubeStatus.Data;
+
 namespace KubeStatus.Controllers
 {
+    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
     [ApiController]
     [Route("api/[controller]")]
     public class LogsController : ControllerBase

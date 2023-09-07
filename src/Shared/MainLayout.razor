@@ -6,8 +6,11 @@
     </div>
 
     <div class="main">
-        <div class="top-row px-4">
-            @Environment.GetEnvironmentVariable("UI_HEADER")
+        <div class="top-row auth px-4 d-block">
+            <LoginDisplay />
+            <div class="float-start">
+                <span class="me-2 mt-3 badge bg-dark">@Environment.GetEnvironmentVariable("UI_HEADER")</span>
+            </div>
         </div>
 
         <div class="content px-4">

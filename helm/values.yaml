@@ -66,7 +66,7 @@ ingress:
 
 resources:
   limits:
-    cpu: '1'
+    cpu: "1"
     memory: 1Gi
   requests:
     cpu: 500m
@@ -88,6 +88,11 @@ affinity: {}
 containerPort: 8080
 
 metricsPort: 58080
+
+configMaps: []
+
+secrets:
+  - azure-ad
 
 envVars:
   COMPlus_EnableDiagnostics: "0"
@@ -111,10 +116,9 @@ istio:
   host: "localhost"
   gateway: istio-system/ingress-gateway
 
-oauth2proxy:
-  enabled: false
-  jwtRules:
-    - issuer: "https://sts.windows.net/00000000-0000-0000-0000-000000000000/"
-      jwksUri: "https://login.microsoftonline.com/common/discovery/keys"
-    - issuer: "https://login.microsoftonline.com/00000000-0000-0000-0000-000000000000/v2.0"
-      jwksUri: "https://login.microsoftonline.com/common/discovery/keys"
+azureAd:
+  domain: ""
+  tenantId: ""
+  clientId: ""
+  clientSecret: ""
+  audience: ""

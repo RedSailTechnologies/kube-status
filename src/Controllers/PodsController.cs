@@ -1,20 +1,27 @@
 ﻿using System.Threading.Tasks;
-using KubeStatus.Data;
+
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 
+using KubeStatus.Data;
+
 namespace KubeStatus.Controllers
 {
+    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
     [ApiController]
     [Route("api/[controller]")]
     public class PodsController : ControllerBase
     {
         private readonly ILogger<PodsController> _logger;
+        private readonly IAuthorizationService _authorizationService;
         private readonly PodService _podService;
 
-        public PodsController(ILogger<PodsController> logger, PodService podService)
+        public PodsController(ILogger<PodsController> logger, IAuthorizationService authorizationService, PodService podService)
         {
             _logger = logger;
+            _authorizationService = authorizationService;
             _podService = podService;
         }
 
@@ -42,7 +49,9 @@ namespace KubeStatus.Controllers
         [HttpGet("{k8sNamespace}/{pod}/{container}/env")]
         public async Task<IActionResult> GetContainerEnvironmentVariablesAsync(string k8sNamespace, string pod, string container)
         {
-            var envVars = await _podService.GetContainerEnvironmentVariablesAsync(k8sNamespace, pod, container);
+            var isAdminEvaluationResult = await _authorizationService.AuthorizeAsync(User, null, "RequireAdminRole");
+            var showSecrets = isAdminEvaluationResult.Succeeded;
+            var envVars = await _podService.GetContainerEnvironmentVariablesAsync(k8sNamespace, pod, container, showSecrets);
 
             if (envVars == null)
             {
