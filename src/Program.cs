@@ -159,6 +159,6 @@ app.MapBlazorHub();
 app.MapFallbackToPage("/_Host");
 
 app.MapHealthChecks("/health");
-app.MapMetrics("/metrics");
+app.MapMetrics("/metrics").AllowAnonymous();
 
 app.Run();
