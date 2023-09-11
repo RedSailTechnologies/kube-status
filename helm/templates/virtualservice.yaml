@@ -12,17 +12,18 @@ spec:
   gateways:
     - {{ .Values.istio.gateway }}
   http:
+    - name: health-redirect
+      match:
+        - uri:
+            regex: ^/health(/)?$
+      redirect:
+        uri: /
     - name: metrics-redirect
       match:
         - uri:
-            exact: /metrics
-      rewrite:
+            regex: ^/metrics(/)?$
+      redirect:
         uri: /
-      route:
-        - destination:
-            host: {{ include "kube-status.fullname" . }}.{{ .Release.Namespace }}.svc.cluster.local
-            port:
-              number: {{ .Values.service.port }}
     - name: {{ include "kube-status.fullname" . }}
       route:
         - destination:
