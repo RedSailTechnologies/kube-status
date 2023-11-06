@@ -15,7 +15,7 @@ namespace KubeStatus.Models
     public partial class SparkApplicationStatus
     {
         public Dictionary<string, string> ApplicationState { get; set; }
-        public Dictionary<string, string> DriverInfo { get; set; }
+        public Dictionary<string, object> DriverInfo { get; set; }
         public long? ExecutionAttempts { get; set; }
         public Dictionary<string, string> ExecutorState { get; set; }
         public DateTimeOffset? LastSubmissionAttemptTime { get; set; }
