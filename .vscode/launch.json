@@ -5,11 +5,42 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": ".NET Core Launch (web)",
+            "name": "Debug (Website)",
             "type": "coreclr",
             "request": "launch",
             "preLaunchTask": "build",
-            "program": "${workspaceFolder}/src/bin/Debug/net6.0/KubeStatus.dll",
+            "program": "${workspaceFolder}/src/bin/Debug/net8.0/KubeStatus.dll",
+            "args": [],
+            "cwd": "${workspaceFolder}/src",
+            "stopAtEntry": false,
+            "launchBrowser": {
+                "enabled": true,
+                "args": "${auto-detect-url}",
+                "windows": {
+                    "command": "cmd.exe",
+                    "args": "/C start ${auto-detect-url}/"
+                }
+            },
+            "env": {
+                "ASPNETCORE_ENVIRONMENT": "Development",
+                "BUILD_CONFIG_FROM_CONFIG_FILE": "true",
+                "ENABLE_SWAGGER": "true",
+                "STRIMZI__CONNECT_CLUSTER_SERVICE_HOST": "http://localhost:63009/",
+                "UI_HEADER": "Local Debug",
+                "UI_SHOW_HELM": "true",
+                "POD_METRIC_PORT_PAGE": "metrics|metrics",
+                "ADDITIONAL_HEAD_CONTENT": "&lt;meta name=&quot;env:header&quot; content=&quot;hello world&quot;&gt;"
+            },
+            "sourceFileMap": {
+                "/Views": "${workspaceFolder}/src/Views"
+            }
+        },
+        {
+            "name": "Debug (Swagger)",
+            "type": "coreclr",
+            "request": "launch",
+            "preLaunchTask": "build",
+            "program": "${workspaceFolder}/src/bin/Debug/net8.0/KubeStatus.dll",
             "args": [],
             "cwd": "${workspaceFolder}/src",
             "stopAtEntry": false,

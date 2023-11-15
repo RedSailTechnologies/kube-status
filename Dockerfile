@@ -1,4 +1,4 @@
-ARG DOTNET_VERSION=6.0
+ARG DOTNET_VERSION=8.0
 
 FROM mcr.microsoft.com/dotnet/sdk:${DOTNET_VERSION}-alpine AS base
 ENV VERIFY_CHECKSUM=false
