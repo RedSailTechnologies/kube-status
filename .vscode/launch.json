@@ -28,7 +28,8 @@
                 "STRIMZI__CONNECT_CLUSTER_SERVICE_HOST": "http://localhost:63009/",
                 "UI_HEADER": "Local Debug",
                 "UI_SHOW_HELM": "true",
-                "POD_METRIC_PORT_PAGE": "metrics|metrics"
+                "POD_METRIC_PORT_PAGE": "metrics|metrics",
+                "ADDITIONAL_HEAD_CONTENT": "&lt;meta name=&quot;env:header&quot; content=&quot;hello world&quot;&gt;"
             },
             "sourceFileMap": {
                 "/Views": "${workspaceFolder}/src/Views"

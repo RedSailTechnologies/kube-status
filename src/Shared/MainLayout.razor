@@ -1,4 +1,9 @@
 @inherits LayoutComponentBase
+@using System.Web
+
+<HeadContent>
+    @headerContentMarkup
+</HeadContent>
 
 <div class="page">
     <div class="sidebar">
@@ -22,3 +27,8 @@
         &copy; @DateTime.Now.Year RedSail Technologies
     </footer>
 </div>
+
+@code {
+    MarkupString headerContentMarkup => (MarkupString)headerContent;
+    string headerContent = HttpUtility.HtmlDecode(Environment.GetEnvironmentVariable("ADDITIONAL_HEAD_CONTENT"));
+}
