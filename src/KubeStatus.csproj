@@ -4,12 +4,12 @@
     <RootNamespace>KubeStatus</RootNamespace>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="CliWrap" Version="3.6.4" />
+    <PackageReference Include="CliWrap" Version="3.6.6" />
     <PackageReference Include="JsonPatch.Net" Version="2.1.0" />
-    <PackageReference Include="KubernetesClient" Version="12.1.1" />
-    <PackageReference Include="Microsoft.Identity.Web" Version="2.16.0" />
-    <PackageReference Include="Microsoft.Identity.Web.UI" Version="2.16.0" />
-    <PackageReference Include="prometheus-net.AspNetCore" Version="8.2.0" />
+    <PackageReference Include="KubernetesClient" Version="13.0.1" />
+    <PackageReference Include="Microsoft.Identity.Web" Version="2.16.1" />
+    <PackageReference Include="Microsoft.Identity.Web.UI" Version="2.16.1" />
+    <PackageReference Include="prometheus-net.AspNetCore" Version="8.2.1" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.5.0" />
     <PackageReference Include="YamlDotNet" Version="13.7.1" />
   </ItemGroup>
