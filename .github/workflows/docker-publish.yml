@@ -5,12 +5,12 @@ on:
     # Publish `main` as Docker `latest` image.
     branches:
       - main
-      - 'feature/**'
+      - "feature/**"
 
     paths-ignore:
-      - '**.md'
-      - '.github/**'
-      - 'helm/**'
+      - "**.md"
+      - ".github/**"
+      - "helm/**"
 
     # Publish `v1.2.3` tags as releases.
     tags:
@@ -23,24 +23,8 @@ env:
   IMAGE_NAME: redsailtechnologies/kube-status
 
 jobs:
-  # Run tests.
-  # See also https://docs.docker.com/docker-hub/builds/automated-testing/
-  # NO TESTS YET
-  test:
-    runs-on: ubuntu-latest
-    if: github.event_name == 'pull_request'
-
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Run tests
-        run: docker build . --file Dockerfile
-
-  # Push image to GitHub Packages.
-  # See also https://docs.docker.com/docker-hub/builds/
   build:
     runs-on: ubuntu-latest
-    if: github.event_name == 'push'
 
     steps:
       - uses: actions/checkout@v4
@@ -49,9 +33,11 @@ jobs:
         run: docker build . --target release --file Dockerfile --tag $IMAGE_NAME
 
       - name: Log into registry
+        if: github.event_name != 'pull_request'
         run: echo "${{ secrets.DOCKERHUB_TOKEN }}" | docker login -u ${{ secrets.DOCKERHUB_USERNAME }} --password-stdin
 
       - name: Push image
+        if: github.event_name != 'pull_request'
         run: |
           IMAGE_ID=docker.io/$IMAGE_NAME
 
