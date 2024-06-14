@@ -762,7 +762,7 @@ else
     public string FilterParam { get; set; }
 
     [CascadingParameter]
-    private Task<AuthenticationState>? authenticationState { get; set; }
+    private Task<AuthenticationState> authenticationState { get; set; }
 
     string PodStatus = "";
     string Filter = "";

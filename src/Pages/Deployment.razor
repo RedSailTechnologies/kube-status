@@ -106,12 +106,12 @@ else
                         <div class="col-xl-2">
                             <label for="@context.Metadata.Name.Replace(".","-")" class="form-label d-xl-none"><b>Name:</b></label>
                             <span id="@context.Metadata.Name.Replace(".","-")" class="form-item small">@context.Metadata.Name</span>
-                            <AuthorizeView Policy="RequireEditorRole" Context="auth">
                             <div class="my-1">
                                 <button class="btn btn-outline-dark btn-sm me-1" @onclick="() => RestartDeployment(context.Metadata.Name, context.Metadata.NamespaceProperty)">Restart</button>
-                                <button type="button" class="btn btn-outline-dark btn-sm ms-1" data-bs-toggle="modal" data-bs-target="#scaleModal" @onclick="() => OpenScaleModal(context.Metadata.NamespaceProperty, context.Metadata.Name, context.Spec.Replicas)">Scale</button>
+                                <AuthorizeView Policy="RequireEditorRole" Context="auth">
+                                    <button type="button" class="btn btn-outline-dark btn-sm ms-1" data-bs-toggle="modal" data-bs-target="#scaleModal" @onclick="() => OpenScaleModal(context.Metadata.NamespaceProperty, context.Metadata.Name, context.Spec.Replicas)">Scale</button>
+                                </AuthorizeView>
                             </div>
-                            </AuthorizeView>
                         </div>
                         <div class="col-xl-1">
                             <label for="replicas-@context.Metadata.Name.Replace(".","-")" class="form-label d-xl-none"><b>Replicas <span class="small">(Spec)</span>:</b></label>
