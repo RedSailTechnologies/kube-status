@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Caching.Memory;
 
 using Json.Patch;
+using Prometheus;
 
 using k8s;
 using k8s.Models;
@@ -16,6 +17,30 @@ namespace KubeStatus.Data
     public class StatefulSetService
     {
         private readonly IKubernetes kubernetesClient;
+
+        private readonly Counter _restartedStatefulSets = Metrics.CreateCounter(
+            "kube_status_statefulset_restarted_total",
+            "Number of restarts per statefulset.",
+            new CounterConfiguration
+            {
+                LabelNames = new[] { "Namespace", "StatefuleSet" }
+            });
+
+        private readonly Counter _restartedStatefulSetsAll = Metrics.CreateCounter(
+            "kube_status_statefulset_all_restarted_total",
+            "Number of namespace restarts.",
+            new CounterConfiguration
+            {
+                LabelNames = new[] { "Namespace" }
+            });
+
+        private readonly Counter _scaledStatefulSets = Metrics.CreateCounter(
+            "kube_status_statefulset_scaled_total",
+            "Number of scaling events per statefulset.",
+            new CounterConfiguration
+            {
+                LabelNames = new[] { "Namespace", "StatefuleSet" }
+            });
 
         public IMemoryCache MemoryCache { get; }
 
@@ -65,6 +90,8 @@ namespace KubeStatus.Data
                 var patch = old.CreatePatch(expected);
                 await kubernetesClient.AppsV1.PatchNamespacedStatefulSetAsync(new V1Patch(patch, V1Patch.PatchType.JsonPatch), name, k8sNamespace);
 
+                _restartedStatefulSets.WithLabels(k8sNamespace, name).Inc();
+
                 return true;
             }
             catch
@@ -93,6 +120,8 @@ namespace KubeStatus.Data
                     }
                 }
 
+                _restartedStatefulSetsAll.WithLabels(k8sNamespace).Inc();
+
                 return true;
             }
             catch
@@ -114,6 +143,8 @@ namespace KubeStatus.Data
                 var patchStr = $"{{\"spec\": {{\"replicas\": {replicas}}}}}";
 
                 await kubernetesClient.AppsV1.PatchNamespacedStatefulSetAsync(new V1Patch(patchStr, V1Patch.PatchType.MergePatch), name, k8sNamespace);
+
+                _scaledStatefulSets.WithLabels(k8sNamespace, name).Inc();
 
                 return true;
             }

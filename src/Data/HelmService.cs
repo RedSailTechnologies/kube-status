@@ -6,6 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 
 using CliWrap;
+using Prometheus;
 
 using KubeStatus.Models;
 
@@ -13,6 +14,22 @@ namespace KubeStatus.Data
 {
     public class HelmService
     {
+        private readonly Counter _helmRollback = Metrics.CreateCounter(
+            "kube_status_helm_rollback_total",
+            "Number of rollbacks per helm release.",
+            new CounterConfiguration
+            {
+                LabelNames = new[] { "Namespace", "Release" }
+            });
+
+        private readonly Counter _helmUninstall = Metrics.CreateCounter(
+            "kube_status_helm_uninstall_total",
+            "Number of uninstalls per helm release.",
+            new CounterConfiguration
+            {
+                LabelNames = new[] { "Namespace", "Release" }
+            });
+
         public async Task<IEnumerable<HelmListItem>> HelmListAll(string k8sNamespace = "default")
         {
             List<string> cliArgs = GetHelmCliArguments();
@@ -51,6 +68,8 @@ namespace KubeStatus.Data
             var result = await cmd
                 .ExecuteAsync();
 
+            _helmRollback.WithLabels(k8sNamespace, package).Inc();
+
             return stdOutBuffer.ToString();
         }
 
@@ -70,6 +89,8 @@ namespace KubeStatus.Data
 
             var result = await cmd
                 .ExecuteAsync();
+
+            _helmUninstall.WithLabels(k8sNamespace, package).Inc();
 
             return stdOutBuffer.ToString();
         }
