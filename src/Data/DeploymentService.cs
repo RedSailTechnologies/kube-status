@@ -23,7 +23,7 @@ namespace KubeStatus.Data
             "Number of restarts per deployment.",
             new CounterConfiguration
             {
-                LabelNames = new[] { "Namespace", "Deployment" }
+                LabelNames = new[] { "User", "Namespace", "Deployment" }
             });
 
         private readonly Counter _restartedDeploymentsAll = Metrics.CreateCounter(
@@ -31,7 +31,7 @@ namespace KubeStatus.Data
             "Number of namespace restarts.",
             new CounterConfiguration
             {
-                LabelNames = new[] { "Namespace" }
+                LabelNames = new[] { "User", "Namespace" }
             });
 
         private readonly Counter _scaledDeployments = Metrics.CreateCounter(
@@ -39,7 +39,7 @@ namespace KubeStatus.Data
             "Number of scaling events per deployment.",
             new CounterConfiguration
             {
-                LabelNames = new[] { "Namespace", "Deployment" }
+                LabelNames = new[] { "User", "Namespace", "Deployment" }
             });
 
         public IMemoryCache MemoryCache { get; }
@@ -90,7 +90,7 @@ namespace KubeStatus.Data
                 var patch = old.CreatePatch(expected);
                 await kubernetesClient.AppsV1.PatchNamespacedDeploymentAsync(new V1Patch(patch, V1Patch.PatchType.JsonPatch), name, k8sNamespace);
 
-                _restartedDeployments.WithLabels(k8sNamespace, name).Inc();
+                _restartedDeployments.WithLabels(Environment.UserName ?? "", k8sNamespace, name).Inc();
 
                 return true;
             }
@@ -120,7 +120,7 @@ namespace KubeStatus.Data
                     }
                 }
 
-                _restartedDeploymentsAll.WithLabels(k8sNamespace).Inc();
+                _restartedDeploymentsAll.WithLabels(Environment.UserName ?? "", k8sNamespace).Inc();
 
                 return true;
             }
@@ -144,7 +144,7 @@ namespace KubeStatus.Data
 
                 await kubernetesClient.AppsV1.PatchNamespacedDeploymentAsync(new V1Patch(patchStr, V1Patch.PatchType.MergePatch), name, k8sNamespace);
 
-                _scaledDeployments.WithLabels(k8sNamespace, name).Inc();
+                _scaledDeployments.WithLabels(Environment.UserName ?? "", k8sNamespace, name).Inc();
 
                 return true;
             }

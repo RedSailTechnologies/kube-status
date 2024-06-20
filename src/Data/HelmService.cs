@@ -19,7 +19,7 @@ namespace KubeStatus.Data
             "Number of rollbacks per helm release.",
             new CounterConfiguration
             {
-                LabelNames = new[] { "Namespace", "Release" }
+                LabelNames = new[] { "User", "Namespace", "Release" }
             });
 
         private readonly Counter _helmUninstall = Metrics.CreateCounter(
@@ -27,7 +27,7 @@ namespace KubeStatus.Data
             "Number of uninstalls per helm release.",
             new CounterConfiguration
             {
-                LabelNames = new[] { "Namespace", "Release" }
+                LabelNames = new[] { "User", "Namespace", "Release" }
             });
 
         public async Task<IEnumerable<HelmListItem>> HelmListAll(string k8sNamespace = "default")
@@ -68,7 +68,7 @@ namespace KubeStatus.Data
             var result = await cmd
                 .ExecuteAsync();
 
-            _helmRollback.WithLabels(k8sNamespace, package).Inc();
+            _helmRollback.WithLabels(Environment.UserName ?? "", k8sNamespace, package).Inc();
 
             return stdOutBuffer.ToString();
         }
@@ -90,7 +90,7 @@ namespace KubeStatus.Data
             var result = await cmd
                 .ExecuteAsync();
 
-            _helmUninstall.WithLabels(k8sNamespace, package).Inc();
+            _helmUninstall.WithLabels(Environment.UserName ?? "", k8sNamespace, package).Inc();
 
             return stdOutBuffer.ToString();
         }

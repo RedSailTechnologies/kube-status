@@ -11,6 +11,7 @@ using Prometheus;
 
 using k8s;
 using k8s.Models;
+using k8s.KubeConfigModels;
 
 namespace KubeStatus.Data
 {
@@ -23,7 +24,7 @@ namespace KubeStatus.Data
             "Number of restarts per statefulset.",
             new CounterConfiguration
             {
-                LabelNames = new[] { "Namespace", "StatefuleSet" }
+                LabelNames = new[] { "User", "Namespace", "StatefuleSet" }
             });
 
         private readonly Counter _restartedStatefulSetsAll = Metrics.CreateCounter(
@@ -31,7 +32,7 @@ namespace KubeStatus.Data
             "Number of namespace restarts.",
             new CounterConfiguration
             {
-                LabelNames = new[] { "Namespace" }
+                LabelNames = new[] { "User", "Namespace" }
             });
 
         private readonly Counter _scaledStatefulSets = Metrics.CreateCounter(
@@ -39,7 +40,7 @@ namespace KubeStatus.Data
             "Number of scaling events per statefulset.",
             new CounterConfiguration
             {
-                LabelNames = new[] { "Namespace", "StatefuleSet" }
+                LabelNames = new[] { "User", "Namespace", "StatefuleSet" }
             });
 
         public IMemoryCache MemoryCache { get; }
@@ -90,7 +91,7 @@ namespace KubeStatus.Data
                 var patch = old.CreatePatch(expected);
                 await kubernetesClient.AppsV1.PatchNamespacedStatefulSetAsync(new V1Patch(patch, V1Patch.PatchType.JsonPatch), name, k8sNamespace);
 
-                _restartedStatefulSets.WithLabels(k8sNamespace, name).Inc();
+                _restartedStatefulSets.WithLabels(Environment.UserName ?? "", k8sNamespace, name).Inc();
 
                 return true;
             }
@@ -120,7 +121,7 @@ namespace KubeStatus.Data
                     }
                 }
 
-                _restartedStatefulSetsAll.WithLabels(k8sNamespace).Inc();
+                _restartedStatefulSetsAll.WithLabels(Environment.UserName ?? "", k8sNamespace).Inc();
 
                 return true;
             }
@@ -144,7 +145,7 @@ namespace KubeStatus.Data
 
                 await kubernetesClient.AppsV1.PatchNamespacedStatefulSetAsync(new V1Patch(patchStr, V1Patch.PatchType.MergePatch), name, k8sNamespace);
 
-                _scaledStatefulSets.WithLabels(k8sNamespace, name).Inc();
+                _scaledStatefulSets.WithLabels(Environment.UserName ?? "", k8sNamespace, name).Inc();
 
                 return true;
             }
