@@ -1,5 +1,8 @@
 using System;
 using System.Collections.Generic;
+using System.Security.Claims;
+
+using Microsoft.AspNetCore.Http;
 
 using k8s;
 
@@ -123,6 +126,11 @@ namespace KubeStatus
             var yaml = serializer.Serialize(obj);
 
             return yaml;
+        }
+
+        public static string GetUserIdentityName(this IHttpContextAccessor httpContextAccessor)
+        {
+            return httpContextAccessor.HttpContext.User.Identity.Name.ToLower() ?? "";
         }
     }
 }

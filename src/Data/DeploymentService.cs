@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
 
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Caching.Memory;
 
 using Json.Patch;
@@ -42,12 +43,15 @@ namespace KubeStatus.Data
                 LabelNames = new[] { "User", "Namespace", "Deployment" }
             });
 
+        private readonly IHttpContextAccessor _httpContextAccessor;
+
         public IMemoryCache MemoryCache { get; }
 
-        public DeploymentService(IKubernetes kubernetesClient, IMemoryCache memoryCache)
+        public DeploymentService(IKubernetes kubernetesClient, IMemoryCache memoryCache, IHttpContextAccessor httpContextAccessor)
         {
             this.kubernetesClient = kubernetesClient;
             MemoryCache = memoryCache;
+            _httpContextAccessor = httpContextAccessor;
         }
 
         public Task<V1DeploymentList> GetAllNamespacedDeploymentsAsync(string k8sNamespace = "default")
@@ -90,7 +94,7 @@ namespace KubeStatus.Data
                 var patch = old.CreatePatch(expected);
                 await kubernetesClient.AppsV1.PatchNamespacedDeploymentAsync(new V1Patch(patch, V1Patch.PatchType.JsonPatch), name, k8sNamespace);
 
-                _restartedDeployments.WithLabels(Environment.UserName ?? "", k8sNamespace, name).Inc();
+                _restartedDeployments.WithLabels(_httpContextAccessor.GetUserIdentityName(), k8sNamespace, name).Inc();
 
                 return true;
             }
@@ -120,7 +124,7 @@ namespace KubeStatus.Data
                     }
                 }
 
-                _restartedDeploymentsAll.WithLabels(Environment.UserName ?? "", k8sNamespace).Inc();
+                _restartedDeploymentsAll.WithLabels(_httpContextAccessor.GetUserIdentityName(), k8sNamespace).Inc();
 
                 return true;
             }
@@ -144,7 +148,7 @@ namespace KubeStatus.Data
 
                 await kubernetesClient.AppsV1.PatchNamespacedDeploymentAsync(new V1Patch(patchStr, V1Patch.PatchType.MergePatch), name, k8sNamespace);
 
-                _scaledDeployments.WithLabels(Environment.UserName ?? "", k8sNamespace, name).Inc();
+                _scaledDeployments.WithLabels(_httpContextAccessor.GetUserIdentityName(), k8sNamespace, name).Inc();
 
                 return true;
             }

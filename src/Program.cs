@@ -53,6 +53,8 @@ builder.Services.AddRazorPages()
 builder.Services.AddServerSideBlazor()
     .AddMicrosoftIdentityConsentHandler();
 
+builder.Services.AddHttpContextAccessor();
+
 builder.Services.AddSingleton<IKubernetes>(_ => Helper.GetKubernetesClient());
 builder.Services.AddSingleton<SparkApplicationService>();
 builder.Services.AddSingleton<KafkaConnectorService>();
