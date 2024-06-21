@@ -65,7 +65,7 @@ else
 {
     @if (!String.IsNullOrWhiteSpace(HelmMessage))
     {
-        <div class="alert alert-info" role="alert">
+        <div class="alert @AlertClass" role="alert">
             @HelmMessage
         </div>
     }
@@ -103,7 +103,7 @@ else
                 <td>
                     <div class="form-group row">
                         <div class="col-xl-2">
-                            <label for="component-@context.Name.Replace(".","-")" class="form-label d-xl-none"><b>Name:</b></label>
+                            <label class="form-label d-xl-none"><b>Name:</b></label>
                             <span id="component-@context.Name.Replace(".","-")" class="form-item small">@context.Name</span>
                             <AuthorizeView Policy="RequireEditorRole" Context="auth">
                             <div class="my-1">
@@ -113,28 +113,28 @@ else
                             </AuthorizeView>
                         </div>
                         <div class="col-xl-1">
-                            <label for="component-@context.Namespace.Replace(".","-")" class="form-label d-xl-none"><b>Namespace:</b></label>
-                            <span id="component-@context.Namespace.Replace(".","-")" class="form-item small">@context.Namespace</span>
+                            <label class="form-label d-xl-none"><b>Namespace:</b></label>
+                            <span id="namespace-@context.Namespace.Replace(".","-")" class="form-item small">@context.Namespace</span>
                         </div>
                         <div class="col-xl-1">
-                            <label for="part-of-@context.Revision.ToString()" class="form-label d-xl-none"><b>Revision:</b></label>
-                            <span id="part-of-@context.Revision.ToString()" class="form-item small">@context.Revision</span>
+                            <label class="form-label d-xl-none"><b>Revision:</b></label>
+                            <span id="revision-@context.Revision.ToString()" class="form-item small">@context.Revision</span>
                         </div>
                         <div class="col-xl-2">
-                            <label for="version-@context.Chart.Replace(".","-")" class="form-label d-xl-none"><b>Chart:</b></label>
-                            <span id="version-@context.Chart.Replace(".","-")" class="form-item small">@context.Chart</span>
+                            <label class="form-label d-xl-none"><b>Chart:</b></label>
+                            <span id="chart-@context.Chart.Replace(".","-")" class="form-item small">@context.Chart</span>
                         </div>
                         <div class="col-xl-2">
-                            <label for="status-@context.AppVersion.Replace(".","-")" class="form-label d-xl-none"><b>App Version:</b></label>
-                            <span id="status-@context.AppVersion.Replace(".","-")" class="form-item small">@context.AppVersion</span>
+                            <label class="form-label d-xl-none"><b>App Version:</b></label>
+                            <span id="app-version-@context.AppVersion.Replace(".","-")" class="form-item small">@context.AppVersion</span>
                         </div>
                         <div class="col-xl-1">
-                            <label for="created-@context.Status.Replace(".","-")" class="form-label d-xl-none"><b>Status:</b></label>
-                            <span id="created-@context.Status.Replace(".","-")" class="form-item small">@context.Status</span>
+                            <label class="form-label d-xl-none"><b>Status:</b></label>
+                            <span id="status-@context.Status.Replace(".","-")" class="form-item small">@context.Status</span>
                         </div>
                         <div class="col-xl-2">
-                            <label for="created-@context.Updated.ToString("u")" class="form-label d-xl-none"><b>Updated:</b></label>
-                            <span id="created-@context.Updated.ToString("u")" class="form-item small">@context.Updated.ToString("u")</span>
+                            <label class="form-label d-xl-none"><b>Updated:</b></label>
+                            <span id="updated-@context.Updated.ToString("u")" class="form-item small">@context.Updated.ToString("u")</span>
                         </div>
                     </div>
                 </td>
@@ -168,6 +168,7 @@ else
     IEnumerable<HelmListItem> HelmList;
     IEnumerable<HelmListItem> FilteredHelmList;
     string HelmMessage = "";
+    string AlertClass = "alert-info";
     string Filter;
     int ItemCountAll = 0;
     int ItemCountFiltered = 0;
@@ -247,6 +248,7 @@ else
         bool confirmed = await JsRuntime.InvokeAsync<bool>("confirm", $"Are you sure you want to rollback {package} in the {k8sNamespace} namespace?");
         if (confirmed)
         {
+            AlertClass = "alert-info";
             HelmMessage = $"Rolling back {package} in the {SelectedNamespace} namespace...";
             await InvokeAsync(() => { base.StateHasChanged(); });
 
@@ -256,6 +258,7 @@ else
             // allow the error message to be seen
             if (!HelmMessage.Contains("was a success!", StringComparison.OrdinalIgnoreCase))
             {
+                AlertClass = "alert-danger";
                 System.Threading.Thread.Sleep(10000);
             }
 
@@ -269,6 +272,7 @@ else
         bool confirmed = await JsRuntime.InvokeAsync<bool>("confirm", $"Are you sure you want to uninstall {package} in the {k8sNamespace} namespace?");
         if (confirmed)
         {
+            AlertClass = "alert-info";
             HelmMessage = $"Uninstalling {package} in the {SelectedNamespace} namespace...";
             await InvokeAsync(() => { base.StateHasChanged(); });
 
@@ -278,6 +282,7 @@ else
             // allow the error message to be seen
             if (!HelmMessage.Contains($"release \"{package}\" uninstalled", StringComparison.OrdinalIgnoreCase))
             {
+                AlertClass = "alert-danger";
                 System.Threading.Thread.Sleep(10000);
             }
 

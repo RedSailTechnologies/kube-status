@@ -69,7 +69,7 @@ else
 {
     @if (!String.IsNullOrWhiteSpace(StatefulSetMessage))
     {
-        <div class="alert alert-info" role="alert">
+        <div class="alert @AlertClass" role="alert">
             @StatefulSetMessage
         </div>
     }
@@ -101,7 +101,7 @@ else
                 <td>
                     <div class="form-group row">
                         <div class="col-xl-2">
-                            <label for="@context.Metadata.Name.Replace(".","-")" class="form-label d-xl-none"><b>Name:</b></label>
+                            <label class="form-label d-xl-none"><b>Name:</b></label>
                             <span id="@context.Metadata.Name.Replace(".","-")" class="form-item small">@context.Metadata.Name</span>
                             <AuthorizeView Policy="RequireEditorRole" Context="auth">
                             <div class="my-1">
@@ -111,20 +111,19 @@ else
                             </AuthorizeView>
                         </div>
                         <div class="col-xl-1">
-                            <label for="replicas-@context.Metadata.Name.Replace(".","-")" class="form-label d-xl-none"><b>Replicas <span class="small">(Spec)</span>:</b></label>
-                            <span id="replicas-@context.Metadata.Name.Replace(".","-")" class="form-item small">@context.Spec.Replicas</span>
+                            <label class="form-label d-xl-none"><b>Replicas <span class="small">(Spec)</span>:</b></label>
+                            <span id="spec-replicas-@context.Metadata.Name.Replace(".","-")" class="form-item small">@context.Spec.Replicas</span>
                         </div>
                         <div class="col-xl-1">
-                            <label for="replicas-@context.Metadata.Name.Replace(".","-")" class="form-label d-xl-none"><b>Replicas <span class="small">(Status)</span>:</b></label>
-                            <span id="replicas-@context.Metadata.Name.Replace(".","-")" class="form-item small">@context.Status.Replicas</span>
+                            <label class="form-label d-xl-none"><b>Replicas <span class="small">(Status)</span>:</b></label>
+                            <span id="status-replicas-@context.Metadata.Name.Replace(".","-")" class="form-item small">@context.Status.Replicas</span>
                         </div>
                         <div class="col-xl-1">
-                            <label for="pods-@context.Metadata.Name.ToString()" class="form-label d-xl-none"><b>Pods <span
-                                class="small">(Ready / Total)</span>:</b></label>
-                            <span id="pods-@context.Metadata.Name.ToString()" class="form-item small">@context.Status.ReadyReplicas / @context.Status.Replicas</span>
+                            <label class="form-label d-xl-none"><b>Pods <span class="small">(Ready / Total)</span>:</b></label>
+                            <span id="ready-replicas-@context.Metadata.Name.ToString()" class="form-item small">@context.Status.ReadyReplicas / @context.Status.Replicas</span>
                         </div>
                         <div class="col-xl-2">
-                            <label for="created-@context.Metadata.Name.Replace(".","-")" class="form-label d-xl-none"><b>Created:</b></label>
+                            <label class="form-label d-xl-none"><b>Created:</b></label>
                             <span id="created-@context.Metadata.Name.Replace(".","-")" class="form-item small">@context.Metadata.CreationTimestamp</span>
                         </div>
                         </div>
@@ -178,6 +177,7 @@ else
     V1StatefulSetList StatefulSetList;
     List<V1StatefulSet> FilteredStatefulSetList;
     string StatefulSetMessage = "";
+    string AlertClass = "alert-info";
     string Filter;
     string ScaleHeading = "";
     string StatefulSetNamespace = "";
@@ -294,6 +294,7 @@ else
         if (confirmed)
         {
             StatefulSetMessage = $"Restarting all StatefulSets in the {SelectedNamespace} namespace...";
+            AlertClass = "alert-info";
             await InvokeAsync(() => { base.StateHasChanged(); });
 
             var success = await StatefulSetService.RestartNamespacedStatefulSetAsync(SelectedNamespace);
@@ -307,12 +308,14 @@ else
             else
             {
                 StatefulSetMessage = $"There was a problem restarting all StatefulSets in the {SelectedNamespace}!";
+                AlertClass = "alert-danger";
                 await InvokeAsync(() => { base.StateHasChanged(); });
                 System.Threading.Thread.Sleep(10000);
             }
 
             await StatefulSetListAll();
             StatefulSetMessage = "";
+            AlertClass = "alert-info";
         }
     }
 
@@ -323,6 +326,7 @@ else
         if (confirmed)
         {
             StatefulSetMessage = $"Restarting {name} in the {k8sNamespace} namespace...";
+            AlertClass = "alert-info";
             await InvokeAsync(() => { base.StateHasChanged(); });
 
             var success = await StatefulSetService.RestartStatefulSetAsync(name, k8sNamespace);
@@ -335,13 +339,15 @@ else
             }
             else
             {
-                StatefulSetMessage = $"There was a problem restaring {name}in the {k8sNamespace} namespace!";
+                StatefulSetMessage = $"There was a problem restaring {name} in the {k8sNamespace} namespace!";
+                AlertClass = "alert-danger";
                 await InvokeAsync(() => { base.StateHasChanged(); });
                 System.Threading.Thread.Sleep(10000);
             }
 
             await StatefulSetListAll();
             StatefulSetMessage = "";
+            AlertClass = "alert-info";
         }
     }
 
@@ -366,6 +372,7 @@ else
                 {
                     var plural = Replicas == 1 ? "replica" : "replicas";
                     StatefulSetMessage = $"Successfully scaled {StatefulSetName} to {Replicas} {plural}.";
+                    AlertClass = "alert-info";
                     await InvokeAsync(() => { base.StateHasChanged(); });
                     System.Threading.Thread.Sleep(5000);
                 }
@@ -374,6 +381,7 @@ else
 
         await StatefulSetListAll();
         StatefulSetMessage = "";
+        AlertClass = "alert-info";
         StatefulSetNamespace = "";
         StatefulSetName = "";
         Replicas = 0;

@@ -5,6 +5,8 @@ using System.IO;
 using System.Text;
 using System.Threading.Tasks;
 
+using Microsoft.AspNetCore.Http;
+
 using CliWrap;
 using Prometheus;
 
@@ -29,6 +31,13 @@ namespace KubeStatus.Data
             {
                 LabelNames = new[] { "User", "Namespace", "Release" }
             });
+
+        private readonly IHttpContextAccessor _httpContextAccessor;
+
+        public HelmService(IHttpContextAccessor httpContextAccessor)
+        {
+            _httpContextAccessor = httpContextAccessor;
+        }
 
         public async Task<IEnumerable<HelmListItem>> HelmListAll(string k8sNamespace = "default")
         {
@@ -68,7 +77,7 @@ namespace KubeStatus.Data
             var result = await cmd
                 .ExecuteAsync();
 
-            _helmRollback.WithLabels(Environment.UserName ?? "", k8sNamespace, package).Inc();
+            _helmRollback.WithLabels(_httpContextAccessor.GetUserIdentityName(), k8sNamespace, package).Inc();
 
             return stdOutBuffer.ToString();
         }
@@ -90,7 +99,7 @@ namespace KubeStatus.Data
             var result = await cmd
                 .ExecuteAsync();
 
-            _helmUninstall.WithLabels(Environment.UserName ?? "", k8sNamespace, package).Inc();
+            _helmUninstall.WithLabels(_httpContextAccessor.GetUserIdentityName(), k8sNamespace, package).Inc();
 
             return stdOutBuffer.ToString();
         }

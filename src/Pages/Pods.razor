@@ -155,8 +155,7 @@ else
                         <div class="col-xl-1">
                             @if (!string.IsNullOrWhiteSpace(context.Component))
                             {
-                                <label for="component-@context.PodName.Replace(".","-")"
-                        class="form-label d-xl-none"><b>Component:</b></label>
+                                <label class="form-label d-xl-none"><b>Component:</b></label>
                                 <span id="component-@context.PodName.Replace(".","-")"
                         class="form-item small">@context.Component</span>
                             }
@@ -164,28 +163,24 @@ else
                         <div class="col-xl-1">
                             @if (!string.IsNullOrWhiteSpace(context.PartOf))
                             {
-                                <label for="part-of-@context.PodName.Replace(".","-")" class="form-label d-xl-none"><b>Part
-                                        Of:</b></label>
+                                <label class="form-label d-xl-none"><b>Part Of:</b></label>
                                 <span id="part-of-@context.PodName.Replace(".","-")" class="form-item small">@context.PartOf</span>
                             }
                         </div>
                         <div class="col-xl-1">
                             @if (!string.IsNullOrWhiteSpace(context.Version))
                             {
-                                <label for="version-@context.PodName.Replace(".","-")"
-                        class="form-label d-xl-none"><b>Version:</b></label>
+                                <label class="form-label d-xl-none"><b>Version:</b></label>
                                 <span id="version-@context.PodName.Replace(".","-")" class="form-item small">@context.Version</span>
                             }
                         </div>
                         <div class="col-xl-1">
-                            <label for="status-@context.PodName.Replace(".","-")"
-                        class="form-label d-xl-none"><b>Status:</b></label>
+                            <label class="form-label d-xl-none"><b>Status:</b></label>
                             <span id="status-@context.PodName.Replace(".","-")"
                         class="form-item small">@context.PodStatus</span>
                         </div>
                         <div class="col-xl-1">
-                            <label for="created-@context.PodName.Replace(".","-")"
-                        class="form-label d-xl-none"><b>Created:</b></label>
+                            <label class="form-label d-xl-none"><b>Created:</b></label>
                             <span id="created-@context.PodName.Replace(".","-")" class="form-item small">
                                 @if (context.PodCreated.HasValue)
                                 {
@@ -260,13 +255,11 @@ else
                             <div class="collapse col-sm-12" id="@context.PodName.Replace(".","-")-collapseMoreDetails">
                                 <div class="row">
                                     <div class="col-md-4">
-                                        <label for="node-name-@context.PodName.Replace(".","-")" class="form-label"><b>Node
-                                                Name</b></label>
+                                        <label class="form-label"><b>Node Name</b></label>
                                         <p>@context.NodeName</p>
                                     </div>
                                     <div class="col-md-4">
-                                        <label for="node-ip-@context.PodName.Replace(".","-")" class="form-label"><b>Node
-                                                IP</b></label>
+                                        <label class="form-label"><b>Node IP</b></label>
                                         <p>@context.HostIP</p>
                                     </div>
                                     <div class="col-md-4">
@@ -274,7 +267,7 @@ else
                                         {
                                             @if (@context.PodIPs.Count > 1)
                                             {
-                                                <label for="ip-@context.PodName.Replace(".","-")" class="form-label"><b>Pod IPs</b></label>
+                                                <label class="form-label"><b>Pod IPs</b></label>
                                                 <div id="ip-@context.PodName.Replace(".","-")" class="form-item">
                                                     <ul>
                                                         @foreach (var ip in context.PodIPs)
@@ -286,7 +279,7 @@ else
                                             }
                                             else if (@context.PodIPs.Count == 1)
                                             {
-                                                <label for="ip-@context.PodName.Replace(".","-")" class="form-label"><b>Pod IP</b></label>
+                                                <label class="form-label"><b>Pod IP</b></label>
                                                 <div id="ip-@context.PodName.Replace(".","-")" class="form-item">@context.PodIPs[0]</div>
                                             }
                                             else
@@ -343,13 +336,12 @@ else
                             class="form-item">@statusContext.Started</span>
                                     </div>
                                     <div class="small mb-2">
-                                        <label for="ready-@context.PodName.Replace(".","-")-@statusContext.Name"><b>Ready:</b></label>
+                                        <label><b>Ready:</b></label>
                                         <span id="ready-@context.PodName.Replace(".","-")-@statusContext.Name"
                             class="form-item">@statusContext.Ready</span>
                                     </div>
                                     <div class="small mb-2">
-                                        <label for="restart-count-@context.PodName.Replace(".","-")-@statusContext.Name"><b>Restart
-                                                Count:</b></label>
+                                        <label><b>Restart Count:</b></label>
                                         <span id="restart-count-@context.PodName.Replace(".","-")-@statusContext.Name"
                             class="form-item">@statusContext.RestartCount</span>
                                     </div>
@@ -365,7 +357,7 @@ else
                 {
                 <div class="col-xl-4">
                     <div class="small mb-2">
-                        <label for="image-@context.PodName.Replace(".","-")-@statusContext.Name"><b>Image:</b></label>
+                        <label><b>Image:</b></label>
                         <span id="image-@context.PodName.Replace(".","-")-@statusContext.Name" class="form-item">
                             @if (statusContext.ImageID?.Split('@').Length > 1)
                             {
@@ -378,7 +370,7 @@ else
                         </span>
                     </div>
                     <div class="small mb-2">
-                        <label for="tag-@context.PodName.Replace(".","-")-@statusContext.Name"><b>Tag:</b></label>
+                        <label><b>Tag:</b></label>
                         <span id="tag-@context.PodName.Replace(".","-")-@statusContext.Name" class="form-item">
                             @if (statusContext.Image.StartsWith("sha"))
                             {
@@ -391,7 +383,7 @@ else
                         </span>
                     </div>
                     <div class="small mb-2">
-                        <label for="image-id-@context.PodName.Replace(".","-")-@statusContext.Name"><b>Image
+                        <label><b>Image
                                 ID:</b></label>
                         <span id="image-id-@context.PodName.Replace(".","-")-@statusContext.Name" class="form-item">
                             @if (statusContext.ImageID?.Split('@').Length > 1)
@@ -485,13 +477,12 @@ else
                             class="form-item">@statusContext.Started</span>
                                     </div>
                                     <div class="small mb-2">
-                                        <label for="ready-@context.PodName.Replace(".","-")-@statusContext.Name"><b>Ready:</b></label>
+                                        <label><b>Ready:</b></label>
                                         <span id="ready-@context.PodName.Replace(".","-")-@statusContext.Name"
                             class="form-item">@statusContext.Ready</span>
                                     </div>
                                     <div class="small mb-2">
-                                        <label for="restart-count-@context.PodName.Replace(".","-")-@statusContext.Name"><b>Restart
-                                                Count:</b></label>
+                                        <label><b>Restart Count:</b></label>
                                         <span id="restart-count-@context.PodName.Replace(".","-")-@statusContext.Name"
                             class="form-item">@statusContext.RestartCount</span>
                                     </div>
@@ -507,7 +498,7 @@ else
                 {
                 <div class="col-xl-4">
                     <div class="small mb-2">
-                        <label for="image-@context.PodName.Replace(".","-")-@statusContext.Name"><b>Image:</b></label>
+                        <label><b>Image:</b></label>
                         <span id="image-@context.PodName.Replace(".","-")-@statusContext.Name" class="form-item">
                             @if (statusContext.ImageID?.Split('@').Length > 1)
                             {
@@ -520,7 +511,7 @@ else
                         </span>
                     </div>
                     <div class="small mb-2">
-                        <label for="tag-@context.PodName.Replace(".","-")-@statusContext.Name"><b>Tag:</b></label>
+                        <label><b>Tag:</b></label>
                         <span id="tag-@context.PodName.Replace(".","-")-@statusContext.Name" class="form-item">
                             @if (statusContext.Image.StartsWith("sha"))
                             {
@@ -533,8 +524,7 @@ else
                         </span>
                     </div>
                     <div class="small mb-2">
-                        <label for="image-id-@context.PodName.Replace(".","-")-@statusContext.Name"><b>Image
-                                ID:</b></label>
+                        <label><b>Image ID:</b></label>
                         <span id="image-id-@context.PodName.Replace(".","-")-@statusContext.Name" class="form-item">
                             @if (statusContext.ImageID?.Split('@').Length > 1)
                             {

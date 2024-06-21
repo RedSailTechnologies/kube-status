@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
 
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Caching.Memory;
 
 using Json.Patch;
@@ -11,7 +12,6 @@ using Prometheus;
 
 using k8s;
 using k8s.Models;
-using k8s.KubeConfigModels;
 
 namespace KubeStatus.Data
 {
@@ -43,12 +43,15 @@ namespace KubeStatus.Data
                 LabelNames = new[] { "User", "Namespace", "StatefuleSet" }
             });
 
+        private readonly IHttpContextAccessor _httpContextAccessor;
+
         public IMemoryCache MemoryCache { get; }
 
-        public StatefulSetService(IKubernetes kubernetesClient, IMemoryCache memoryCache)
+        public StatefulSetService(IKubernetes kubernetesClient, IMemoryCache memoryCache, IHttpContextAccessor httpContextAccessor)
         {
             this.kubernetesClient = kubernetesClient;
             MemoryCache = memoryCache;
+            _httpContextAccessor = httpContextAccessor;
         }
 
         public Task<V1StatefulSetList> GetAllNamespacedStatefulSetsAsync(string k8sNamespace = "default")
@@ -91,7 +94,7 @@ namespace KubeStatus.Data
                 var patch = old.CreatePatch(expected);
                 await kubernetesClient.AppsV1.PatchNamespacedStatefulSetAsync(new V1Patch(patch, V1Patch.PatchType.JsonPatch), name, k8sNamespace);
 
-                _restartedStatefulSets.WithLabels(Environment.UserName ?? "", k8sNamespace, name).Inc();
+                _restartedStatefulSets.WithLabels(_httpContextAccessor.GetUserIdentityName(), k8sNamespace, name).Inc();
 
                 return true;
             }
@@ -121,7 +124,7 @@ namespace KubeStatus.Data
                     }
                 }
 
-                _restartedStatefulSetsAll.WithLabels(Environment.UserName ?? "", k8sNamespace).Inc();
+                _restartedStatefulSetsAll.WithLabels(_httpContextAccessor.GetUserIdentityName(), k8sNamespace).Inc();
 
                 return true;
             }
@@ -145,7 +148,7 @@ namespace KubeStatus.Data
 
                 await kubernetesClient.AppsV1.PatchNamespacedStatefulSetAsync(new V1Patch(patchStr, V1Patch.PatchType.MergePatch), name, k8sNamespace);
 
-                _scaledStatefulSets.WithLabels(Environment.UserName ?? "", k8sNamespace, name).Inc();
+                _scaledStatefulSets.WithLabels(_httpContextAccessor.GetUserIdentityName(), k8sNamespace, name).Inc();
 
                 return true;
             }
