@@ -69,7 +69,7 @@ else
 {
     @if (!String.IsNullOrWhiteSpace(DeploymentMessage))
     {
-        <div class="alert alert-info" role="alert">
+        <div class="alert @AlertClass" role="alert">
             @DeploymentMessage
         </div>
     }
@@ -104,7 +104,7 @@ else
                 <td>
                     <div class="form-group row">
                         <div class="col-xl-2">
-                            <label for="@context.Metadata.Name.Replace(".","-")" class="form-label d-xl-none"><b>Name:</b></label>
+                            <label class="form-label d-xl-none"><b>Name:</b></label>
                             <span id="@context.Metadata.Name.Replace(".","-")" class="form-item small">@context.Metadata.Name</span>
                             <div class="my-1">
                                 <button class="btn btn-outline-dark btn-sm me-1" @onclick="() => RestartDeployment(context.Metadata.Name, context.Metadata.NamespaceProperty)">Restart</button>
@@ -114,23 +114,23 @@ else
                             </div>
                         </div>
                         <div class="col-xl-1">
-                            <label for="replicas-@context.Metadata.Name.Replace(".","-")" class="form-label d-xl-none"><b>Replicas <span class="small">(Spec)</span>:</b></label>
-                            <span id="replicas-@context.Metadata.Name.Replace(".","-")" class="form-item small">@context.Spec.Replicas</span>
+                            <label class="form-label d-xl-none"><b>Replicas <span class="small">(Spec)</span>:</b></label>
+                            <span id="spec-replicas-@context.Metadata.Name.Replace(".","-")" class="form-item small">@context.Spec.Replicas</span>
                         </div>
                         <div class="col-xl-1">
-                            <label for="replicas-@context.Metadata.Name.Replace(".","-")" class="form-label d-xl-none"><b>Replicas <span class="small">(Status)</span>:</b></label>
-                            <span id="replicas-@context.Metadata.Name.Replace(".","-")" class="form-item small">@context.Status.Replicas</span>
+                            <label class="form-label d-xl-none"><b>Replicas <span class="small">(Status)</span>:</b></label>
+                            <span id="status-replicas-@context.Metadata.Name.Replace(".","-")" class="form-item small">@context.Status.Replicas</span>
                         </div>
                         <div class="col-xl-1">
-                            <label for="pods-@context.Metadata.Name.ToString()" class="form-label d-xl-none"><b>Pods <span class="small">(Ready / Total)</span>:</b></label>
-                            <span id="pods-@context.Metadata.Name.ToString()" class="form-item small">@context.Status.ReadyReplicas / @context.Status.Replicas</span>
+                            <label class="form-label d-xl-none"><b>Pods <span class="small">(Ready / Total)</span>:</b></label>
+                            <span id="ready-replicas-@context.Metadata.Name.ToString()" class="form-item small">@context.Status.ReadyReplicas / @context.Status.Replicas</span>
                         </div>
                         <div class="col-xl-2">
-                            <label for="created-@context.Metadata.Name.Replace(".","-")" class="form-label d-xl-none"><b>Created:</b></label>
+                            <label class="form-label d-xl-none"><b>Created:</b></label>
                             <span id="created-@context.Metadata.Name.Replace(".","-")" class="form-item small">@context.Metadata.CreationTimestamp</span>
                         </div>
                         <div class="col-xl-3">
-                            <label for="conditions-@context.Metadata.Name.Replace(".","-")" class="form-label d-xl-none"><b>Conditions:</b></label>
+                            <label class="form-label d-xl-none"><b>Conditions:</b></label>
                             <span id="conditions-@context.Metadata.Name.Replace(".","-")" class="form-item small">
                             @foreach (var condition in context.Status.Conditions.OrderBy(c => c.Type))
                             {
@@ -189,6 +189,7 @@ else
     V1DeploymentList DeploymentList;
     List<V1Deployment> FilteredDeploymentList;
     string DeploymentMessage = "";
+    string AlertClass = "alert-info";
     string Filter;
     string ScaleHeading = "";
     string DeploymentNamespace = "";
@@ -305,6 +306,7 @@ else
         if (confirmed)
         {
             DeploymentMessage = $"Restarting all deployments in the {SelectedNamespace} namespace...";
+            AlertClass = "alert-info";
             await InvokeAsync(() => { base.StateHasChanged(); });
 
             var success = await DeploymentService.RestartNamespacedDeploymentAsync(SelectedNamespace);
@@ -318,12 +320,14 @@ else
             else
             {
                 DeploymentMessage = $"There was a problem restarting all deployments in the {SelectedNamespace}!";
+                AlertClass = "alert-danger";
                 await InvokeAsync(() => { base.StateHasChanged(); });
                 System.Threading.Thread.Sleep(10000);
             }
 
             await DeploymentListAll();
             DeploymentMessage = "";
+            AlertClass = "alert-info";
         }
     }
 
@@ -334,6 +338,7 @@ else
         if (confirmed)
         {
             DeploymentMessage = $"Restarting {name} in the {k8sNamespace} namespace...";
+            AlertClass = "alert-info";
             await InvokeAsync(() => { base.StateHasChanged(); });
 
             var success = await DeploymentService.RestartDeploymentAsync(name, k8sNamespace);
@@ -346,13 +351,15 @@ else
             }
             else
             {
-                DeploymentMessage = $"There was a problem restaring {name}in the {k8sNamespace} namespace!";
+                DeploymentMessage = $"There was a problem restaring {name} in the {k8sNamespace} namespace!";
+                AlertClass = "alert-danger";
                 await InvokeAsync(() => { base.StateHasChanged(); });
                 System.Threading.Thread.Sleep(10000);
             }
 
             await DeploymentListAll();
             DeploymentMessage = "";
+            AlertClass = "alert-info";
         }
     }
 
@@ -377,6 +384,7 @@ else
                 {
                     var plural = Replicas == 1 ? "replica" : "replicas";
                     DeploymentMessage = $"Successfully scaled {DeploymentName} to {Replicas} {plural}.";
+                    AlertClass = "alert-info";
                     await InvokeAsync(() => { base.StateHasChanged(); });
                     System.Threading.Thread.Sleep(5000);
                 }
@@ -385,6 +393,7 @@ else
 
         await DeploymentListAll();
         DeploymentMessage = "";
+        AlertClass = "alert-info";
         DeploymentNamespace = "";
         DeploymentName = "";
         Replicas = 0;

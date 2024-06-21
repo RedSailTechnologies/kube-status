@@ -8,21 +8,28 @@
 <h1>Spark Applications Status</h1>
 
 @if (GetApplicationsError)
+
 {
     <div class="alert alert-danger" role="alert">
         Unable to get Spark Applications. Please try again later.
     </div>
 }
+
 else
+
 {
     @if (@Applications != null && @Applications.Any())
+
     {
         <div class="row">
             @if (@ItemCountAll == @ItemCountFiltered)
+
             {
                 <h6>Items: @ItemCountAll</h6>
             }
+
             else
+
             {
                 <h6>Filtered: @ItemCountFiltered / @ItemCountAll</h6>
             }
@@ -32,12 +39,16 @@ else
                 <label for="applicationStatusSelect" class="form-label">Application State Filter</label>
                 <select class="form-select" id="applicationStatusSelect" @onchange="@OnSelect">
                     @foreach (var status in ApplicationStatuses)
+
                     {
                         @if (@status.Key.Equals(@SelectedApplicationStatus, StringComparison.OrdinalIgnoreCase))
+
                         {
                             <option value=@status.Value selected>@status.Key</option>
                         }
+
                         else
+
                         {
                             <option value=@status.Value>@status.Key</option>
                         }
@@ -49,9 +60,9 @@ else
             <div class="col-sm-4">
                 <div class="input-group">
                     <input type="text" class="form-control" placeholder="Search..." aria-label="Filter"
-                aria-describedby="button-clear" @bind-value="Filter" @oninput="@FilterChange">
+                        aria-describedby="button-clear" @bind-value="Filter" @oninput="@FilterChange">
                     <button class="btn btn-outline-secondary" type="button" id="button-clear"
-                @onclick="@ClearFilter">Clear</button>
+                        @onclick="@ClearFilter">Clear</button>
                 </div>
             </div>
         </div>
@@ -67,76 +78,85 @@ else
                         <div class="col-xl-6">
                             <span id="name" class="form-item h4">@context.Metadata.Name</span>
                             <button type="button" class="btn btn-link btn-copy js-tooltip" data-toggle="tooltip"
-                        data-placement="top" title="Copy link to clipboard"
-                        @onclick="() => CopyTextToClipboard(context.Metadata.Name)">
+                                data-placement="top" title="Copy link to clipboard"
+                                @onclick="() => CopyTextToClipboard(context.Metadata.Name)">
                                 <span class="oi oi-link-intact" aria-hidden="true"></span>
                             </button>
                         </div>
                     </div>
                     <div class="form-group row mb-2">
                         <div class="col-xl-4">
-                            <label for="submissionAttempts" class="form-label"><b>Submission Attempts:</b></label>
+                            <label class="form-label"><b>Submission Attempts:</b></label>
                             <span id="submissionAttempts" class="form-item">@context.Status?.SubmissionAttempts</span>
                         </div>
                         <div class="col-xl-3">
-                            <label for="lastSubmissionAttemptTime" class="form-label"><b>Last Submission Attempt
-                                    Time:</b></label>
+                            <label class="form-label"><b>Last Submission Attempt Time:</b></label>
                             <span id="lastSubmissionAttemptTime"
-                        class="form-item">@context.Status?.LastSubmissionAttemptTime</span>
+                                class="form-item">@context.Status?.LastSubmissionAttemptTime</span>
                         </div>
                         @if (context.Status?.TerminationTime != null)
                         {
                             <div class="col-xl-3">
-                                <label for="terminationTime" class="form-label"><b>Termination Time:</b></label>
+                                <label class="form-label"><b>Termination Time:</b></label>
                                 <span id="terminationTime" class="form-item">@context.Status.TerminationTime</span>
                             </div>
                         }
                     </div>
                     @if (context.Status?.ApplicationState != null)
+
                     {
                         <div class="row mb-2">
                             <div class="col-xl-4">
                                 @if (context.Status.DriverInfo != null)
                                 {
+
                                     foreach (var driverInfo in context.Status.DriverInfo)
+
                                     {
                                         <h5 id="driver-state-@context.Metadata.Name-driver-info-@driverInfo.Key">@driverInfo.Value</h5>
                                     }
                                 }
                             </div>
                             @if (context.Status.ExecutorState != null)
+
                             {
                                 @if (context.Status.ExecutorState.Count < 2)
+
                                 {
                                     <div class="col-xl-7">
                                         @foreach (var execState in context.Status.ExecutorState)
+
                                         {
                                             <div class="exec-state" id="@context.Metadata.Name-exec-state-@execState.Key">
-                                                <label for="exec-state-@context.Metadata.Name-exec-state-@execState.Key"
-                            class="form-label">@($"{char.ToUpper(@execState.Key[0])}{@execState.Key.Substring(1)}:")</label>
+                                                <label
+                                                    class="form-label">@($"{char.ToUpper(@execState.Key[0])}{@execState.Key.Substring(1)}:")</label>
                                                 <span id="exec-state-@context.Metadata.Name-exec-state-@execState.Key"
-                            class="form-item">@execState.Value</span>
+                                                    class="form-item">@execState.Value</span>
                                             </div>
                                         }
                                     </div>
                                 }
+
                                 else
+
                                 {
                                     <div class="col-xl-7">
                                         <button class="btn btn-outline-dark btn-sm collapsed mb-2" type="button" data-bs-toggle="collapse"
-                        data-bs-target="#@context.Metadata.Name-exec-states" aria-expanded="false"
-                        aria-controls="@context.Metadata.Name-exec-states">
-                                            <span><span class="show">Show</span><span class="hide">Hide</span> @context.Status.ExecutorState.Count Executor States</span>
+                                            data-bs-target="#@context.Metadata.Name-exec-states" aria-expanded="false"
+                                            aria-controls="@context.Metadata.Name-exec-states">
+                                            <span><span class="show">Show</span><span class="hide">Hide</span>
+                                                @context.Status.ExecutorState.Count Executor States</span>
                                         </button>
                                         <div id="@context.Metadata.Name-exec-states" class="exec-states collapse">
                                             @foreach (var execState in context.Status.ExecutorState.OrderBy(s =>
                                            SortRegEx.Match(s.Key).Value.PadLeft(10, '0')))
+
                                             {
                                                 <div class="exec-state" id="@context.Metadata.Name-exec-state-@execState.Key">
-                                                    <label for="exec-state-@context.Metadata.Name-exec-state-@execState.Key"
-                                class="form-label">@($"{char.ToUpper(@execState.Key[0])}{@execState.Key.Substring(1)}:")</label>
+                                                    <label
+                                                        class="form-label">@($"{char.ToUpper(@execState.Key[0])}{@execState.Key.Substring(1)}:")</label>
                                                     <span id="exec-state-@context.Metadata.Name-exec-state-@execState.Key"
-                                class="form-item">@execState.Value</span>
+                                                        class="form-item">@execState.Value</span>
                                                 </div>
                                             }
                                         </div>
@@ -148,26 +168,32 @@ else
                             <div class="col-xl-2">
                                 @if (context.Status.ExecutionAttempts != null)
                                 {
-                                    <label for="exec-attempts-@context.Metadata.Name" class="form-label"><b>Executor
-                                            Attempts:</b></label>
+                                    <label class="form-label"><b>Executor Attempts:</b></label>
                                     <span id="exec-attempts-@context.Metadata.Name"
-                        class="form-item">@context.Status.ExecutionAttempts</span>
+                                        class="form-item">@context.Status.ExecutionAttempts</span>
                                 }
                             </div>
                         </div>
                         <div class="row mb-2">
                             @if (context.Status.ApplicationState != null)
+
                             {
+
                                 var sortedAppState = new SortedDictionary<string,
+
                                 string>(context.Status.ApplicationState).OrderByDescending(s => s.Key);
+
                                 foreach (var appState in sortedAppState)
+
                                 {
+
                                     if (appState.Key.Equals("errorMessage", StringComparison.OrdinalIgnoreCase))
+
                                     {
                                         <div class="col-xl-1">
                                             <button class="btn btn-outline-dark btn-sm collapsed" type="button" data-bs-toggle="collapse"
-                        data-bs-target="#@context.Metadata.Name-app-state-@appState.Key" aria-expanded="false"
-                        aria-controls="@context.Metadata.Name-app-state-@appState.Key">
+                                                data-bs-target="#@context.Metadata.Name-app-state-@appState.Key" aria-expanded="false"
+                                                aria-controls="@context.Metadata.Name-app-state-@appState.Key">
                                                 <span><span class="show">Show</span><span class="hide">Hide</span> Errors</span>
                                             </button>
                                         </div>
@@ -178,15 +204,19 @@ else
                                             </div>
                                         </div>
                                     }
+
                                     else
+
                                     {
                                         <div class="app-state col-xl-1" id="@context.Metadata.Name-app-state-@appState.Key">
-                                            <label for="app-state-@appState.Key"
-                        class="form-label"><b>@($"{char.ToUpper(@appState.Key[0])}{@appState.Key.Substring(1)}:")</b></label>
+                                            <label
+                                                class="form-label"><b>@($"{char.ToUpper(@appState.Key[0])}{@appState.Key.Substring(1)}:")</b></label>
                                             <span id="app-state-@appState.Key" class="form-item">@appState.Value</span>
                                         </div>
                                     }
+
                                 }
+
                             }
                         </div>
                     }
@@ -195,8 +225,8 @@ else
                         {
                             <div class="col-xl-1">
                                 <button class="btn btn-outline-dark btn-sm collapsed" type="button" data-bs-toggle="collapse"
-                        data-bs-target="#@context.Metadata.Name-spec" aria-expanded="false"
-                        aria-controls="@context.Metadata.Name-spec">
+                                    data-bs-target="#@context.Metadata.Name-spec" aria-expanded="false"
+                                    aria-controls="@context.Metadata.Name-spec">
                                     <span><span class="show">Show</span><span class="hide">Hide</span> Spec</span>
                                 </button>
                             </div>
@@ -209,13 +239,17 @@ else
             </RowTemplate>
         </TableTemplate>
     }
+
     else if (Applications == null)
+
     {
         <div class="alert alert-info" role="alert">
             Loading @SelectedApplicationStatus Spark Applications...
         </div>
     }
+
     else
+
     {
         <div class="alert alert-primary" role="alert">
             No @SelectedApplicationStatus Spark Applications Found
@@ -225,107 +259,210 @@ else
 
 @code {
     [Parameter]
+
     public string ApplicationStatusParam { get; set; }
+
     [Parameter]
+
     public string FilterParam { get; set; }
 
+
+
     bool GetApplicationsError;
+
     bool _shouldRender;
+
     IEnumerable<SparkApplication> Applications;
+
     IEnumerable<SparkApplication> FilteredApplications;
+
     Dictionary<string, string> ApplicationStatuses = new Dictionary<string, string>();
+
     string SelectedApplicationStatus;
+
     string Filter;
+
     int ItemCountAll = 0;
+
     int ItemCountFiltered = 0;
+
     Regex SortRegEx = new Regex(@"([^-]*$)");
+
+
 
     protected override bool ShouldRender() => _shouldRender;
 
+
+
     protected override async Task OnInitializedAsync()
+
     {
+
         try
+
         {
+
             ApplicationStatusParam = ApplicationStatusParam ?? "";
+
             SelectedApplicationStatus = ApplicationStatusParam;
+
             ApplicationStatuses.Add("All", "");
+
             ApplicationStatuses.Add("Failed", "FAILED");
+
             ApplicationStatuses.Add("Running", "RUNNING");
 
+
+
             FilterParam = FilterParam ?? "";
+
             Filter = FilterParam;
+
+
 
             await GetSparkApplications();
 
+
+
             _shouldRender = true;
+
         }
+
         catch
+
         {
+
             GetApplicationsError = true;
+
         }
+
     }
+
+
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
+
     {
+
         await JS.InvokeVoidAsync("addCopyTooltips");
+
     }
+
+
 
     async Task OnSelect(ChangeEventArgs e)
+
     {
+
         SelectedApplicationStatus = e.Value.ToString();
+
         await GetSparkApplications();
+
     }
+
+
 
     async Task GetSparkApplications()
+
     {
+
         Applications = null;
+
         FilteredApplications = new List<SparkApplication>();
+
         Applications = await SparkApplicationService.GetSparkApplicationsAsync(SelectedApplicationStatus);
+
         ItemCountAll = Applications.Count();
+
         FilteredApplications = Applications;
+
         ItemCountFiltered = FilteredApplications.Count();
 
+
+
         if (!string.IsNullOrWhiteSpace(Filter))
+
         {
+
             await FilterResults();
+
         }
+
     }
+
+
 
     async Task FilterChange(ChangeEventArgs e)
+
     {
+
         Filter = e?.Value?.ToString().Trim();
-        
+
+
+
         if (!string.IsNullOrWhiteSpace(Filter))
+
         {
+
             await FilterResults();
+
         }
+
     }
+
+
 
     async Task ClearFilter()
+
     {
+
         Filter = "";
+
         await FilterResults();
+
     }
+
+
 
     async Task FilterResults()
+
     {
+
         if (string.IsNullOrWhiteSpace(Filter))
+
         {
+
             FilteredApplications = Applications;
+
             ItemCountFiltered = FilteredApplications.Count();
+
         }
+
         else
+
         {
+
             FilteredApplications = Applications.Where(s => s.Metadata.Name.Contains(Filter,
+
             StringComparison.OrdinalIgnoreCase)).ToList();
+
             ItemCountFiltered = FilteredApplications.Count();
+
         }
+
         await InvokeAsync(() => { base.StateHasChanged(); });
+
     }
 
+
+
     async Task CopyTextToClipboard(string name)
+
     {
+
         var text = $"{Navigator.BaseUri}spark-applications/%20/{name}";
+
         await JS.InvokeVoidAsync("clipboardCopy.copyText", text);
+
     }
 }
