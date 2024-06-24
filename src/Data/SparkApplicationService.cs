@@ -108,8 +108,9 @@ namespace KubeStatus.Data
                 }
                 return deleted;
             }
-            catch
+            catch (Exception ex)
             {
+                Console.WriteLine(ex.Message);
                 return -1;
             }
         }

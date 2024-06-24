@@ -98,8 +98,9 @@ namespace KubeStatus.Data
 
                 return true;
             }
-            catch
+            catch (Exception ex)
             {
+                Console.WriteLine(ex.Message);
                 return false;
             }
         }
@@ -128,8 +129,9 @@ namespace KubeStatus.Data
 
                 return true;
             }
-            catch
+            catch (Exception ex)
             {
+                Console.WriteLine(ex.Message);
                 return false;
             }
         }
@@ -152,8 +154,9 @@ namespace KubeStatus.Data
 
                 return true;
             }
-            catch
+            catch (Exception ex)
             {
+                Console.WriteLine(ex.Message);
                 return false;
             }
         }

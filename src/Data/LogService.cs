@@ -1,3 +1,4 @@
+using System;
 using System.Threading.Tasks;
 
 using k8s;
@@ -21,8 +22,9 @@ namespace KubeStatus.Data
 
                 return response.Body;
             }
-            catch
+            catch (Exception ex)
             {
+                Console.WriteLine(ex.Message);
                 return null;
             }
         }

@@ -266,8 +266,9 @@ namespace KubeStatus.Data
                     return bytesInStream;
                 }
             }
-            catch
+            catch (Exception ex)
             {
+                Console.WriteLine(ex.Message);
                 return null;
             }
         }
@@ -279,8 +280,9 @@ namespace KubeStatus.Data
                 var uri = $"http://{podIP}:{port}/{Helper.MetricsRoute()}";
                 return await httpClient.GetStreamAsync(uri);
             }
-            catch
+            catch (Exception ex)
             {
+                Console.WriteLine(ex.Message);
                 return null;
             }
         }
