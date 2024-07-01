@@ -130,7 +130,7 @@ namespace KubeStatus
 
         public static string GetUserIdentityName(this IHttpContextAccessor httpContextAccessor)
         {
-            return httpContextAccessor.HttpContext.User.Identity.Name.ToLower() ?? "";
+            return httpContextAccessor.HttpContext.User.Identity.Name?.ToLower() ?? "";
         }
     }
 }
