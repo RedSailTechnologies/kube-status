@@ -81,10 +81,9 @@ namespace KubeStatus.Data
                 var StatefulSet = await kubernetesClient.AppsV1.ReadNamespacedStatefulSetAsync(name, k8sNamespace);
                 var options = new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase, WriteIndented = true };
                 var old = JsonSerializer.SerializeToDocument(StatefulSet, options);
-                var now = DateTimeOffset.Now.ToUnixTimeSeconds();
                 var restart = new Dictionary<string, string>
                 {
-                    ["date"] = now.ToString()
+                    ["kubectl.kubernetes.io/restartedAt"] = $"{DateTimeOffset.Now.UtcDateTime:s}Z"
                 };
 
                 StatefulSet.Spec.Template.Metadata.Annotations = restart;
