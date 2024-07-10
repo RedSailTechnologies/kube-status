@@ -1,5 +1,5 @@
 ARG DOTNET_VERSION=8.0
-ARG HELM_VERSION=3.13.3
+ARG HELM_VERSION=3.15.2
 
 FROM mcr.microsoft.com/dotnet/sdk:${DOTNET_VERSION}-alpine AS base
 ENV VERIFY_CHECKSUM=false
@@ -13,7 +13,7 @@ RUN dotnet restore
 COPY src .
 
 
-FROM base as build
+FROM base AS build
 WORKDIR /source
 RUN dotnet build -c Release --no-restore
 
