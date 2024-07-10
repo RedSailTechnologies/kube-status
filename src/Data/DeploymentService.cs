@@ -81,10 +81,9 @@ namespace KubeStatus.Data
                 var deployment = await kubernetesClient.AppsV1.ReadNamespacedDeploymentAsync(name, k8sNamespace);
                 var options = new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase, WriteIndented = true };
                 var old = JsonSerializer.SerializeToDocument(deployment, options);
-                var now = DateTimeOffset.Now.ToUnixTimeSeconds();
                 var restart = new Dictionary<string, string>
                 {
-                    ["date"] = now.ToString()
+                    ["kubectl.kubernetes.io/restartedAt"] = $"{DateTimeOffset.Now.UtcDateTime:s}Z"
                 };
 
                 deployment.Spec.Template.Metadata.Annotations = restart;
