@@ -20,6 +20,15 @@
     }
 </AuthorizeView>
 
+<AuthorizeView Policy="RequireAdminRole" Context="auth">
+    @if (ConnectorRestarted)
+    {
+        <div class="alert alert-success" role="alert">
+            Connector '@RestartedConnectorName' Successfully Restarted!
+        </div>
+    }
+</AuthorizeView>
+
 @if (GetConnectorsError)
 {
     <div class="alert alert-danger" role="alert">
@@ -72,6 +81,13 @@ else
                                     Time:</b></label>
                             <span id="lastTransitionTime" class="form-item">@context.LastTransitionTime</span>
                         </div>
+                        <AuthorizeView Policy="RequireAdminRole" Context="auth">
+                        <div class="col-xl-1">
+                            <button @onclick="() => RestartConnector(context.Name)" class="btn btn-outline-dark btn-sm">
+                                Restart
+                            </button>
+                        </div>
+                        </AuthorizeView>
                     </div>
                     @if (@context.Topics.Any())
                     {
@@ -146,6 +162,8 @@ else
 @code {
     bool GetConnectorsError;
     bool ConnectorsRestarted;
+    bool ConnectorRestarted;
+    string RestartedConnectorName = string.Empty;
     bool _shouldRender;
     IEnumerable<KafkaConnector> Connectors;
     int ItemCountAll = 0;
@@ -190,6 +208,23 @@ else
         ItemCountAll = Connectors.Count();
 
         ConnectorsRestarted = true;
+    }
+
+    async Task RestartConnector(string connectorName)
+    {
+        bool confirmed = await JS.InvokeAsync<bool>("confirm", $"Are you sure you want to restart the {connectorName} Connector?");
+
+        if (confirmed)
+        {
+            ConnectorRestarted = false;
+            await InvokeAsync(() => { base.StateHasChanged(); });
+
+            await KafkaConnectorService.RestartKafkaConnectorAsync(connectorName);
+
+            RestartedConnectorName = connectorName;
+            ConnectorRestarted = true;
+            await InvokeAsync(() => { base.StateHasChanged(); });
+        }
     }
 
     async Task ShowConfiguration()
