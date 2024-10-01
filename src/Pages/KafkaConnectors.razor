@@ -21,10 +21,16 @@
 </AuthorizeView>
 
 <AuthorizeView Policy="RequireAdminRole" Context="auth">
+    @if (ConnectorRestarting)
+    {
+        <div class="alert alert-info" role="alert">
+            Connector '@RestartedConnectorName' is restarting...
+        </div>
+    }
     @if (ConnectorRestarted)
     {
         <div class="alert alert-success" role="alert">
-            Connector '@RestartedConnectorName' Successfully Restarted!
+            Connector '@RestartedConnectorName' was successfully restarted!
         </div>
     }
 </AuthorizeView>
@@ -162,6 +168,7 @@ else
 @code {
     bool GetConnectorsError;
     bool ConnectorsRestarted;
+    bool ConnectorRestarting;
     bool ConnectorRestarted;
     string RestartedConnectorName = string.Empty;
     bool _shouldRender;
@@ -216,12 +223,14 @@ else
 
         if (confirmed)
         {
+            RestartedConnectorName = connectorName;
             ConnectorRestarted = false;
+            ConnectorRestarting = true;
             await InvokeAsync(() => { base.StateHasChanged(); });
 
             await KafkaConnectorService.RestartKafkaConnectorAsync(connectorName, k8sNamespace);
 
-            RestartedConnectorName = connectorName;
+            ConnectorRestarting = false;
             ConnectorRestarted = true;
             await InvokeAsync(() => { base.StateHasChanged(); });
         }
