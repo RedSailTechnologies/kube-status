@@ -20,6 +20,21 @@
     }
 </AuthorizeView>
 
+<AuthorizeView Policy="RequireAdminRole" Context="auth">
+    @if (ConnectorRestarting)
+    {
+        <div class="alert alert-info" role="alert">
+            Connector '@RestartedConnectorName' is restarting...
+        </div>
+    }
+    @if (ConnectorRestarted)
+    {
+        <div class="alert alert-success" role="alert">
+            Connector '@RestartedConnectorName' was successfully restarted!
+        </div>
+    }
+</AuthorizeView>
+
 @if (GetConnectorsError)
 {
     <div class="alert alert-danger" role="alert">
@@ -72,6 +87,13 @@ else
                                     Time:</b></label>
                             <span id="lastTransitionTime" class="form-item">@context.LastTransitionTime</span>
                         </div>
+                        <AuthorizeView Policy="RequireAdminRole" Context="auth">
+                        <div class="col-xl-1">
+                            <button @onclick="() => RestartConnector(context.Name, context.Namespace)" class="btn btn-outline-dark btn-sm">
+                                Restart
+                            </button>
+                        </div>
+                        </AuthorizeView>
                     </div>
                     @if (@context.Topics.Any())
                     {
@@ -146,6 +168,9 @@ else
 @code {
     bool GetConnectorsError;
     bool ConnectorsRestarted;
+    bool ConnectorRestarting;
+    bool ConnectorRestarted;
+    string RestartedConnectorName = string.Empty;
     bool _shouldRender;
     IEnumerable<KafkaConnector> Connectors;
     int ItemCountAll = 0;
@@ -190,6 +215,25 @@ else
         ItemCountAll = Connectors.Count();
 
         ConnectorsRestarted = true;
+    }
+
+    async Task RestartConnector(string connectorName, string k8sNamespace)
+    {
+        bool confirmed = await JS.InvokeAsync<bool>("confirm", $"Are you sure you want to restart the {connectorName} Connector in the {k8sNamespace} Namespace?");
+
+        if (confirmed)
+        {
+            RestartedConnectorName = connectorName;
+            ConnectorRestarted = false;
+            ConnectorRestarting = true;
+            await InvokeAsync(() => { base.StateHasChanged(); });
+
+            await KafkaConnectorService.RestartKafkaConnectorAsync(connectorName, k8sNamespace);
+
+            ConnectorRestarting = false;
+            ConnectorRestarted = true;
+            await InvokeAsync(() => { base.StateHasChanged(); });
+        }
     }
 
     async Task ShowConfiguration()
