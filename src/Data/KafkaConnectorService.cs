@@ -54,9 +54,9 @@ namespace KubeStatus.Data
             return await Task.FromResult(failedKafkaConnectors);
         }
 
-        public async Task<KafkaConnector> RestartKafkaConnectorAsync(string connectorName)
+        public async Task<KafkaConnector> RestartKafkaConnectorAsync(string connectorName, string k8sNamespace = "default")
         {
-            var kafkaConnector = await GetKafkaConnector(connectorName);
+            var kafkaConnector = await GetKafkaConnector(connectorName, k8sNamespace);
 
             var patchStr = @"
 {
@@ -145,79 +145,68 @@ namespace KubeStatus.Data
             return kafkaConnectors;
         }
 
-        private async Task<KafkaConnector> GetKafkaConnector(string name)
+        private async Task<KafkaConnector> GetKafkaConnector(string name, string k8sNamespace = "default")
         {
-            var kafkaConnector = new KafkaConnector();
-
-            var response = await kubernetesClient.CustomObjects.ListClusterCustomObjectAsync(Helper.StrimziGroup(), Helper.StrimziConnectorVersion(), Helper.StrimziConnectorPlural());
+            var response = await kubernetesClient.CustomObjects.GetNamespacedCustomObjectAsync(Helper.StrimziGroup(), Helper.StrimziConnectorVersion(), k8sNamespace, Helper.StrimziConnectorPlural(), name);
             var jsonString = JsonSerializer.Serialize<object>(response);
-            JsonNode jsonNode = JsonNode.Parse(jsonString)!;
-            JsonNode itemsNode = jsonNode!["items"]!;
+            JsonNode item = JsonNode.Parse(jsonString);
 
-            foreach (var item in itemsNode.AsArray())
+            var connectorName = item!["metadata"]!["name"]!.ToString();
+            var connectorNamespace = item!["metadata"]!["namespace"]!.ToString();
+            var connectorState = string.Empty;
+            var taskState = string.Empty;
+            var taskTrace = string.Empty;
+            var lastTransitionTime = string.Empty;
+            var topics = new List<string>();
+
+            if (item!["status"].AsObject().Any(t => t.Key.Equals("connectorStatus")))
             {
-                var connectorName = item!["metadata"]!["name"]!.ToString();
+                connectorState = item!["status"]!["connectorStatus"]!["connector"]!["state"]!.ToString();
 
-                if (connectorName.Equals(name, StringComparison.OrdinalIgnoreCase))
+                var taskStateObj = item!["status"]!["connectorStatus"]!["tasks"]![0]["state"];
+                if (taskStateObj != null)
                 {
-                    var connectorNamespace = item!["metadata"]!["namespace"]!.ToString();
+                    taskState = taskStateObj.ToString();
+                }
 
-                    var connectorState = string.Empty;
-                    var taskState = string.Empty;
-                    var taskTrace = string.Empty;
-                    var lastTransitionTime = string.Empty;
-                    var topics = new List<string>();
-
-                    if (item!["status"].AsObject().Any(t => t.Key.Equals("connectorStatus")))
-                    {
-                        connectorState = item!["status"]!["connectorStatus"]!["connector"]!["state"]!.ToString();
-
-                        var taskStateObj = item!["status"]!["connectorStatus"]!["tasks"]![0]["state"];
-                        if (taskStateObj != null)
-                        {
-                            taskState = taskStateObj.ToString();
-                        }
-
-                        var taskTraceObj = item!["status"]!["connectorStatus"]!["tasks"]![0]!["trace"];
-                        if (taskTraceObj != null)
-                        {
-                            taskTrace = taskTraceObj.ToString();
-                        }
-                    }
-                    else
-                    {
-                        connectorState = item!["status"]!["conditions"]![0]!["type"].ToString();
-
-                        var taskTraceObj = item!["status"]!["conditions"]![0]!["message"];
-                        if (taskTraceObj != null)
-                        {
-                            taskTrace = taskTraceObj.ToString();
-                        }
-                    }
-
-                    if (item!["status"]!["conditions"]![0].AsObject().Any(t => t.Key.Contains("lastTransitionTime")))
-                    {
-                        lastTransitionTime = $"{item!["status"]!["conditions"]![0]!["lastTransitionTime"]!} (UTC)";
-                    }
-
-                    var topicsObj = item!["status"]!["topics"];
-                    if (topicsObj != null)
-                    {
-                        topics = topicsObj.AsArray().Select(c => c.ToString()).ToList();
-                    }
-
-                    kafkaConnector = new KafkaConnector
-                    {
-                        Name = connectorName,
-                        Namespace = connectorNamespace,
-                        LastTransitionTime = lastTransitionTime,
-                        ConnectorState = connectorState,
-                        TaskState = taskState,
-                        TaskTrace = taskTrace,
-                        Topics = topics
-                    };
+                var taskTraceObj = item!["status"]!["connectorStatus"]!["tasks"]![0]!["trace"];
+                if (taskTraceObj != null)
+                {
+                    taskTrace = taskTraceObj.ToString();
                 }
             }
+            else
+            {
+                connectorState = item!["status"]!["conditions"]![0]!["type"].ToString();
+
+                var taskTraceObj = item!["status"]!["conditions"]![0]!["message"];
+                if (taskTraceObj != null)
+                {
+                    taskTrace = taskTraceObj.ToString();
+                }
+            }
+
+            if (item!["status"]!["conditions"]![0].AsObject().Any(t => t.Key.Contains("lastTransitionTime")))
+            {
+                lastTransitionTime = $"{item!["status"]!["conditions"]![0]!["lastTransitionTime"]!} (UTC)";
+            }
+
+            var topicsObj = item!["status"]!["topics"];
+            if (topicsObj != null)
+            {
+                topics = topicsObj.AsArray().Select(c => c.ToString()).ToList();
+            }
+
+            var kafkaConnector = new KafkaConnector
+            {
+                Name = connectorName,
+                Namespace = connectorNamespace,
+                LastTransitionTime = lastTransitionTime,
+                ConnectorState = connectorState,
+                TaskState = taskState,
+                TaskTrace = taskTrace,
+                Topics = topics
+            };
 
             return kafkaConnector;
         }

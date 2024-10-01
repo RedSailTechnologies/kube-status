@@ -83,7 +83,7 @@ else
                         </div>
                         <AuthorizeView Policy="RequireAdminRole" Context="auth">
                         <div class="col-xl-1">
-                            <button @onclick="() => RestartConnector(context.Name)" class="btn btn-outline-dark btn-sm">
+                            <button @onclick="() => RestartConnector(context.Name, context.Namespace)" class="btn btn-outline-dark btn-sm">
                                 Restart
                             </button>
                         </div>
@@ -210,16 +210,16 @@ else
         ConnectorsRestarted = true;
     }
 
-    async Task RestartConnector(string connectorName)
+    async Task RestartConnector(string connectorName, string k8sNamespace)
     {
-        bool confirmed = await JS.InvokeAsync<bool>("confirm", $"Are you sure you want to restart the {connectorName} Connector?");
+        bool confirmed = await JS.InvokeAsync<bool>("confirm", $"Are you sure you want to restart the {connectorName} Connector in the {k8sNamespace} Namespace?");
 
         if (confirmed)
         {
             ConnectorRestarted = false;
             await InvokeAsync(() => { base.StateHasChanged(); });
 
-            await KafkaConnectorService.RestartKafkaConnectorAsync(connectorName);
+            await KafkaConnectorService.RestartKafkaConnectorAsync(connectorName, k8sNamespace);
 
             RestartedConnectorName = connectorName;
             ConnectorRestarted = true;

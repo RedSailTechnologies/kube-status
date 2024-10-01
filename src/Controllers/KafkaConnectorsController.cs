@@ -53,9 +53,9 @@ namespace KubeStatus.Controllers
 
         [Authorize(Policy = "RequireAdminRole")]
         [HttpPatch("Restart/{connectorName}")]
-        public async Task<KafkaConnector> RestartKafkaConnectorAsync(string connectorName)
+        public async Task<KafkaConnector> RestartKafkaConnectorAsync(string connectorName, string k8sNamespace = "default")
         {
-            return await _kafkaConnectorService.RestartKafkaConnectorAsync(connectorName);
+            return await _kafkaConnectorService.RestartKafkaConnectorAsync(connectorName, k8sNamespace);
         }
     }
 }
