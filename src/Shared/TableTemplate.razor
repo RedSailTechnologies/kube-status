@@ -8,13 +8,16 @@
         </tr>
     </thead>
     <tbody>
-        @foreach (var item in Items)
+        @if (Items != null)
         {
-            <tr>
-                <th scope="row" class="d-none"></th>
-                @RowTemplate(item)
-            </tr>
+            @foreach (var item in Items)
+            {
+                <tr>
+                    <th scope="row" class="d-none"></th>
+                    @RowTemplate(item)
+                </tr>
 
+            }
         }
     </tbody>
 </table>
