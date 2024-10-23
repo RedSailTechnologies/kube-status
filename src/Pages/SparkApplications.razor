@@ -8,28 +8,21 @@
 <h1>Spark Applications Status</h1>
 
 @if (GetApplicationsError)
-
 {
     <div class="alert alert-danger" role="alert">
         Unable to get Spark Applications. Please try again later.
     </div>
 }
-
 else
-
 {
     @if (@Applications != null && @Applications.Any())
-
     {
         <div class="row">
             @if (@ItemCountAll == @ItemCountFiltered)
-
             {
                 <h6>Items: @ItemCountAll</h6>
             }
-
             else
-
             {
                 <h6>Filtered: @ItemCountFiltered / @ItemCountAll</h6>
             }
@@ -39,16 +32,12 @@ else
                 <label for="applicationStatusSelect" class="form-label">Application State Filter</label>
                 <select class="form-select" id="applicationStatusSelect" @onchange="@OnSelect">
                     @foreach (var status in ApplicationStatuses)
-
                     {
                         @if (@status.Key.Equals(@SelectedApplicationStatus, StringComparison.OrdinalIgnoreCase))
-
                         {
                             <option value=@status.Value selected>@status.Key</option>
                         }
-
                         else
-
                         {
                             <option value=@status.Value>@status.Key</option>
                         }
@@ -118,14 +107,11 @@ else
                                 }
                             </div>
                             @if (context.Status.ExecutorState != null)
-
                             {
                                 @if (context.Status.ExecutorState.Count < 2)
-
                                 {
                                     <div class="col-xl-7">
                                         @foreach (var execState in context.Status.ExecutorState)
-
                                         {
                                             <div class="exec-state" id="@context.Metadata.Name-exec-state-@execState.Key">
                                                 <label
@@ -136,9 +122,7 @@ else
                                         }
                                     </div>
                                 }
-
                                 else
-
                                 {
                                     <div class="col-xl-7">
                                         <button class="btn btn-outline-dark btn-sm collapsed mb-2" type="button" data-bs-toggle="collapse"
@@ -176,19 +160,13 @@ else
                         </div>
                         <div class="row mb-2">
                             @if (context.Status.ApplicationState != null)
-
                             {
-
-                                var sortedAppState = new SortedDictionary<string,
-
-                                string>(context.Status.ApplicationState).OrderByDescending(s => s.Key);
+                                var sortedAppState = new
+                                SortedDictionary<string, string>(context.Status.ApplicationState).OrderByDescending(s => s.Key);
 
                                 foreach (var appState in sortedAppState)
-
                                 {
-
                                     if (appState.Key.Equals("errorMessage", StringComparison.OrdinalIgnoreCase))
-
                                     {
                                         <div class="col-xl-1">
                                             <button class="btn btn-outline-dark btn-sm collapsed" type="button" data-bs-toggle="collapse"
@@ -204,9 +182,7 @@ else
                                             </div>
                                         </div>
                                     }
-
                                     else
-
                                     {
                                         <div class="app-state col-xl-1" id="@context.Metadata.Name-app-state-@appState.Key">
                                             <label
@@ -214,9 +190,7 @@ else
                                             <span id="app-state-@appState.Key" class="form-item">@appState.Value</span>
                                         </div>
                                     }
-
                                 }
-
                             }
                         </div>
                     }
@@ -259,210 +233,109 @@ else
 
 @code {
     [Parameter]
-
     public string ApplicationStatusParam { get; set; }
-
     [Parameter]
-
     public string FilterParam { get; set; }
 
 
-
     bool GetApplicationsError;
-
     bool _shouldRender;
-
     IEnumerable<SparkApplication> Applications;
-
     IEnumerable<SparkApplication> FilteredApplications;
-
     Dictionary<string, string> ApplicationStatuses = new Dictionary<string, string>();
-
     string SelectedApplicationStatus;
-
     string Filter;
-
     int ItemCountAll = 0;
-
     int ItemCountFiltered = 0;
-
     Regex SortRegEx = new Regex(@"([^-]*$)");
-
-
 
     protected override bool ShouldRender() => _shouldRender;
 
-
-
     protected override async Task OnInitializedAsync()
-
     {
-
         try
-
         {
-
             ApplicationStatusParam = ApplicationStatusParam ?? "";
-
             SelectedApplicationStatus = ApplicationStatusParam;
-
             ApplicationStatuses.Add("All", "");
-
             ApplicationStatuses.Add("Failed", "FAILED");
-
             ApplicationStatuses.Add("Running", "RUNNING");
 
-
-
             FilterParam = FilterParam ?? "";
-
             Filter = FilterParam;
-
-
 
             await GetSparkApplications();
 
-
-
             _shouldRender = true;
-
         }
-
         catch
-
         {
-
             GetApplicationsError = true;
-
         }
-
     }
 
 
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
-
     {
-
         await JS.InvokeVoidAsync("addCopyTooltips");
-
     }
-
-
 
     async Task OnSelect(ChangeEventArgs e)
-
     {
-
         SelectedApplicationStatus = e.Value.ToString();
-
         await GetSparkApplications();
-
     }
-
-
 
     async Task GetSparkApplications()
-
     {
-
         Applications = null;
-
         FilteredApplications = new List<SparkApplication>();
-
         Applications = await SparkApplicationService.GetSparkApplicationsAsync(SelectedApplicationStatus);
-
         ItemCountAll = Applications.Count();
-
         FilteredApplications = Applications;
-
         ItemCountFiltered = FilteredApplications.Count();
 
-
-
         if (!string.IsNullOrWhiteSpace(Filter))
-
         {
-
             await FilterResults();
-
         }
-
     }
-
-
-
     async Task FilterChange(ChangeEventArgs e)
-
     {
-
         Filter = e?.Value?.ToString().Trim();
 
-
-
         if (!string.IsNullOrWhiteSpace(Filter))
-
         {
-
             await FilterResults();
-
         }
-
     }
-
-
 
     async Task ClearFilter()
-
     {
-
         Filter = "";
-
         await FilterResults();
-
     }
-
-
 
     async Task FilterResults()
-
     {
-
         if (string.IsNullOrWhiteSpace(Filter))
-
         {
-
             FilteredApplications = Applications;
-
             ItemCountFiltered = FilteredApplications.Count();
-
         }
-
         else
-
         {
-
             FilteredApplications = Applications.Where(s => s.Metadata.Name.Contains(Filter,
-
             StringComparison.OrdinalIgnoreCase)).ToList();
-
             ItemCountFiltered = FilteredApplications.Count();
-
         }
-
         await InvokeAsync(() => { base.StateHasChanged(); });
-
     }
 
-
-
     async Task CopyTextToClipboard(string name)
-
     {
-
         var text = $"{Navigator.BaseUri}spark-applications/%20/{name}";
-
         await JS.InvokeVoidAsync("clipboardCopy.copyText", text);
-
     }
 }
