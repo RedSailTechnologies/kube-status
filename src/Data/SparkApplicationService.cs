@@ -13,19 +13,13 @@ using KubeStatus.Models;
 
 namespace KubeStatus.Data
 {
-    public class SparkApplicationService
+    public class SparkApplicationService(IKubernetes kubernetesClient, IMemoryCache memoryCache)
     {
-        private readonly IKubernetes kubernetesClient;
+        private readonly IKubernetes kubernetesClient = kubernetesClient;
 
-        public IMemoryCache MemoryCache { get; }
+        public IMemoryCache MemoryCache { get; } = memoryCache;
 
-        public SparkApplicationService(IKubernetes kubernetesClient, IMemoryCache memoryCache)
-        {
-            this.kubernetesClient = kubernetesClient;
-            MemoryCache = memoryCache;
-        }
-
-        private static JsonSerializerOptions _options = new JsonSerializerOptions() { PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
+        private static readonly JsonSerializerOptions _jsonSerializerOptions = new() { PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
 
         public async Task<IEnumerable<SparkApplication>> GetAllSparkApplicationsAsync()
         {
@@ -52,7 +46,7 @@ namespace KubeStatus.Data
 
                 foreach (var item in itemsNode.AsArray())
                 {
-                    var status = JsonSerializer.Deserialize<SparkApplicationStatus>(item!["status"]!, _options);
+                    var status = JsonSerializer.Deserialize<SparkApplicationStatus>(item!["status"]!, _jsonSerializerOptions);
                     var applicationState = status?.ApplicationState["state"];
 
                     if (!string.IsNullOrWhiteSpace(filterStatus) && !filterStatus.Equals(applicationState, StringComparison.OrdinalIgnoreCase))
@@ -62,7 +56,7 @@ namespace KubeStatus.Data
 
                     var apiVersion = item!["apiVersion"]!.ToString();
                     var kind = item!["kind"]!.ToString();
-                    var metadata = JsonSerializer.Deserialize<Metadata>(item!["metadata"]!, _options);
+                    var metadata = JsonSerializer.Deserialize<Metadata>(item!["metadata"]!, _jsonSerializerOptions);
                     var spec = item!["spec"]!.ToString();
 
                     sparkApplications.Add(new SparkApplication

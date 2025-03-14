@@ -14,18 +14,12 @@ using KubeStatus.Models;
 
 namespace KubeStatus.Data
 {
-    public class PodService
+    public class PodService(IKubernetes kubernetesClient, IMemoryCache memoryCache)
     {
-        private readonly IKubernetes kubernetesClient;
+        private readonly IKubernetes kubernetesClient = kubernetesClient;
         static readonly HttpClient httpClient = new HttpClient();
 
-        public IMemoryCache MemoryCache { get; }
-
-        public PodService(IKubernetes kubernetesClient, IMemoryCache memoryCache)
-        {
-            this.kubernetesClient = kubernetesClient;
-            MemoryCache = memoryCache;
-        }
+        public IMemoryCache MemoryCache { get; } = memoryCache;
 
         public Task<IEnumerable<Pod>> GetAllNamespacedPodsAsync(string k8sNamespace = "default")
         {

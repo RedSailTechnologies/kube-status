@@ -3,7 +3,6 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Logging;
 
 using k8s.Models;
 
@@ -14,16 +13,9 @@ namespace KubeStatus.Controllers
     [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
     [ApiController]
     [Route("api/[controller]")]
-    public class NamespacesController : ControllerBase
+    public class NamespacesController(NamespaceService namespaceService) : ControllerBase
     {
-        private readonly ILogger<NamespacesController> _logger;
-        private readonly NamespaceService _namespaceService;
-
-        public NamespacesController(ILogger<NamespacesController> logger, NamespaceService namespaceService)
-        {
-            _logger = logger;
-            _namespaceService = namespaceService;
-        }
+        private readonly NamespaceService _namespaceService = namespaceService;
 
         [HttpGet]
         public async Task<V1NamespaceList> GetAllNamespacesAsync()

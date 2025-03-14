@@ -3,7 +3,6 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Logging;
 
 using KubeStatus.Data;
 
@@ -12,16 +11,9 @@ namespace KubeStatus.Controllers
     [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
     [ApiController]
     [Route("api/[controller]")]
-    public class StatefulSetsController : ControllerBase
+    public class StatefulSetsController(StatefulSetService StatefulSetService) : ControllerBase
     {
-        private readonly ILogger<StatefulSetsController> _logger;
-        private readonly StatefulSetService _StatefulSetService;
-
-        public StatefulSetsController(ILogger<StatefulSetsController> logger, StatefulSetService StatefulSetService)
-        {
-            _logger = logger;
-            _StatefulSetService = StatefulSetService;
-        }
+        private readonly StatefulSetService _StatefulSetService = StatefulSetService;
 
         [HttpGet]
         public IActionResult ListNamespacedStatefulSetAsync()

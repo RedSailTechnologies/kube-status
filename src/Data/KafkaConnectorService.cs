@@ -13,15 +13,10 @@ using KubeStatus.Models;
 
 namespace KubeStatus.Data
 {
-    public class KafkaConnectorService
+    public class KafkaConnectorService(IKubernetes kubernetesClient)
     {
-        private readonly IKubernetes kubernetesClient;
+        private readonly IKubernetes kubernetesClient = kubernetesClient;
         static readonly HttpClient httpClient = new HttpClient();
-
-        public KafkaConnectorService(IKubernetes kubernetesClient)
-        {
-            this.kubernetesClient = kubernetesClient;
-        }
 
         public async Task<IEnumerable<KafkaConnector>> GetAllKafkaConnectorsAsync()
         {
@@ -234,7 +229,7 @@ namespace KubeStatus.Data
                     urlParam = "?expand=info";
                 }
 
-                var uri = $"{host.TrimEnd(new char[] { '\\', '/' })}/connectors{urlParam}";
+                var uri = $"{host.TrimEnd(['\\', '/'])}/connectors{urlParam}";
 
                 return await httpClient.GetStringAsync(uri);
             }

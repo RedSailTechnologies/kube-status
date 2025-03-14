@@ -4,7 +4,6 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Logging;
 
 using KubeStatus.Data;
 using KubeStatus.Models;
@@ -14,16 +13,9 @@ namespace KubeStatus.Controllers
     [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
     [ApiController]
     [Route("api/[controller]")]
-    public class SparkApplicationsController : ControllerBase
+    public class SparkApplicationsController(SparkApplicationService SparkApplicationService) : ControllerBase
     {
-        private readonly ILogger<SparkApplicationsController> _logger;
-        private readonly SparkApplicationService _SparkApplicationService;
-
-        public SparkApplicationsController(ILogger<SparkApplicationsController> logger, SparkApplicationService SparkApplicationService)
-        {
-            _logger = logger;
-            _SparkApplicationService = SparkApplicationService;
-        }
+        private readonly SparkApplicationService _SparkApplicationService = SparkApplicationService;
 
         [HttpGet]
         public async Task<IEnumerable<SparkApplication>> GetAllSparkApplicationsAsync()

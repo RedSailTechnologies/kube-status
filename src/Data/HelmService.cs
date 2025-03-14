@@ -14,14 +14,14 @@ using KubeStatus.Models;
 
 namespace KubeStatus.Data
 {
-    public class HelmService
+    public class HelmService(IHttpContextAccessor httpContextAccessor)
     {
         private readonly Counter _helmRollback = Metrics.CreateCounter(
             "kube_status_helm_rollback_total",
             "Number of rollbacks per helm release.",
             new CounterConfiguration
             {
-                LabelNames = new[] { "User", "Namespace", "Release" }
+                LabelNames = ["User", "Namespace", "Release"]
             });
 
         private readonly Counter _helmUninstall = Metrics.CreateCounter(
@@ -29,15 +29,10 @@ namespace KubeStatus.Data
             "Number of uninstalls per helm release.",
             new CounterConfiguration
             {
-                LabelNames = new[] { "User", "Namespace", "Release" }
+                LabelNames = ["User", "Namespace", "Release"]
             });
 
-        private readonly IHttpContextAccessor _httpContextAccessor;
-
-        public HelmService(IHttpContextAccessor httpContextAccessor)
-        {
-            _httpContextAccessor = httpContextAccessor;
-        }
+        private readonly IHttpContextAccessor _httpContextAccessor = httpContextAccessor;
 
         public async Task<IEnumerable<HelmListItem>> HelmListAll(string k8sNamespace = "default")
         {
