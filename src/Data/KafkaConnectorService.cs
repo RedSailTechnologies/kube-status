@@ -25,13 +25,13 @@ namespace KubeStatus.Data
 
         public async Task<IEnumerable<KafkaConnector>> GetKafkaConnectorsByTaskStateAsync(string taskState = "failed")
         {
-            return await Task.FromResult(GetKafkaConnectors().Result.Where(c => c.TaskState.Equals(taskState, System.StringComparison.OrdinalIgnoreCase)));
+            return await Task.FromResult(GetKafkaConnectors().Result.Where(c => c.TaskState != null && c.TaskState.Equals(taskState, System.StringComparison.OrdinalIgnoreCase)));
         }
 
         public async Task<IEnumerable<KafkaConnector>> RestartAllFailedKafkaConnectorsAsync()
         {
             var kafkaConnectors = await GetKafkaConnectors();
-            var failedKafkaConnectors = kafkaConnectors.Where(c => c.TaskState.Equals("failed", System.StringComparison.OrdinalIgnoreCase));
+            var failedKafkaConnectors = kafkaConnectors.Where(c => c.TaskState != null && c.TaskState.Equals("failed", System.StringComparison.OrdinalIgnoreCase));
             foreach (var failedKafkaConnector in failedKafkaConnectors)
             {
                 var patchStr = @"
@@ -78,63 +78,66 @@ namespace KubeStatus.Data
 
             foreach (var item in itemsNode.AsArray())
             {
-                var connectorName = item!["metadata"]!["name"]!.ToString();
-                var connectorNamespace = item!["metadata"]!["namespace"]!.ToString();
-
-                var connectorState = string.Empty;
-                var taskState = string.Empty;
-                var taskTrace = string.Empty;
-                var lastTransitionTime = string.Empty;
-                var topics = new List<string>();
-
-                if (item!["status"].AsObject().Any(t => t.Key.Equals("connectorStatus")))
+                if (item != null)
                 {
-                    connectorState = item!["status"]!["connectorStatus"]!["connector"]!["state"]!.ToString();
+                    var connectorName = item!["metadata"]!["name"]!.ToString();
+                    var connectorNamespace = item!["metadata"]!["namespace"]!.ToString();
 
-                    var taskStateObj = item!["status"]!["connectorStatus"]!["tasks"]![0]["state"];
-                    if (taskStateObj != null)
+                    var connectorState = string.Empty;
+                    var taskState = string.Empty;
+                    var taskTrace = string.Empty;
+                    var lastTransitionTime = string.Empty;
+                    var topics = new List<string>();
+
+                    if (item!["status"]!.AsObject().Any(t => t.Key.Equals("connectorStatus")))
                     {
-                        taskState = taskStateObj.ToString();
+                        connectorState = item!["status"]!["connectorStatus"]!["connector"]!["state"]!.ToString();
+
+                        var taskStateObj = item!["status"]!["connectorStatus"]!["tasks"]![0]!["state"];
+                        if (taskStateObj != null)
+                        {
+                            taskState = taskStateObj.ToString();
+                        }
+
+                        var taskTraceObj = item!["status"]!["connectorStatus"]!["tasks"]![0]!["trace"];
+                        if (taskTraceObj != null)
+                        {
+                            taskTrace = taskTraceObj.ToString();
+                        }
+                    }
+                    else
+                    {
+                        connectorState = item!["status"]!["conditions"]![0]!["type"]!.ToString();
+
+                        var taskTraceObj = item!["status"]!["conditions"]![0]!["message"];
+                        if (taskTraceObj != null)
+                        {
+                            taskTrace = taskTraceObj.ToString();
+                        }
                     }
 
-                    var taskTraceObj = item!["status"]!["connectorStatus"]!["tasks"]![0]!["trace"];
-                    if (taskTraceObj != null)
+                    if (item!["status"]!["conditions"]![0]!.AsObject().Any(t => t.Key.Contains("lastTransitionTime")))
                     {
-                        taskTrace = taskTraceObj.ToString();
+                        lastTransitionTime = $"{item!["status"]!["conditions"]![0]!["lastTransitionTime"]!} (UTC)";
                     }
-                }
-                else
-                {
-                    connectorState = item!["status"]!["conditions"]![0]!["type"].ToString();
 
-                    var taskTraceObj = item!["status"]!["conditions"]![0]!["message"];
-                    if (taskTraceObj != null)
+                    var topicsObj = item!["status"]!["topics"];
+                    if (topicsObj != null)
                     {
-                        taskTrace = taskTraceObj.ToString();
+                        topics = [.. topicsObj.AsArray().Select(c => c!.ToString())];
                     }
-                }
 
-                if (item!["status"]!["conditions"]![0].AsObject().Any(t => t.Key.Contains("lastTransitionTime")))
-                {
-                    lastTransitionTime = $"{item!["status"]!["conditions"]![0]!["lastTransitionTime"]!} (UTC)";
+                    kafkaConnectors.Add(new KafkaConnector
+                    {
+                        Name = connectorName,
+                        Namespace = connectorNamespace,
+                        LastTransitionTime = lastTransitionTime,
+                        ConnectorState = connectorState,
+                        TaskState = taskState,
+                        TaskTrace = taskTrace,
+                        Topics = topics
+                    });
                 }
-
-                var topicsObj = item!["status"]!["topics"];
-                if (topicsObj != null)
-                {
-                    topics = topicsObj.AsArray().Select(c => c.ToString()).ToList();
-                }
-
-                kafkaConnectors.Add(new KafkaConnector
-                {
-                    Name = connectorName,
-                    Namespace = connectorNamespace,
-                    LastTransitionTime = lastTransitionTime,
-                    ConnectorState = connectorState,
-                    TaskState = taskState,
-                    TaskTrace = taskTrace,
-                    Topics = topics
-                });
             }
 
             return kafkaConnectors;
@@ -143,8 +146,8 @@ namespace KubeStatus.Data
         private async Task<KafkaConnector> GetKafkaConnector(string name, string k8sNamespace = "default")
         {
             var response = await kubernetesClient.CustomObjects.GetNamespacedCustomObjectAsync(Helper.StrimziGroup(), Helper.StrimziConnectorVersion(), k8sNamespace, Helper.StrimziConnectorPlural(), name);
-            var jsonString = JsonSerializer.Serialize<object>(response);
-            JsonNode item = JsonNode.Parse(jsonString);
+            var jsonString = JsonSerializer.Serialize(response);
+            JsonNode? item = JsonNode.Parse(jsonString);
 
             var connectorName = item!["metadata"]!["name"]!.ToString();
             var connectorNamespace = item!["metadata"]!["namespace"]!.ToString();
@@ -154,11 +157,11 @@ namespace KubeStatus.Data
             var lastTransitionTime = string.Empty;
             var topics = new List<string>();
 
-            if (item!["status"].AsObject().Any(t => t.Key.Equals("connectorStatus")))
+            if (item!["status"]!.AsObject().Any(t => t.Key.Equals("connectorStatus")))
             {
                 connectorState = item!["status"]!["connectorStatus"]!["connector"]!["state"]!.ToString();
 
-                var taskStateObj = item!["status"]!["connectorStatus"]!["tasks"]![0]["state"];
+                var taskStateObj = item!["status"]!["connectorStatus"]!["tasks"]![0]!["state"];
                 if (taskStateObj != null)
                 {
                     taskState = taskStateObj.ToString();
@@ -172,7 +175,7 @@ namespace KubeStatus.Data
             }
             else
             {
-                connectorState = item!["status"]!["conditions"]![0]!["type"].ToString();
+                connectorState = item!["status"]!["conditions"]![0]!["type"]!.ToString();
 
                 var taskTraceObj = item!["status"]!["conditions"]![0]!["message"];
                 if (taskTraceObj != null)
@@ -181,7 +184,7 @@ namespace KubeStatus.Data
                 }
             }
 
-            if (item!["status"]!["conditions"]![0].AsObject().Any(t => t.Key.Contains("lastTransitionTime")))
+            if (item!["status"]!["conditions"]![0]!.AsObject().Any(t => t.Key.Contains("lastTransitionTime")))
             {
                 lastTransitionTime = $"{item!["status"]!["conditions"]![0]!["lastTransitionTime"]!} (UTC)";
             }
@@ -189,7 +192,7 @@ namespace KubeStatus.Data
             var topicsObj = item!["status"]!["topics"];
             if (topicsObj != null)
             {
-                topics = topicsObj.AsArray().Select(c => c.ToString()).ToList();
+                topics = [.. topicsObj.AsArray().Select(c => c?.ToString())];
             }
 
             var kafkaConnector = new KafkaConnector

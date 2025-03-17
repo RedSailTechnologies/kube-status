@@ -102,19 +102,16 @@ namespace KubeStatus.Data
         private List<string> GetHelmCliArguments()
         {
             var config = Helper.GetKubernetesClientConfiguration();
-            List<string> cliArgs = new List<string>();
-
-            cliArgs.Add("--kube-apiserver");
-            cliArgs.Add(config.Host);
+            List<string> cliArgs = ["--kube-apiserver", config.Host];
 
             if (!string.IsNullOrWhiteSpace(config.AccessToken))
             {
                 cliArgs.Add("--kube-token");
                 cliArgs.Add(config.AccessToken);
             }
-            else if (!string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable("KUBE_TOKEN_FILE")))
+            else if (!string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable("KUBE_TOKEN_FILE") ?? string.Empty))
             {
-                var token = File.ReadAllText(Environment.GetEnvironmentVariable("KUBE_TOKEN_FILE"));
+                var token = File.ReadAllText(Environment.GetEnvironmentVariable("KUBE_TOKEN_FILE") ?? string.Empty);
                 if (!string.IsNullOrWhiteSpace(token))
                 {
                     cliArgs.Add("--kube-token");
@@ -129,7 +126,7 @@ namespace KubeStatus.Data
             else
             {
                 cliArgs.Add("--kube-ca-file");
-                cliArgs.Add(Environment.GetEnvironmentVariable("KUBE_CA_FILE"));
+                cliArgs.Add(Environment.GetEnvironmentVariable("KUBE_CA_FILE") ?? string.Empty);
             }
 
             return cliArgs;

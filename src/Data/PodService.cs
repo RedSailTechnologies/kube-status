@@ -21,7 +21,7 @@ namespace KubeStatus.Data
 
         public IMemoryCache MemoryCache { get; } = memoryCache;
 
-        public Task<IEnumerable<Pod>> GetAllNamespacedPodsAsync(string k8sNamespace = "default")
+        public Task<IEnumerable<Pod>?> GetAllNamespacedPodsAsync(string k8sNamespace = "default")
         {
             return MemoryCache.GetOrCreateAsync($"{k8sNamespace}_pods", async e =>
             {
@@ -44,7 +44,7 @@ namespace KubeStatus.Data
 
                 foreach (var item in list.Items)
                 {
-                    List<Corev1Event> podEvents = new List<Corev1Event>();
+                    List<Corev1Event> podEvents = [];
                     if (item?.Metadata?.Uid != null)
                     {
                         foreach (var podEvent in events.Items.OrderByDescending(i => i.LastTimestamp))
@@ -58,35 +58,38 @@ namespace KubeStatus.Data
                         }
                     }
 
-                    pods.Add(new Pod
+                    if (item != null)
                     {
-                        Name = item.Metadata.Labels.ContainsKey("app.kubernetes.io/name") ? item.Metadata.Labels["app.kubernetes.io/name"] : "",
-                        Instance = item.Metadata.Labels.ContainsKey("app.kubernetes.io/instance") ? item.Metadata.Labels["app.kubernetes.io/instance"] : "",
-                        Version = item.Metadata.Labels.ContainsKey("app.kubernetes.io/version") ? item.Metadata.Labels["app.kubernetes.io/version"] : "",
-                        Component = item.Metadata.Labels.ContainsKey("app.kubernetes.io/component") ? item.Metadata.Labels["app.kubernetes.io/component"] : "",
-                        PartOf = item.Metadata.Labels.ContainsKey("app.kubernetes.io/part-of") ? item.Metadata.Labels["app.kubernetes.io/part-of"] : "",
-                        ManagedBy = item.Metadata.Labels.ContainsKey("app.kubernetes.io/managed-by") ? item.Metadata.Labels["app.kubernetes.io/managed-by"] : "",
-                        CreatedBy = item.Metadata.Labels.ContainsKey("app.kubernetes.io/created-by") ? item.Metadata.Labels["app.kubernetes.io/created-by"] : "",
-                        PodName = item.Metadata.Name,
-                        Namespace = k8sNamespace,
-                        Labels = item.Metadata.Labels,
-                        Annotations = item.Metadata.Annotations,
-                        Affinity = item.Spec.Affinity,
-                        Tolerations = item.Spec.Tolerations,
-                        PodStatus = item.Status.Phase,
-                        PodStatusMessage = item.Status.Message,
-                        PodStatusReason = item.Status.Reason,
-                        PodStatusPhase = item.Status.Phase,
-                        PodConditions = item.Status.Conditions,
-                        PodCreated = item.Metadata.CreationTimestamp,
-                        PodVolumes = item.Spec.Volumes?.Select(v => v.Name).ToList(),
-                        PodIPs = item.Status.PodIPs?.Select(i => i.Ip).ToList(),
-                        HostIP = item.Status.HostIP,
-                        NodeName = item.Spec.NodeName,
-                        InitContainers = SortContainersAndStatuses(item.Status.InitContainerStatuses, item.Spec.InitContainers),
-                        Containers = SortContainersAndStatuses(item.Status.ContainerStatuses, item.Spec.Containers),
-                        Events = podEvents
-                    });
+                        pods.Add(new Pod
+                        {
+                            Name = item.Metadata.Labels.TryGetValue("app.kubernetes.io/name", out string? labelName) ? labelName : "",
+                            Instance = item.Metadata.Labels.TryGetValue("app.kubernetes.io/instance", out string? labelInstance) ? labelInstance : "",
+                            Version = item.Metadata.Labels.TryGetValue("app.kubernetes.io/version", out string? labelVersion) ? labelVersion : "",
+                            Component = item.Metadata.Labels.TryGetValue("app.kubernetes.io/component", out string? labelComponent) ? labelComponent : "",
+                            PartOf = item.Metadata.Labels.TryGetValue("app.kubernetes.io/part-of", out string? labelPartOf) ? labelPartOf : "",
+                            ManagedBy = item.Metadata.Labels.TryGetValue("app.kubernetes.io/managed-by", out string? labelManagedBy) ? labelManagedBy : "",
+                            CreatedBy = item.Metadata.Labels.TryGetValue("app.kubernetes.io/created-by", out string? labelCreatedBy) ? labelCreatedBy : "",
+                            PodName = item.Metadata.Name,
+                            Namespace = k8sNamespace,
+                            Labels = item.Metadata.Labels,
+                            Annotations = item.Metadata.Annotations,
+                            Affinity = item.Spec.Affinity,
+                            Tolerations = item.Spec.Tolerations,
+                            PodStatus = item.Status.Phase,
+                            PodStatusMessage = item.Status.Message,
+                            PodStatusReason = item.Status.Reason,
+                            PodStatusPhase = item.Status.Phase,
+                            PodConditions = item.Status.Conditions,
+                            PodCreated = item.Metadata.CreationTimestamp,
+                            PodVolumes = item.Spec.Volumes?.Select(v => v.Name).ToList(),
+                            PodIPs = item.Status.PodIPs?.Select(i => i.Ip).ToList(),
+                            HostIP = item.Status.HostIP,
+                            NodeName = item.Spec.NodeName,
+                            InitContainers = SortContainersAndStatuses(item.Status.InitContainerStatuses, item.Spec.InitContainers),
+                            Containers = SortContainersAndStatuses(item.Status.ContainerStatuses, item.Spec.Containers),
+                            Events = podEvents
+                        });
+                    }
                 }
 
                 return await Task.FromResult(pods.AsEnumerable());
@@ -124,9 +127,7 @@ namespace KubeStatus.Data
         public async Task<List<EnvironmentVariable>> GetContainerEnvironmentVariablesAsync(string k8sNamespace, string podName, string containerName, bool showSecrets)
         {
             var pod = await kubernetesClient.CoreV1.ReadNamespacedPodAsync(podName, k8sNamespace);
-            List<V1Container> containers = new List<V1Container>();
-            containers.AddRange(pod.Spec.Containers);
-            containers.AddRange(pod.Spec.InitContainers);
+            List<V1Container> containers = [.. pod.Spec.Containers, .. pod.Spec.InitContainers];
             var container = containers.FirstOrDefault(c => c.Name.Equals(containerName));
             if (container != null)
             {
@@ -134,13 +135,13 @@ namespace KubeStatus.Data
             }
             else
             {
-                return new List<EnvironmentVariable>();
+                return [];
             }
         }
 
         private async Task<List<EnvironmentVariable>> GetEnvironmentVariablesAndValues(V1Container container, string k8sNamespace, bool showSecrets)
         {
-            List<EnvironmentVariable> envVars = new List<EnvironmentVariable>();
+            List<EnvironmentVariable> envVars = [];
 
             if (container.Env != null && container.Env.Any())
             {
@@ -221,7 +222,7 @@ namespace KubeStatus.Data
             return envVars;
         }
 
-        public async Task<byte[]> GetAllNamespacedPodsFileAsync(string k8sNamespace = "default")
+        public async Task<byte[]?> GetAllNamespacedPodsFileAsync(string k8sNamespace = "default")
         {
             try
             {
@@ -267,7 +268,7 @@ namespace KubeStatus.Data
             }
         }
 
-        public async Task<System.IO.Stream> GetContainerMetricsAsync(string podIP, int port)
+        public async Task<System.IO.Stream?> GetContainerMetricsAsync(string podIP, int port)
         {
             try
             {
@@ -283,11 +284,11 @@ namespace KubeStatus.Data
 
         private class PodMeta
         {
-            public string Name { get; set; }
-            public string Component { get; set; }
-            public string Version { get; set; }
-            public string PartOf { get; set; }
-            public string PodStatus { get; set; }
+            public string? Name { get; set; }
+            public string? Component { get; set; }
+            public string? Version { get; set; }
+            public string? PartOf { get; set; }
+            public string? PodStatus { get; set; }
         }
     }
 }

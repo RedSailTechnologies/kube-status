@@ -179,18 +179,18 @@ else
 
 @code {
     [Parameter]
-    public string NamespaceParam { get; set; }
+    public string? NamespaceParam { get; set; }
 
     bool GetNamespacesError;
     bool DeploymentListError;
     bool _shouldRender;
     IEnumerable<string> Namespaces = Array.Empty<string>();
     string SelectedNamespace = string.Empty;
-    V1DeploymentList DeploymentList;
-    List<V1Deployment> FilteredDeploymentList;
+    V1DeploymentList? DeploymentList;
+    List<V1Deployment>? FilteredDeploymentList;
     string DeploymentMessage = "";
     string AlertClass = "alert-info";
-    string Filter;
+    string? Filter;
     string ScaleHeading = "";
     string DeploymentNamespace = "";
     string DeploymentName = "";
@@ -230,9 +230,16 @@ else
 
     async Task OnSelect(ChangeEventArgs e)
     {
-        SelectedNamespace = e.Value.ToString();
-        await SetNamespaceCookie();
-        await DeploymentListAll();
+        if (e != null && e.Value != null)
+        {
+            SelectedNamespace = (e.Value.ToString() ?? string.Empty).Trim();
+
+            if (!string.IsNullOrWhiteSpace(SelectedNamespace))
+            {
+                await SetNamespaceCookie();
+                await DeploymentListAll();
+            }
+        }
     }
 
     async Task SetNamespaceCookie()
@@ -262,18 +269,25 @@ else
         DeploymentList = null;
         FilteredDeploymentList = new List<V1Deployment>();
         DeploymentList = await DeploymentService.GetAllNamespacedDeploymentsAsync(SelectedNamespace);
-        FilteredDeploymentList = DeploymentList.Items.ToList();
-        ItemCountAll = DeploymentList.Items.Count;
-        ItemCountFiltered = FilteredDeploymentList.Count;
+        
+        if (DeploymentList != null)
+        {
+            FilteredDeploymentList = DeploymentList.Items.ToList();
+            ItemCountAll = DeploymentList.Items.Count;
+            ItemCountFiltered = FilteredDeploymentList.Count;
+        }
     }
 
     async Task FilterChange(ChangeEventArgs e)
     {
-        Filter = e?.Value?.ToString().Trim();
-
-        if (!string.IsNullOrWhiteSpace(Filter))
+        if (e != null && e.Value != null)
         {
-            await FilterResults();
+            Filter = (e.Value.ToString() ?? string.Empty).Trim();
+
+            if (!string.IsNullOrWhiteSpace(Filter))
+            {
+                await FilterResults();
+            }
         }
     }
 
@@ -287,14 +301,14 @@ else
     {
         if (string.IsNullOrWhiteSpace(Filter))
         {
-            FilteredDeploymentList = DeploymentList.Items.ToList();
-            ItemCountFiltered = FilteredDeploymentList.Count;
+            FilteredDeploymentList = DeploymentList?.Items.ToList();
+            ItemCountFiltered = FilteredDeploymentList?.Count ?? 0;
         }
         else
         {
-            FilteredDeploymentList = DeploymentList.Items.Where(d => d.Metadata.Name.Contains(Filter,
+            FilteredDeploymentList = DeploymentList?.Items.Where(d => d.Metadata.Name.Contains(Filter,
             StringComparison.OrdinalIgnoreCase)).ToList();
-            ItemCountFiltered = FilteredDeploymentList.Count;
+            ItemCountFiltered = FilteredDeploymentList?.Count ?? 0;
         }
         await InvokeAsync(() => { base.StateHasChanged(); });
     }

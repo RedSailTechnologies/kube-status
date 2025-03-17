@@ -62,6 +62,8 @@ else
                 </th>
             </TableHeader>
             <RowTemplate>
+                @if(context != null && context.Metadata != null && context.Metadata.Name != null)
+                {
                 <td>
                     <div class="form-group row mb-2">
                         <div class="col-xl-6">
@@ -210,6 +212,7 @@ else
                         }
                     </div>
                 </td>
+            }
             </RowTemplate>
         </TableTemplate>
     }
@@ -233,18 +236,18 @@ else
 
 @code {
     [Parameter]
-    public string ApplicationStatusParam { get; set; }
+    public string? ApplicationStatusParam { get; set; }
     [Parameter]
-    public string FilterParam { get; set; }
+    public string? FilterParam { get; set; }
 
 
     bool GetApplicationsError;
     bool _shouldRender;
-    IEnumerable<SparkApplication> Applications;
-    IEnumerable<SparkApplication> FilteredApplications;
+    IEnumerable<SparkApplication>? Applications;
+    IEnumerable<SparkApplication>? FilteredApplications;
     Dictionary<string, string> ApplicationStatuses = new Dictionary<string, string>();
-    string SelectedApplicationStatus;
-    string Filter;
+    string SelectedApplicationStatus = "All";
+    string? Filter;
     int ItemCountAll = 0;
     int ItemCountFiltered = 0;
     Regex SortRegEx = new Regex(@"([^-]*$)");
@@ -283,7 +286,10 @@ else
 
     async Task OnSelect(ChangeEventArgs e)
     {
-        SelectedApplicationStatus = e.Value.ToString();
+        if (e != null && e.Value != null)
+        {
+            SelectedApplicationStatus = e.Value.ToString() ?? string.Empty;
+        }
         await GetSparkApplications();
     }
 
@@ -292,9 +298,9 @@ else
         Applications = null;
         FilteredApplications = new List<SparkApplication>();
         Applications = await SparkApplicationService.GetSparkApplicationsAsync(SelectedApplicationStatus);
-        ItemCountAll = Applications.Count();
+        ItemCountAll = Applications?.Count() ?? 0;
         FilteredApplications = Applications;
-        ItemCountFiltered = FilteredApplications.Count();
+        ItemCountFiltered = FilteredApplications?.Count() ?? 0;
 
         if (!string.IsNullOrWhiteSpace(Filter))
         {
@@ -303,11 +309,14 @@ else
     }
     async Task FilterChange(ChangeEventArgs e)
     {
-        Filter = e?.Value?.ToString().Trim();
-
-        if (!string.IsNullOrWhiteSpace(Filter))
+        if (e != null && e.Value != null)
         {
-            await FilterResults();
+            Filter = (e.Value.ToString() ?? string.Empty).Trim();
+
+            if (!string.IsNullOrWhiteSpace(Filter))
+            {
+                await FilterResults();
+            }
         }
     }
 
@@ -322,13 +331,12 @@ else
         if (string.IsNullOrWhiteSpace(Filter))
         {
             FilteredApplications = Applications;
-            ItemCountFiltered = FilteredApplications.Count();
+            ItemCountFiltered = FilteredApplications?.Count() ?? 0;
         }
         else
         {
-            FilteredApplications = Applications.Where(s => s.Metadata.Name.Contains(Filter,
-            StringComparison.OrdinalIgnoreCase)).ToList();
-            ItemCountFiltered = FilteredApplications.Count();
+            FilteredApplications = Applications?.Where(s => s != null && s.Metadata != null && s.Metadata.Name != null && s.Metadata.Name.Contains(Filter, StringComparison.OrdinalIgnoreCase)).ToList();
+            ItemCountFiltered = FilteredApplications?.Count() ?? 0;
         }
         await InvokeAsync(() => { base.StateHasChanged(); });
     }

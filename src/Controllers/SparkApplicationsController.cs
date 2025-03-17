@@ -18,13 +18,13 @@ namespace KubeStatus.Controllers
         private readonly SparkApplicationService _SparkApplicationService = SparkApplicationService;
 
         [HttpGet]
-        public async Task<IEnumerable<SparkApplication>> GetAllSparkApplicationsAsync()
+        public async Task<IEnumerable<SparkApplication>?> GetAllSparkApplicationsAsync()
         {
             return await _SparkApplicationService.GetAllSparkApplicationsAsync();
         }
 
         [HttpGet("{filterStatus}")]
-        public async Task<IEnumerable<SparkApplication>> GetSparkApplicationsAsync(string filterStatus = null)
+        public async Task<IEnumerable<SparkApplication>?> GetSparkApplicationsAsync(string? filterStatus = null)
         {
             return await _SparkApplicationService.GetSparkApplicationsAsync(filterStatus);
         }

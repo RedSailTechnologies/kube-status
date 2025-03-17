@@ -68,6 +68,8 @@ else
                 </th>
             </TableHeader>
             <RowTemplate>
+                @if(context != null)
+                {
                 <td>
                     <div class="form-group row mb-2">
                         <div class="col-xl-3">
@@ -89,13 +91,16 @@ else
                         </div>
                         <AuthorizeView Policy="RequireAdminRole" Context="auth">
                         <div class="col-xl-1">
+                            @if(context.Name != null && context.Namespace != null)
+                            {
                             <button @onclick="() => RestartConnector(context.Name, context.Namespace)" class="btn btn-outline-dark btn-sm">
                                 Restart
                             </button>
+                            }
                         </div>
                         </AuthorizeView>
                     </div>
-                    @if (@context.Topics.Any())
+                    @if (context.Topics != null && context.Topics.Any())
                     {
                         <div class="row mb-1">
                             <div class="col-xl-12">
@@ -131,6 +136,7 @@ else
                         </div>
                     }
                 </td>
+            }
             </RowTemplate>
         </TableTemplate>
     }
@@ -172,12 +178,12 @@ else
     bool ConnectorRestarted;
     string RestartedConnectorName = string.Empty;
     bool _shouldRender;
-    IEnumerable<KafkaConnector> Connectors;
+    IEnumerable<KafkaConnector>? Connectors;
     int ItemCountAll = 0;
     bool HasFailedTasks;
     bool FailedButtonIsDisabled;
     bool ShowKafkaApiButtons;
-    string StatusJson;
+    string? StatusJson;
     MarkupString JsonText;
 
     protected override bool ShouldRender() => _shouldRender;
@@ -189,8 +195,11 @@ else
             Connectors = await KafkaConnectorService.GetAllKafkaConnectorsAsync();
             ItemCountAll = Connectors.Count();
             HasFailedTasks = Connectors.Any(c =>
-            c.TaskState.Equals("failed", StringComparison.OrdinalIgnoreCase) ||
-            c.ConnectorState.Equals("failed", StringComparison.OrdinalIgnoreCase)
+                c != null && c.TaskState != null && c.ConnectorState != null &&
+                (
+                    c.TaskState.Equals("failed", StringComparison.OrdinalIgnoreCase) ||
+                    c.ConnectorState.Equals("failed", StringComparison.OrdinalIgnoreCase)
+                )
             );
 
             ShowKafkaApiButtons = !String.IsNullOrWhiteSpace(Helper.StrimziConnectClusterServiceHost());

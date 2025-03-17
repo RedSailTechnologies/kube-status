@@ -167,18 +167,18 @@ else
 
 @code {
     [Parameter]
-    public string NamespaceParam { get; set; }
+    public string? NamespaceParam { get; set; }
 
     bool GetNamespacesError;
     bool StatefulSetListError;
     bool _shouldRender;
     IEnumerable<string> Namespaces = Array.Empty<string>();
     string SelectedNamespace = string.Empty;
-    V1StatefulSetList StatefulSetList;
-    List<V1StatefulSet> FilteredStatefulSetList;
+    V1StatefulSetList? StatefulSetList;
+    List<V1StatefulSet>? FilteredStatefulSetList;
     string StatefulSetMessage = "";
     string AlertClass = "alert-info";
-    string Filter;
+    string? Filter;
     string ScaleHeading = "";
     string StatefulSetNamespace = "";
     string StatefulSetName = "";
@@ -218,9 +218,16 @@ else
 
     async Task OnSelect(ChangeEventArgs e)
     {
-        SelectedNamespace = e.Value.ToString();
-        await SetNamespaceCookie();
-        await StatefulSetListAll();
+        if (e != null && e.Value != null)
+        {
+            SelectedNamespace = (e.Value.ToString() ?? string.Empty).Trim();
+
+            if (!string.IsNullOrWhiteSpace(SelectedNamespace))
+            {
+                await SetNamespaceCookie();
+                await StatefulSetListAll();
+            }
+        }
     }
 
     async Task SetNamespaceCookie()
@@ -250,18 +257,25 @@ else
         StatefulSetList = null;
         FilteredStatefulSetList = new List<V1StatefulSet>();
         StatefulSetList = await StatefulSetService.GetAllNamespacedStatefulSetsAsync(SelectedNamespace);
-        FilteredStatefulSetList = StatefulSetList.Items.ToList();
-        ItemCountAll = StatefulSetList.Items.Count;
-        ItemCountFiltered = FilteredStatefulSetList.Count;
+        
+        if (StatefulSetList != null)
+        {
+            FilteredStatefulSetList = StatefulSetList.Items.ToList();
+            ItemCountAll = StatefulSetList.Items.Count;
+            ItemCountFiltered = FilteredStatefulSetList.Count;
+        }
     }
 
     async Task FilterChange(ChangeEventArgs e)
     {
-        Filter = e?.Value?.ToString().Trim();
-        
-        if (!string.IsNullOrWhiteSpace(Filter))
+        if (e != null && e.Value != null)
         {
-            await FilterResults();
+            Filter = (e.Value.ToString() ?? string.Empty).Trim();
+
+            if (!string.IsNullOrWhiteSpace(Filter))
+            {
+                await FilterResults();
+            }
         }
     }
 
@@ -275,14 +289,13 @@ else
     {
         if (string.IsNullOrWhiteSpace(Filter))
         {
-            FilteredStatefulSetList = StatefulSetList.Items.ToList();
-            ItemCountFiltered = FilteredStatefulSetList.Count;
+            FilteredStatefulSetList = StatefulSetList?.Items.ToList();
+            ItemCountFiltered = FilteredStatefulSetList?.Count ?? 0;
         }
         else
         {
-            FilteredStatefulSetList = StatefulSetList.Items.Where(d => d.Metadata.Name.Contains(Filter,
-            StringComparison.OrdinalIgnoreCase)).ToList();
-            ItemCountFiltered = FilteredStatefulSetList.Count;
+            FilteredStatefulSetList = StatefulSetList?.Items.Where(d => d.Metadata.Name.Contains(Filter, StringComparison.OrdinalIgnoreCase)).ToList();
+            ItemCountFiltered = FilteredStatefulSetList?.Count ?? 0;
         }
         await InvokeAsync(() => { base.StateHasChanged(); });
     }

@@ -49,7 +49,7 @@ namespace KubeStatus.Data
 
         public IMemoryCache MemoryCache { get; } = memoryCache;
 
-        public Task<V1DeploymentList> GetAllNamespacedDeploymentsAsync(string k8sNamespace = "default")
+        public Task<V1DeploymentList?> GetAllNamespacedDeploymentsAsync(string k8sNamespace = "default")
         {
             return MemoryCache.GetOrCreateAsync($"{k8sNamespace}_deployments", async e =>
             {

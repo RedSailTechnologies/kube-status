@@ -17,7 +17,7 @@ namespace KubeStatus
 
         static Helper()
         {
-            _podStatusDictionary = new Dictionary<string, string>();
+            _podStatusDictionary = [];
         }
 
         public static void BuildPodStatusDictionary()
@@ -98,12 +98,12 @@ namespace KubeStatus
 
         public static string MetricsPortName()
         {
-            return Environment.GetEnvironmentVariable("POD_METRIC_PORT_PAGE").Split("|")[0];
+            return (Environment.GetEnvironmentVariable("POD_METRIC_PORT_PAGE") ?? string.Empty).Split("|")[0];
         }
 
         public static string MetricsRoute()
         {
-            return Environment.GetEnvironmentVariable("POD_METRIC_PORT_PAGE").Split("|")[1];
+            return (Environment.GetEnvironmentVariable("POD_METRIC_PORT_PAGE") ?? string.Empty).Split("|")[1];
         }
 
         /// <summary>
@@ -130,7 +130,7 @@ namespace KubeStatus
 
         public static string GetUserIdentityName(this IHttpContextAccessor httpContextAccessor)
         {
-            return httpContextAccessor.HttpContext.User.Identity.Name?.ToLower() ?? "";
+            return httpContextAccessor.HttpContext?.User.Identity?.Name?.ToLower() ?? "";
         }
     }
 }
