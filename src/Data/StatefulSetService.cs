@@ -15,16 +15,16 @@ using k8s.Models;
 
 namespace KubeStatus.Data
 {
-    public class StatefulSetService
+    public class StatefulSetService(IKubernetes kubernetesClient, IMemoryCache memoryCache, IHttpContextAccessor httpContextAccessor)
     {
-        private readonly IKubernetes kubernetesClient;
+        private readonly IKubernetes kubernetesClient = kubernetesClient;
 
         private readonly Counter _restartedStatefulSets = Metrics.CreateCounter(
             "kube_status_statefulset_restarted_total",
             "Number of restarts per statefulset.",
             new CounterConfiguration
             {
-                LabelNames = new[] { "User", "Namespace", "StatefuleSet" }
+                LabelNames = ["User", "Namespace", "StatefulSet"]
             });
 
         private readonly Counter _restartedStatefulSetsAll = Metrics.CreateCounter(
@@ -32,7 +32,7 @@ namespace KubeStatus.Data
             "Number of namespace restarts.",
             new CounterConfiguration
             {
-                LabelNames = new[] { "User", "Namespace" }
+                LabelNames = ["User", "Namespace"]
             });
 
         private readonly Counter _scaledStatefulSets = Metrics.CreateCounter(
@@ -40,23 +40,17 @@ namespace KubeStatus.Data
             "Number of scaling events per statefulset.",
             new CounterConfiguration
             {
-                LabelNames = new[] { "User", "Namespace", "StatefuleSet" }
+                LabelNames = ["User", "Namespace", "StatefulSet"]
             });
 
-        private readonly IHttpContextAccessor _httpContextAccessor;
+        private static readonly JsonSerializerOptions _jsonSerializerOptions = new() { PropertyNamingPolicy = JsonNamingPolicy.CamelCase, WriteIndented = true };
+        private readonly IHttpContextAccessor _httpContextAccessor = httpContextAccessor;
 
-        public IMemoryCache MemoryCache { get; }
+        public IMemoryCache MemoryCache { get; } = memoryCache;
 
-        public StatefulSetService(IKubernetes kubernetesClient, IMemoryCache memoryCache, IHttpContextAccessor httpContextAccessor)
+        public Task<V1StatefulSetList?> GetAllNamespacedStatefulSetsAsync(string k8sNamespace = "default")
         {
-            this.kubernetesClient = kubernetesClient;
-            MemoryCache = memoryCache;
-            _httpContextAccessor = httpContextAccessor;
-        }
-
-        public Task<V1StatefulSetList> GetAllNamespacedStatefulSetsAsync(string k8sNamespace = "default")
-        {
-            return MemoryCache.GetOrCreateAsync($"{k8sNamespace}_statefulsets", async e =>
+            return MemoryCache.GetOrCreateAsync($"{k8sNamespace}_statefulset", async e =>
             {
                 e.SetOptions(new MemoryCacheEntryOptions
                 {
@@ -74,13 +68,12 @@ namespace KubeStatus.Data
             });
         }
 
-        public async Task<Boolean> RestartStatefulSetAsync(string name, string k8sNamespace = "default")
+        public async Task<bool> RestartStatefulSetAsync(string name, string k8sNamespace = "default")
         {
             try
             {
                 var StatefulSet = await kubernetesClient.AppsV1.ReadNamespacedStatefulSetAsync(name, k8sNamespace);
-                var options = new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase, WriteIndented = true };
-                var old = JsonSerializer.SerializeToDocument(StatefulSet, options);
+                var old = JsonSerializer.SerializeToDocument(StatefulSet, _jsonSerializerOptions);
                 var restart = new Dictionary<string, string>
                 {
                     ["kubectl.kubernetes.io/restartedAt"] = $"{DateTimeOffset.Now.UtcDateTime:s}Z"
@@ -104,7 +97,7 @@ namespace KubeStatus.Data
             }
         }
 
-        public async Task<Boolean> RestartNamespacedStatefulSetAsync(string k8sNamespace = "default")
+        public async Task<bool> RestartNamespacedStatefulSetAsync(string k8sNamespace = "default")
         {
             try
             {
@@ -135,7 +128,7 @@ namespace KubeStatus.Data
             }
         }
 
-        public async Task<Boolean> ScaleStatefulSetAsync(string name, int replicas, string k8sNamespace = "default")
+        public async Task<bool> ScaleStatefulSetAsync(string name, int replicas, string k8sNamespace = "default")
         {
             try
             {

@@ -3,7 +3,6 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Logging;
 
 using KubeStatus.Data;
 
@@ -12,16 +11,9 @@ namespace KubeStatus.Controllers
     [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
     [ApiController]
     [Route("api/[controller]")]
-    public class LogsController : ControllerBase
+    public class LogsController(LogService logService) : ControllerBase
     {
-        private readonly ILogger<LogsController> _logger;
-        private readonly LogService _logService;
-
-        public LogsController(ILogger<LogsController> logger, LogService logService)
-        {
-            _logger = logger;
-            _logService = logService;
-        }
+        private readonly LogService _logService = logService;
 
         [HttpGet("{k8sNamespace}/{pod}/{container}")]
         public async Task<IActionResult> GetContainerLogsAsync(string k8sNamespace, string pod, string container, int tail = 100)

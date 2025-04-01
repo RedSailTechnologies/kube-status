@@ -7,14 +7,9 @@ using k8s.Models;
 
 namespace KubeStatus.Data
 {
-    public class NamespaceService
+    public class NamespaceService(IKubernetes kubernetesClient)
     {
-        private readonly IKubernetes kubernetesClient;
-
-        public NamespaceService(IKubernetes kubernetesClient)
-        {
-            this.kubernetesClient = kubernetesClient;
-        }
+        private readonly IKubernetes kubernetesClient = kubernetesClient;
 
         public async Task<V1NamespaceList> GetAllNamespacesAsync()
         {

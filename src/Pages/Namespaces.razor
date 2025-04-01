@@ -24,10 +24,30 @@ else
                 <div class="row align-items-center">
                     <div class="col-sm-2"><span class="align-center">@context</span></div>
                     <div class="col-sm-5">
-                        <a href="pods/@context" class="btn btn-outline-dark btn-sm mx-1 my-1">View Pods</a>
-                        <a href="deployments/@context" class="btn btn-outline-dark btn-sm mx-1 my-1">View Deployments</a>
-                        <a href="statefulsets/@context" class="btn btn-outline-dark btn-sm mx-1 my-1">View Stateful Sets</a>
-                        <a href="helm/@context" class="btn btn-outline-dark btn-sm mx-1 my-1">View Helm Releases</a>
+                        <a href="pods/@context" class="btn btn-outline-dark btn-sm mx-1 my-1">
+                            <span class="oi oi-monitor" aria-hidden="true"></span> Pods
+                        </a>
+                        <a href="deployments/@context" class="btn btn-outline-dark btn-sm mx-1 my-1">
+                            <span class="oi oi-briefcase" aria-hidden="true"></span> Deployments
+                        </a>
+                        <a href="statefulsets/@context" class="btn btn-outline-dark btn-sm mx-1 my-1">
+                            <span class="oi oi-layers" aria-hidden="true"></span> Stateful Sets
+                        </a>
+                        @if (UiShowHelm)
+                        {
+                            <a href="helm/@context" class="btn btn-outline-dark btn-sm mx-1 my-1">
+                                <span class="oi oi-box" aria-hidden="true"></span> Helm Releases
+                            </a>
+                        }
+                        @if (UiShowTor)
+                        {
+                            <a href="tor-enterprises/@context" class="btn btn-outline-dark btn-sm mx-1 my-1">
+                                <span class="oi oi-medical-cross" aria-hidden="true"></span> Tor Enterprises
+                            </a>
+                            <a href="tor-databases/@context" class="btn btn-outline-dark btn-sm mx-1 my-1">
+                                <span class="oi oi-hard-drive" aria-hidden="true"></span> Tor Databases
+                            </a>
+                        }
                     </div>
                 </div>
             </td>
@@ -38,6 +58,8 @@ else
 @code {
     bool GetNamespacesError;
     bool _shouldRender;
+    bool UiShowHelm = true;
+    bool UiShowTor = true;
     IEnumerable<string> NamespaceList = Array.Empty<string>();
     int ItemCountAll = 0;
 
@@ -45,6 +67,9 @@ else
 
     protected override async Task OnInitializedAsync()
     {
+        Boolean.TryParse(@Environment.GetEnvironmentVariable("UI_SHOW_HELM"), out UiShowHelm);
+        Boolean.TryParse(@Environment.GetEnvironmentVariable("UI_SHOW_TOR"), out UiShowTor);
+
         try
         {
             var namespaces = await NamespaceService.GetAllNamespacesAsync();

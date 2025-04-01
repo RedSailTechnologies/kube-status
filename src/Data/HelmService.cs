@@ -14,14 +14,14 @@ using KubeStatus.Models;
 
 namespace KubeStatus.Data
 {
-    public class HelmService
+    public class HelmService(IHttpContextAccessor httpContextAccessor)
     {
         private readonly Counter _helmRollback = Metrics.CreateCounter(
             "kube_status_helm_rollback_total",
             "Number of rollbacks per helm release.",
             new CounterConfiguration
             {
-                LabelNames = new[] { "User", "Namespace", "Release" }
+                LabelNames = ["User", "Namespace", "Release"]
             });
 
         private readonly Counter _helmUninstall = Metrics.CreateCounter(
@@ -29,15 +29,10 @@ namespace KubeStatus.Data
             "Number of uninstalls per helm release.",
             new CounterConfiguration
             {
-                LabelNames = new[] { "User", "Namespace", "Release" }
+                LabelNames = ["User", "Namespace", "Release"]
             });
 
-        private readonly IHttpContextAccessor _httpContextAccessor;
-
-        public HelmService(IHttpContextAccessor httpContextAccessor)
-        {
-            _httpContextAccessor = httpContextAccessor;
-        }
+        private readonly IHttpContextAccessor _httpContextAccessor = httpContextAccessor;
 
         public async Task<IEnumerable<HelmListItem>> HelmListAll(string k8sNamespace = "default")
         {
@@ -107,19 +102,16 @@ namespace KubeStatus.Data
         private List<string> GetHelmCliArguments()
         {
             var config = Helper.GetKubernetesClientConfiguration();
-            List<string> cliArgs = new List<string>();
-
-            cliArgs.Add("--kube-apiserver");
-            cliArgs.Add(config.Host);
+            List<string> cliArgs = ["--kube-apiserver", config.Host];
 
             if (!string.IsNullOrWhiteSpace(config.AccessToken))
             {
                 cliArgs.Add("--kube-token");
                 cliArgs.Add(config.AccessToken);
             }
-            else if (!string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable("KUBE_TOKEN_FILE")))
+            else if (!string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable("KUBE_TOKEN_FILE") ?? string.Empty))
             {
-                var token = File.ReadAllText(Environment.GetEnvironmentVariable("KUBE_TOKEN_FILE"));
+                var token = File.ReadAllText(Environment.GetEnvironmentVariable("KUBE_TOKEN_FILE") ?? string.Empty);
                 if (!string.IsNullOrWhiteSpace(token))
                 {
                     cliArgs.Add("--kube-token");
@@ -134,7 +126,7 @@ namespace KubeStatus.Data
             else
             {
                 cliArgs.Add("--kube-ca-file");
-                cliArgs.Add(Environment.GetEnvironmentVariable("KUBE_CA_FILE"));
+                cliArgs.Add(Environment.GetEnvironmentVariable("KUBE_CA_FILE") ?? string.Empty);
             }
 
             return cliArgs;
@@ -155,7 +147,7 @@ namespace KubeStatus.Data
 
                     string[] dateParts = values[3].Split(' ');
                     DateTimeOffset.TryParse($"{dateParts[0]} {dateParts[1]} {dateParts[2]}",
-                        null as IFormatProvider,
+                        null,
                         DateTimeStyles.AdjustToUniversal,
                         out DateTimeOffset updated);
 

@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Security.Claims;
 
 using Microsoft.AspNetCore.Http;
 
@@ -17,7 +16,7 @@ namespace KubeStatus
 
         static Helper()
         {
-            _podStatusDictionary = new Dictionary<string, string>();
+            _podStatusDictionary = [];
         }
 
         public static void BuildPodStatusDictionary()
@@ -98,12 +97,37 @@ namespace KubeStatus
 
         public static string MetricsPortName()
         {
-            return Environment.GetEnvironmentVariable("POD_METRIC_PORT_PAGE").Split("|")[0];
+            return (Environment.GetEnvironmentVariable("POD_METRIC_PORT_PAGE") ?? string.Empty).Split("|")[0];
         }
 
         public static string MetricsRoute()
         {
-            return Environment.GetEnvironmentVariable("POD_METRIC_PORT_PAGE").Split("|")[1];
+            return (Environment.GetEnvironmentVariable("POD_METRIC_PORT_PAGE") ?? string.Empty).Split("|")[1];
+        }
+
+        public static string TorGroup()
+        {
+            return Environment.GetEnvironmentVariable("TOR__GROUP") ?? "redsail.tor";
+        }
+
+        public static string TorEnterpriseVersion()
+        {
+            return Environment.GetEnvironmentVariable("TOR__ENTERPRISE_VERSION") ?? "v1";
+        }
+
+        public static string TorEnterprisePlural()
+        {
+            return Environment.GetEnvironmentVariable("TOR__ENTERPRISE_PLURAL") ?? "enterprises";
+        }
+
+        public static string TorDatabaseVersion()
+        {
+            return Environment.GetEnvironmentVariable("TOR__DATABASE_VERSION") ?? "v1";
+        }
+
+        public static string TorDatabasePlural()
+        {
+            return Environment.GetEnvironmentVariable("TOR__DATABASE_PLURAL") ?? "databases";
         }
 
         /// <summary>
@@ -130,7 +154,7 @@ namespace KubeStatus
 
         public static string GetUserIdentityName(this IHttpContextAccessor httpContextAccessor)
         {
-            return httpContextAccessor.HttpContext.User.Identity.Name?.ToLower() ?? "";
+            return httpContextAccessor.HttpContext?.User.Identity?.Name?.ToLower() ?? "";
         }
     }
 }

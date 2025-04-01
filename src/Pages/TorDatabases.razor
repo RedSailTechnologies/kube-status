@@ -1,0 +1,393 @@
+@page "/tor-databases/{namespaceparam?}/{filterparam?}"
+
+@using System.Text.RegularExpressions
+
+@inject NamespaceService NamespaceService
+@inject TorDatabaseService TorDatabaseService
+@inject IJSRuntime JsRuntime
+@inject NavigationManager Navigator
+
+@if (UiShowTor)
+{
+    <h1>Tor Databases</h1>
+
+    @if (GetNamespacesError)
+    {
+        <div class="alert alert-danger" role="alert">
+            Unable to get namespaces. Please try again later.
+        </div>
+    }
+    else
+    {
+        <div class="row">
+            @if (@ItemCountAll == @ItemCountFiltered)
+            {
+                <h6>Items: @ItemCountAll</h6>
+            }
+            else
+            {
+                <h6>Filtered: @ItemCountFiltered / @ItemCountAll</h6>
+            }
+        </div>
+        <div class="form-group row mb-3">
+            <div class="col-sm-4">
+                <label for="namespaceSelect" class="form-label">Select a Namespace</label>
+                <select class="form-select" id="namespaceSelect" @onchange="@OnNamespaceSelect">
+                    @foreach (var ns in Namespaces)
+                    {
+                        @if (@ns.Equals(@SelectedNamespace))
+                        {
+                            <option value=@ns selected>@ns</option>
+                        }
+                        else
+                        {
+                            <option value=@ns>@ns</option>
+                        }
+                    }
+                </select>
+            </div>
+        </div>
+        <div class="form-group row mb-3">
+            <div class="col-sm-4">
+                <div class="input-group">
+                    <input type="text" class="form-control" placeholder="Search..." aria-label="Filter"
+                        aria-describedby="button-clear" @bind-value="Filter" @oninput="@FilterChange">
+                    <button class="btn btn-outline-secondary" type="button" id="button-clear"
+                        @onclick="@ClearFilter">Clear</button>
+                </div>
+            </div>
+        </div>
+    }
+    @if (GetDatabasesError)
+    {
+        <div class="alert alert-danger" role="alert">
+            Unable to get Tor Databases. Please try again later.
+        </div>
+    }
+    else
+    {
+        @if (@Databases != null && @Databases.Any())
+        {
+            <TableTemplate Items="FilteredDatabases" TItem="TorDatabase" TableHeaderClass="thead-light" TableClass="mb-5">
+                <TableHeader>
+                    <th>
+                    </th>
+                </TableHeader>
+                <RowTemplate>
+                    @if (context != null && context != null && context.Name != null)
+                    {
+                        <td class="container">
+                            <div class="form-group row mb-2">
+                                <div class="col-xl-6">
+                                    <span id="name-@context.Name" class="form-item h4">@context.Name</span>
+                                    <button type="button" class="btn btn-link btn-copy js-tooltip" data-toggle="tooltip"
+                                        data-placement="top" title="Copy link to clipboard"
+                                        @onclick="() => CopyTextToClipboard(context.Name)">
+                                        <span class="oi oi-link-intact" aria-hidden="true"></span>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="form-group row mb-2">
+                                <div class="col-xl-4">
+                                    <label class="form-label"><b>Postgres Databases Name:</b></label>
+                                    <span id="db-name-@context.Name" class="form-item">@context.Spec.DbName</span>
+                                </div>
+                                <div class="col-xl-4">
+                                    <label class="form-label"><b>Kubernetes Service Account:</b></label>
+                                    <span id="service-account-@context.Name" class="form-item">@context.Spec.ServiceAccount</span>
+                                </div>
+                                <div class="col-xl-4">
+                                    <label class="form-label"><b>Weight:</b></label>
+                                    <span id="weight-@context.Name" class="form-item">@context.Spec.Weight</span>
+                                </div>
+                            </div>
+                            <div class="form-group row mb-2">
+                                <div class="col-xl-4">
+                                    <label class="form-label"><b>Created:</b></label>
+                                    <span id="created-date-@context.Name" class="form-item">@context.Status.CreatedDate</span>
+                                </div>
+                                <div class="col-xl-4">
+                                    <label class="form-label"><b>Last Updated:</b></label>
+                                    <span id="last-updated-@context.Name" class="form-item">@context.Status.LastUpdatedDate</span>
+                                </div>
+                                <div class="col-xl-4">
+                                    <label class="form-label"><b>Last Reconciled:</b></label>
+                                    <span id="last-reconciled-@context.Name" class="form-item">@context.Status.LastReconciledDate</span>
+                                </div>
+                            </div>
+                            <div class="form-group row mb-2">
+                                <div class="col-xl-4">
+                                    <label class="form-label"><b>Vault Default TTL:</b></label>
+                                    <span id="vault-default-ttl-@context.Name" class="form-item">@context.Spec.VaultDefaultTtl</span>
+                                </div>
+                                <div class="col-xl-4">
+                                    <label class="form-label"><b>Vault Max TTL:</b></label>
+                                    <span id="vault-max-ttl-@context.Name" class="form-item">@context.Spec.VaultMaxTtl</span>
+                                </div>
+                                <div class="col-xl-4">
+                                    <label class="form-label"><b>Vault Migration TTL:</b></label>
+                                    <span id="vault-migration-ttl-@context.Name"
+                                        class="form-item">@context.Spec.VaultMigrationTtl</span>
+                                </div>
+                            </div>
+                            <div class="form-group row mb-2">
+                                <div class="col-xl-4">
+                                    <label class="form-label"><b>Shared:</b></label>
+                                    <span id="shared-@context.Name" class="form-item">@context.Spec.Shared</span>
+                                </div>
+                                <div class="col-xl-4">
+                                    <label class="form-label"><b>Always Reconcile:</b></label>
+                                    <span id="always-reconcile-@context.Name" class="form-item">@context.Spec.AlwaysReconcile</span>
+                                </div>
+                                <div class="col-xl-4">
+                                    <label class="form-label"><b>Ur lDecode Commands:</b></label>
+                                    <span id="url-decode-commands-@context.Name"
+                                        class="form-item">@context.Spec.UrlDecodeCommands</span>
+                                </div>
+                            </div>
+                            <div class="form-group row mb-2">
+                                <div class="col-xl-4">
+                                    <label class="form-label"><b>Command Timeout:</b></label>
+                                    <span id="command-timeout-@context.Name" class="form-item">@context.Spec.CommandTimeout</span>
+                                </div>
+                                <div class="col-xl-4">
+                                    <label class="form-label"><b>Merge Secret:</b></label>
+                                    <span id="merge-secret-@context.Name" class="form-item">@context.Spec.MergeSecret</span>
+                                </div>
+                                <div class="col-xl-4">
+                                    <label class="form-label"><b>Secret:</b></label>
+                                    <span id="secret-@context.Name" class="form-item">@context.Spec.Secret</span>
+                                </div>
+                            </div>
+                            <div class="form-group row mb-2">
+                                <div class="col-xl-4">
+                                    <label class="form-label"><b>Hash:</b></label>
+                                    <span id="hash-@context.Name" class="form-item">@context.Status.Hash</span>
+                                </div>
+                                <div class="col-xl-4">
+                                    <label class="form-label"><b>Revoke Public Access:</b></label>
+                                    <span id="revoke-public-access-@context.Name"
+                                        class="form-item">@context.Spec.RevokePublicAccess</span>
+                                </div>
+                                @if (context.Spec.Schemas != null && context.Spec.Schemas.Any())
+                                {
+                                    <div class="col-xl-4">
+                                        <label class="form-label"><b>Schemas:</b></label>
+                                        <span id="schemas-@context.Name" class="form-item">@string.Join(',', context.Spec.Schemas)</span>
+                                    </div>
+                                }
+                            </div>
+                            <div class="row mb-2">
+                                <div class="col-sm-12">
+                                    @if (context.Spec.Commands != null && context.Spec.Commands.Any())
+                                    {
+                                        <div class="col-xl-1">
+                                            <button class="btn btn-outline-dark btn-sm collapsed" type="button" data-bs-toggle="collapse"
+                                                data-bs-target="#@context.Name-commands" aria-expanded="false"
+                                                aria-controls="@context.Name-commands">
+                                                <span><span class="show">Show</span><span class="hide">Hide</span> Commands</span>
+                                            </button>
+                                        </div>
+                                    }
+                                    @if (context.Spec.LoopCommands != null && context.Spec.LoopCommands.Any())
+                                    {
+                                        <div class="col-xl-1">
+                                            <button class="btn btn-outline-dark btn-sm collapsed" type="button" data-bs-toggle="collapse"
+                                                data-bs-target="#@context.Name-loop-commands" aria-expanded="false"
+                                                aria-controls="@context.Name-loop-commands">
+                                                <span><span class="show">Show</span><span class="hide">Hide</span> Loop Commands</span>
+                                            </button>
+                                        </div>
+                                    }
+                                    @if (context.Spec.Commands != null && context.Spec.Commands.Any())
+                                    {
+                                        <div class="collapse col-sm-12" id="@context.Name-commands">
+                                            <h5>Commands</h5>
+                                            <pre>@context.Spec.Commands.ToYaml()</pre>
+                                        </div>
+                                    }
+                                    @if (context.Spec.LoopCommands != null && context.Spec.LoopCommands.Any())
+                                    {
+                                        <div class="collapse col-sm-12" id="@context.Name-loop-commands">
+                                            <h5>Loop Commands</h5>
+                                            <pre>@context.Spec.LoopCommands.ToYaml()</pre>
+                                        </div>
+                                    }
+                                </div>
+                            </div>
+                        </td>
+                    }
+                </RowTemplate>
+            </TableTemplate>
+        }
+
+        else if (Databases == null)
+
+        {
+            <div class="alert alert-info" role="alert">
+                Loading Tor Databases...
+            </div>
+        }
+
+        else
+
+        {
+            <div class="alert alert-primary" role="alert">
+                No Tor Databases found in the @SelectedNamespace namespace.
+            </div>
+        }
+    }
+}
+else
+{
+    <div class="alert alert-danger" role="alert">
+        Tor is not currently enabled!
+    </div>
+}
+
+@code {
+    [Parameter]
+    public string? NamespaceParam { get; set; }
+    [Parameter]
+    public string? FilterParam { get; set; }
+
+    bool UiShowTor = true;
+    bool GetNamespacesError;
+    bool GetDatabasesError;
+    bool _shouldRender;
+    IEnumerable<string> Namespaces = Array.Empty<string>();
+    string SelectedNamespace = string.Empty;
+    IEnumerable<TorDatabase>? Databases;
+    IEnumerable<TorDatabase>? FilteredDatabases;
+    string? Filter;
+    int ItemCountAll = 0;
+    int ItemCountFiltered = 0;
+    Regex SortRegEx = new Regex(@"([^-]*$)");
+
+    protected override bool ShouldRender() => _shouldRender;
+
+    protected override async Task OnInitializedAsync()
+    {
+        Boolean.TryParse(@Environment.GetEnvironmentVariable("UI_SHOW_TOR"), out UiShowTor);
+
+        try
+        {
+            if (!string.IsNullOrWhiteSpace(NamespaceParam))
+            {
+                SelectedNamespace = NamespaceParam;
+                await SetNamespaceCookie();
+            }
+            else
+            {
+                SelectedNamespace = await GetNamespaceCookie();
+            }
+
+            FilterParam = FilterParam ?? "";
+            Filter = FilterParam;
+
+            Namespaces = await NamespaceService.GetAllNamespaceNamesAsync();
+
+            await GetTorDatabases();
+
+            _shouldRender = true;
+        }
+        catch
+        {
+            GetNamespacesError = true;
+            GetDatabasesError = true;
+        }
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        await JsRuntime.InvokeVoidAsync("addCopyTooltips");
+    }
+
+    async Task OnNamespaceSelect(ChangeEventArgs e)
+    {
+        if (e != null && e.Value != null)
+        {
+            SelectedNamespace = e.Value.ToString() ?? string.Empty;
+            await SetNamespaceCookie();
+            await GetTorDatabases();
+        }
+    }
+
+    async Task SetNamespaceCookie()
+    {
+        await JsRuntime.InvokeAsync<object>("WriteCookie.WriteCookie", "selectedNamespace", SelectedNamespace,
+        DateTime.Now.AddDays(1));
+    }
+
+    async Task<string> GetNamespaceCookie()
+    {
+        try
+        {
+            var namespaceCookie = await JsRuntime.InvokeAsync<string>("ReadCookie.ReadCookie", "selectedNamespace");
+            if (string.IsNullOrWhiteSpace(namespaceCookie))
+            {
+                namespaceCookie = "default";
+            }
+            return namespaceCookie;
+        }
+        catch
+        {
+            return "default";
+        }
+    }
+
+    async Task GetTorDatabases()
+    {
+        Databases = null;
+        FilteredDatabases = new List<TorDatabase>();
+        Databases = await TorDatabaseService.GetAllTorDatabasesAsync(SelectedNamespace);
+        ItemCountAll = Databases?.Count() ?? 0;
+        FilteredDatabases = Databases;
+        ItemCountFiltered = FilteredDatabases?.Count() ?? 0;
+
+        if (!string.IsNullOrWhiteSpace(Filter))
+        {
+            await FilterResults();
+        }
+    }
+    async Task FilterChange(ChangeEventArgs e)
+    {
+        if (e != null && e.Value != null)
+        {
+            Filter = (e.Value.ToString() ?? string.Empty).Trim();
+
+            if (!string.IsNullOrWhiteSpace(Filter))
+            {
+                await FilterResults();
+            }
+        }
+    }
+
+    async Task ClearFilter()
+    {
+        Filter = "";
+        await FilterResults();
+    }
+
+    async Task FilterResults()
+    {
+        if (string.IsNullOrWhiteSpace(Filter))
+        {
+            FilteredDatabases = Databases;
+            ItemCountFiltered = FilteredDatabases?.Count() ?? 0;
+        }
+        else
+        {
+            FilteredDatabases = Databases?.Where(s => s != null && s.Name != null && s.Name.Contains(Filter,
+            StringComparison.OrdinalIgnoreCase)).ToList();
+            ItemCountFiltered = FilteredDatabases?.Count() ?? 0;
+        }
+        await InvokeAsync(() => { base.StateHasChanged(); });
+    }
+
+    async Task CopyTextToClipboard(string name)
+    {
+        var text = $"{Navigator.BaseUri}tor-databases/{SelectedNamespace}/{name}";
+        await JsRuntime.InvokeVoidAsync("clipboardCopy.copyText", text);
+    }
+}

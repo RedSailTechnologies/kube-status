@@ -15,16 +15,16 @@ using k8s.Models;
 
 namespace KubeStatus.Data
 {
-    public class DeploymentService
+    public class DeploymentService(IKubernetes kubernetesClient, IMemoryCache memoryCache, IHttpContextAccessor httpContextAccessor)
     {
-        private readonly IKubernetes kubernetesClient;
+        private readonly IKubernetes kubernetesClient = kubernetesClient;
 
         private readonly Counter _restartedDeployments = Metrics.CreateCounter(
             "kube_status_deployment_restarted_total",
             "Number of restarts per deployment.",
             new CounterConfiguration
             {
-                LabelNames = new[] { "User", "Namespace", "Deployment" }
+                LabelNames = ["User", "Namespace", "Deployment"]
             });
 
         private readonly Counter _restartedDeploymentsAll = Metrics.CreateCounter(
@@ -32,7 +32,7 @@ namespace KubeStatus.Data
             "Number of namespace restarts.",
             new CounterConfiguration
             {
-                LabelNames = new[] { "User", "Namespace" }
+                LabelNames = ["User", "Namespace"]
             });
 
         private readonly Counter _scaledDeployments = Metrics.CreateCounter(
@@ -40,21 +40,16 @@ namespace KubeStatus.Data
             "Number of scaling events per deployment.",
             new CounterConfiguration
             {
-                LabelNames = new[] { "User", "Namespace", "Deployment" }
+                LabelNames = ["User", "Namespace", "Deployment"]
             });
 
-        private readonly IHttpContextAccessor _httpContextAccessor;
+        private readonly IHttpContextAccessor _httpContextAccessor = httpContextAccessor;
 
-        public IMemoryCache MemoryCache { get; }
+        private static readonly JsonSerializerOptions _jsonSerializerOptions = new() { PropertyNamingPolicy = JsonNamingPolicy.CamelCase, WriteIndented = true };
 
-        public DeploymentService(IKubernetes kubernetesClient, IMemoryCache memoryCache, IHttpContextAccessor httpContextAccessor)
-        {
-            this.kubernetesClient = kubernetesClient;
-            MemoryCache = memoryCache;
-            _httpContextAccessor = httpContextAccessor;
-        }
+        public IMemoryCache MemoryCache { get; } = memoryCache;
 
-        public Task<V1DeploymentList> GetAllNamespacedDeploymentsAsync(string k8sNamespace = "default")
+        public Task<V1DeploymentList?> GetAllNamespacedDeploymentsAsync(string k8sNamespace = "default")
         {
             return MemoryCache.GetOrCreateAsync($"{k8sNamespace}_deployments", async e =>
             {
@@ -74,13 +69,12 @@ namespace KubeStatus.Data
             });
         }
 
-        public async Task<Boolean> RestartDeploymentAsync(string name, string k8sNamespace = "default")
+        public async Task<bool> RestartDeploymentAsync(string name, string k8sNamespace = "default")
         {
             try
             {
                 var deployment = await kubernetesClient.AppsV1.ReadNamespacedDeploymentAsync(name, k8sNamespace);
-                var options = new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase, WriteIndented = true };
-                var old = JsonSerializer.SerializeToDocument(deployment, options);
+                var old = JsonSerializer.SerializeToDocument(deployment, _jsonSerializerOptions);
                 var restart = new Dictionary<string, string>
                 {
                     ["kubectl.kubernetes.io/restartedAt"] = $"{DateTimeOffset.Now.UtcDateTime:s}Z"
@@ -104,7 +98,7 @@ namespace KubeStatus.Data
             }
         }
 
-        public async Task<Boolean> RestartNamespacedDeploymentAsync(string k8sNamespace = "default")
+        public async Task<bool> RestartNamespacedDeploymentAsync(string k8sNamespace = "default")
         {
             try
             {
@@ -135,7 +129,7 @@ namespace KubeStatus.Data
             }
         }
 
-        public async Task<Boolean> ScaleDeploymentAsync(string name, int replicas, string k8sNamespace = "default")
+        public async Task<bool> ScaleDeploymentAsync(string name, int replicas, string k8sNamespace = "default")
         {
             try
             {

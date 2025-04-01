@@ -1,5 +1,3 @@
-@if (UiShowHelm)
-{
 @page "/helm/{namespaceparam?}"
 
 @using System
@@ -8,6 +6,8 @@
 @inject HelmService HelmService
 @inject IJSRuntime JsRuntime
 
+@if (UiShowHelm)
+{
 <h1>Helm Releases</h1>
 
 @if (GetNamespacesError)
@@ -100,6 +100,8 @@ else
                 </th>
             </TableHeader>
             <RowTemplate>
+                @if(context != null && !string.IsNullOrWhiteSpace(context.Name) && !string.IsNullOrWhiteSpace(context.Namespace) && !string.IsNullOrWhiteSpace(context.Chart))
+                {
                 <td>
                     <div class="form-group row">
                         <div class="col-xl-2">
@@ -126,11 +128,11 @@ else
                         </div>
                         <div class="col-xl-2">
                             <label class="form-label d-xl-none"><b>App Version:</b></label>
-                            <span id="app-version-@context.AppVersion.Replace(".","-")" class="form-item small">@context.AppVersion</span>
+                            <span id="app-version-@(context.AppVersion?.Replace(".","-") ?? "0-0-0")" class="form-item small">@context.AppVersion</span>
                         </div>
                         <div class="col-xl-1">
                             <label class="form-label d-xl-none"><b>Status:</b></label>
-                            <span id="status-@context.Status.Replace(".","-")" class="form-item small">@context.Status</span>
+                            <span id="status-@(context.Status?.Replace(".","-") ?? "Unknown")" class="form-item small">@context.Status</span>
                         </div>
                         <div class="col-xl-2">
                             <label class="form-label d-xl-none"><b>Updated:</b></label>
@@ -138,6 +140,7 @@ else
                         </div>
                     </div>
                 </td>
+            }
             </RowTemplate>
         </TableTemplate>
     }
@@ -154,22 +157,29 @@ else
         </div>
     }
 }
+}
+else
+{
+    <div class="alert alert-danger" role="alert">
+        Helm is not currently enabled!
+    </div>
+}
 
 @code {
     [Parameter]
-    public string NamespaceParam { get; set; }
+    public string? NamespaceParam { get; set; }
 
-    bool UiShowHelm;
+    bool UiShowHelm = true;
     bool GetNamespacesError;
     bool HelmListError;
     bool _shouldRender;
     IEnumerable<string> Namespaces = Array.Empty<string>();
     string SelectedNamespace = string.Empty;
-    IEnumerable<HelmListItem> HelmList;
-    IEnumerable<HelmListItem> FilteredHelmList;
+    IEnumerable<HelmListItem>? HelmList;
+    IEnumerable<HelmListItem>? FilteredHelmList;
     string HelmMessage = "";
     string AlertClass = "alert-info";
-    string Filter;
+    string? Filter;
     int ItemCountAll = 0;
     int ItemCountFiltered = 0;
 
@@ -206,9 +216,16 @@ else
 
     async Task OnSelect(ChangeEventArgs e)
     {
-        SelectedNamespace = e.Value.ToString();
-        await SetNamespaceCookie();
-        await HelmListAll();
+        if (e != null && e.Value != null)
+        {
+            SelectedNamespace = (e.Value.ToString() ?? string.Empty).Trim();
+
+            if (!string.IsNullOrWhiteSpace(SelectedNamespace))
+            {
+                await SetNamespaceCookie();
+                await HelmListAll();
+            }
+        }
     }
 
     async Task SetNamespaceCookie()
@@ -293,11 +310,14 @@ else
 
     async Task FilterChange(ChangeEventArgs e)
     {
-        Filter = e?.Value?.ToString().Trim();
-        
-        if (!string.IsNullOrWhiteSpace(Filter))
+        if (e != null && e.Value != null)
         {
-            await FilterResults();
+            Filter = (e.Value.ToString() ?? string.Empty).Trim();
+
+            if (!string.IsNullOrWhiteSpace(Filter))
+            {
+                await FilterResults();
+            }
         }
     }
 
@@ -312,20 +332,13 @@ else
         if (string.IsNullOrWhiteSpace(Filter))
         {
             FilteredHelmList = HelmList;
-            ItemCountFiltered = FilteredHelmList.Count();
+            ItemCountFiltered = FilteredHelmList?.Count() ?? 0;
         }
         else
         {
-            FilteredHelmList = HelmList.Where(h => h.Name.Contains(Filter, StringComparison.OrdinalIgnoreCase)).ToList();
-            ItemCountFiltered = FilteredHelmList.Count();
+            FilteredHelmList = HelmList?.Where(h => h != null && h.Name != null && h.Name.Contains(Filter, StringComparison.OrdinalIgnoreCase)).ToList();
+            ItemCountFiltered = FilteredHelmList?.Count() ?? 0;
         }
         await InvokeAsync(() => { base.StateHasChanged(); });
     }
-}
-}
-else
-{
-    <div class="alert alert-danger" role="alert">
-        Helm is not currently enabled!
-    </div>
 }

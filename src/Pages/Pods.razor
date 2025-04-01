@@ -136,6 +136,8 @@ else
                 </th>
             </TableHeader>
             <RowTemplate>
+                @if(context != null && context.PodName != null)
+                {
                 <td>
                     <div class="form-group row">
                         <div class="col-xl-4">
@@ -148,7 +150,7 @@ else
                             }
                             <button type="button" class="btn btn-link btn-copy js-tooltip" data-toggle="tooltip"
                         data-placement="top" title="Copy link to clipboard"
-                        @onclick="() => CopyTextToClipboard(context.PodName)">
+                        @onclick="() => CopyTextToClipboard(context.PodName ?? string.Empty)">
                                 <span class="oi oi-link-intact" aria-hidden="true"></span>
                             </button>
                         </div>
@@ -293,7 +295,7 @@ else
                                 {
                                     <h5>Init Containers</h5>
                                     <TableTemplate
-                        Items="@context.InitContainers.Select(s => new { s.ContainerStatus.Name, s.ContainerStatus.Started, s.ContainerStatus.Ready, s.ContainerStatus.RestartCount, s.ContainerStatus.Image, s.ContainerStatus.ImageID, s.ContainerStatus.LastState, s.Container.Env, s.Container.EnvFrom, s.Container.VolumeMounts }).OrderBy(s => s.Name)"
+                        Items="@context.InitContainers.Select(s => new { s?.ContainerStatus?.Name, s?.ContainerStatus?.Started, s?.ContainerStatus?.Ready, s?.ContainerStatus?.RestartCount, s?.ContainerStatus?.Image, s?.ContainerStatus?.ImageID, s?.ContainerStatus?.LastState, s?.Container?.Env, s?.Container?.EnvFrom, s?.Container?.VolumeMounts }).OrderBy(s => s.Name)"
                         TableClass="table-sm table-striped">
                                         <RowTemplate Context="statusContext">
                                             @if (statusContext != null)
@@ -309,12 +311,12 @@ else
                                     </div>
                                     <div class="row mb-2">
                                         <button class="btn btn-outline-dark btn-sm"
-                            @onclick="() => GetLogs(context.Namespace, context.PodName, statusContext.Name)">Logs</button>
+                            @onclick="() => GetLogs(context.Namespace ?? string.Empty, context.PodName ?? string.Empty, statusContext.Name ?? string.Empty)">Logs</button>
                                     </div>
                                     @if ((@statusContext.Env != null && statusContext.Env.Any()) || (@statusContext.EnvFrom != null && statusContext.EnvFrom.Any()))
                                     {
                                     <div class="row mb-2">
-                                        <button type="button" class="btn btn-outline-dark btn-sm" data-bs-toggle="modal" data-bs-target="#envVarModal" @onclick="() => GetEnvironmentVariables(context.Namespace, context.PodName, statusContext.Name)">
+                                        <button type="button" class="btn btn-outline-dark btn-sm" data-bs-toggle="modal" data-bs-target="#envVarModal" @onclick="() => GetEnvironmentVariables(context.Namespace ?? string.Empty, context.PodName, statusContext.Name ?? string.Empty)">
                                         View Environment Variables
                                         </button>
                                     </div>
@@ -372,21 +374,21 @@ else
                     <div class="small mb-2">
                         <label><b>Tag:</b></label>
                         <span id="tag-@context.PodName.Replace(".","-")-@statusContext.Name" class="form-item">
-                            @if (statusContext.Image.StartsWith("sha"))
+                            @if (statusContext != null && statusContext.Image != null && statusContext.Image.StartsWith("sha"))
                             {
                                 @statusContext.Image
                             }
-                            else
+                            elseif (statusContext != null)
                             {
-                                @statusContext.Image?.Split(':')[1]
+                                @statusContext?.Image?.Split(':')[1]
                             }
                         </span>
                     </div>
                     <div class="small mb-2">
                         <label><b>Image
                                 ID:</b></label>
-                        <span id="image-id-@context.PodName.Replace(".","-")-@statusContext.Name" class="form-item">
-                            @if (statusContext.ImageID?.Split('@').Length > 1)
+                        <span id="image-id-@context.PodName.Replace(".","-")-@statusContext?.Name" class="form-item">
+                            @if (statusContext?.ImageID?.Split('@').Length > 1)
                             {
                                 @statusContext.ImageID?.Split('@')[1]
                             }
@@ -395,8 +397,8 @@ else
                 </div>
                 }
             </div>
-            <div id="@context.PodName.Replace(".","-")-@statusContext.Name-volume-mounts" class="collapse container-fluid row mb-1">
-                <TableTemplate Items="@statusContext.VolumeMounts" TableClass="table-sm table-striped">
+            <div id="@context.PodName.Replace(".","-")-@statusContext?.Name-volume-mounts" class="collapse container-fluid row mb-1">
+                <TableTemplate Items="@statusContext?.VolumeMounts" TableClass="table-sm table-striped">
                     <TableHeader>
                         <th>Mounts</th>
                     </TableHeader>
@@ -427,7 +429,7 @@ else
                                 {
                 <h5>Containers</h5>
                 <TableTemplate
-    Items="@context.Containers.Select(s => new { s.ContainerStatus.Name, s.ContainerStatus.Started, s.ContainerStatus.Ready, s.ContainerStatus.RestartCount, s.ContainerStatus.Image, s.ContainerStatus.ImageID, s.ContainerStatus.LastState, s.Container.Env, s.Container.EnvFrom, s.Container.VolumeMounts, s.Container.Ports }).OrderBy(s => s.Name)"
+    Items="@context.Containers.Select(s => new { s?.ContainerStatus?.Name, s?.ContainerStatus?.Started, s?.ContainerStatus?.Ready, s?.ContainerStatus?.RestartCount, s?.ContainerStatus?.Image, s?.ContainerStatus?.ImageID, s?.ContainerStatus?.LastState, s?.Container?.Env, s?.Container?.EnvFrom, s?.Container?.VolumeMounts, s?.Container?.Ports }).OrderBy(s => s.Name)"
     TableClass="table-sm table-striped">
                     <RowTemplate Context="statusContext">
                         @if (statusContext != null)
@@ -443,17 +445,17 @@ else
                                     </div>
                                     <div class="row mb-2">
                                         <button class="btn btn-outline-dark btn-sm"
-                            @onclick="() => GetLogs(context.Namespace, context.PodName, statusContext.Name)">Logs</button>
+                            @onclick="() => GetLogs(context?.Namespace ?? string.Empty, context?.PodName ?? string.Empty, statusContext?.Name ?? string.Empty)">Logs</button>
                                     </div>
-                                    @if ((@statusContext.Env != null && statusContext.Env.Any()) || (@statusContext.EnvFrom != null && statusContext.EnvFrom.Any()))
+                                    @if (context != null && (@statusContext.Env != null && statusContext.Env.Any()) || (@statusContext.EnvFrom != null && statusContext.EnvFrom.Any()))
                                     {
                                     <div class="row mb-2">
-                                        <button type="button" class="btn btn-outline-dark btn-sm" data-bs-toggle="modal" data-bs-target="#envVarModal" @onclick="() => GetEnvironmentVariables(context.Namespace, context.PodName, statusContext.Name)">
+                                        <button type="button" class="btn btn-outline-dark btn-sm" data-bs-toggle="modal" data-bs-target="#envVarModal" @onclick="() => GetEnvironmentVariables(context?.Namespace ?? string.Empty, context?.PodName ?? string.Empty, statusContext?.Name ?? string.Empty)">
                                         View Environment Variables
                                         </button>
                                     </div>
                                     }
-                                    @if ((@statusContext.VolumeMounts != null && statusContext.VolumeMounts.Any()))
+                                    @if (context != null && (@statusContext.VolumeMounts != null && statusContext.VolumeMounts.Any()))
                                     {
                                     <div class="row mb-2">
                                         <button class="btn btn-outline-dark btn-sm collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#@context.PodName.Replace(".","-")-@statusContext.Name-volume-mounts" aria-expanded="false" aria-controls="collapseEvents">
@@ -461,15 +463,17 @@ else
                                         </button>
                                     </div>
                                     }
-                                    @if (Helper.ShowMetricsDownload() && @statusContext.Ports != null && @context.PodIPs != null && @context.PodIPs.Any() && @statusContext.Ports.Any(p => p.Name != null && p.Name.Equals(Helper.MetricsPortName())))
+                                    @if (Helper.ShowMetricsDownload() && context != null && statusContext != null && @statusContext.Ports != null && @context.Name != null && @context.Namespace != null && @statusContext.Ports.Any(p => p.Name != null && p.Name.Equals(Helper.MetricsPortName())))
                                     {
                                     <div class="row mb-2">
                                         <button class="btn btn-outline-dark btn-sm"
-                            @onclick="() => GetMetrics(context.PodIPs.FirstOrDefault(), statusContext.Ports.FirstOrDefault(p => p.Name.Equals(Helper.MetricsPortName())).ContainerPort)">Metrics</button>
+                                            @onclick="() => GetMetrics(context.Name, context.Namespace, statusContext.Ports.FirstOrDefault(p => p.Name.Equals(Helper.MetricsPortName()))?.ContainerPort ?? 0)">Metrics</button>
                                     </div>
                                     }
                                 </div>
                                 <div class="col-xl-1">
+                                    @if (context != null && statusContext != null)
+                                    {
                                     <div class="small mb-2">
                                         <label
                             for="started-@context.PodName.Replace(".","-")-@statusContext.Name"><b>Started:</b></label>
@@ -486,6 +490,7 @@ else
                                         <span id="restart-count-@context.PodName.Replace(".","-")-@statusContext.Name"
                             class="form-item">@statusContext.RestartCount</span>
                                     </div>
+                                    }
                                 </div>
                                 <div class="col-xl-5">
                                         @if (statusContext?.LastState?.Running != null || statusContext?.LastState?.Waiting != null || statusContext?.LastState?.Terminated != null)
@@ -494,7 +499,7 @@ else
                         <pre>@statusContext.LastState.ToYaml()</pre>
                                         }
                 </div>
-                @if (statusContext != null && statusContext.Image != null)
+                @if (context != null && statusContext != null && statusContext.Image != null)
                 {
                 <div class="col-xl-4">
                     <div class="small mb-2">
@@ -513,7 +518,7 @@ else
                     <div class="small mb-2">
                         <label><b>Tag:</b></label>
                         <span id="tag-@context.PodName.Replace(".","-")-@statusContext.Name" class="form-item">
-                            @if (statusContext.Image.StartsWith("sha"))
+                            @if (statusContext.Image != null && statusContext.Image.StartsWith("sha"))
                             {
                                 @statusContext.Image
                             }
@@ -535,6 +540,8 @@ else
                 </div>
                 }
             </div>
+            @if (context != null && statusContext != null)
+            {
             <div id="@context.PodName.Replace(".","-")-@statusContext.Name-volume-mounts" class="collapse container-fluid row mb-1">
                 <TableTemplate Items="@statusContext.VolumeMounts" TableClass="table-sm table-striped">
                     <TableHeader>
@@ -558,6 +565,7 @@ else
                     </RowTemplate>
                 </TableTemplate>
             </div>
+            }
         </td>
                         }
     </RowTemplate>
@@ -693,6 +701,7 @@ else
                         }
         </div>
         </td>
+        }
         </RowTemplate>
         </TableTemplate>
 <div class="modal fade" id="envVarModal" tabindex="-1" aria-labelledby="envVarModalLabel" aria-hidden="true">
@@ -740,19 +749,19 @@ else
     else
     {
         <div class="alert alert-primary" role="alert">
-            No Pods found in the @SelectedNamespace namespace
+            No Pods found in the @SelectedNamespace namespace.
         </div>
     }
 }
 
 @code {
     [Parameter]
-    public string NamespaceParam { get; set; }
+    public string? NamespaceParam { get; set; }
     [Parameter]
-    public string FilterParam { get; set; }
+    public string? FilterParam { get; set; }
 
     [CascadingParameter]
-    private Task<AuthenticationState> authenticationState { get; set; }
+    private Task<AuthenticationState>? authenticationState { get; set; }
 
     string PodStatus = "";
     string Filter = "";
@@ -765,9 +774,9 @@ else
     bool _shouldRender;
     IEnumerable<string> Namespaces = Array.Empty<string>();
     string SelectedNamespace = string.Empty;
-    IEnumerable<Pod> NamespacedPods;
-    IEnumerable<Pod> FilteredPods;
-    IEnumerable<EnvironmentVariable> EnvironmentVariables;
+    IEnumerable<Pod>? NamespacedPods;
+    IEnumerable<Pod>? FilteredPods;
+    IEnumerable<EnvironmentVariable>? EnvironmentVariables;
     string EnvVarHeading = "";
     string EnvVarMessage = "";
     int ItemCountAll = 0;
@@ -814,9 +823,12 @@ else
 
     async Task OnNamespaceSelect(ChangeEventArgs e)
     {
-        SelectedNamespace = e.Value.ToString();
-        await SetNamespaceCookie();
-        await GetPods();
+        if (e != null && e.Value != null)
+        {
+            SelectedNamespace = e.Value.ToString() ?? string.Empty;
+            await SetNamespaceCookie();
+            await GetPods();
+        }
     }
 
     async Task SetNamespaceCookie()
@@ -846,9 +858,9 @@ else
         NamespacedPods = null;
         FilteredPods = new List<Pod>();
         NamespacedPods = await PodService.GetAllNamespacedPodsAsync(SelectedNamespace);
-        ItemCountAll = NamespacedPods.Count();
+        ItemCountAll = NamespacedPods?.Count() ?? 0;
         FilteredPods = NamespacedPods;
-        ItemCountFiltered = FilteredPods.Count();
+        ItemCountFiltered = FilteredPods?.Count() ?? 0;
 
         if (!string.IsNullOrWhiteSpace(Filter))
         {
@@ -868,10 +880,10 @@ else
         }
     }
 
-    async Task GetMetrics(string podIP, int port)
+    async Task GetMetrics(string name, string k8sNamespace, int port)
     {
-        var fileStream = await PodService.GetContainerMetricsAsync(podIP, port);
-        var fileName = $"{podIP.Replace(".", "-")}-metrics.txt";
+        var fileStream = await PodService.GetContainerMetricsAsync(name, k8sNamespace, port);
+        var fileName = $"{name}-metrics.txt";
 
         if (fileStream != null)
         {
@@ -882,13 +894,18 @@ else
 
     async Task GetPodCsv()
     {
-        var fileStream = new MemoryStream(await PodService.GetAllNamespacedPodsFileAsync(SelectedNamespace));
-        var fileName = $"{SelectedNamespace}.csv";
-
-        if (fileStream != null)
+        var fileBytes = await PodService.GetAllNamespacedPodsFileAsync(SelectedNamespace);
+        
+        if (fileBytes != null)
         {
-            using var streamRef = new DotNetStreamReference(stream: fileStream);
-            await JsRuntime.InvokeVoidAsync("downloadFileFromStream", fileName, streamRef);
+            var fileStream = new MemoryStream(fileBytes);
+            var fileName = $"{SelectedNamespace}.csv";
+
+            if (fileStream != null)
+            {
+                using var streamRef = new DotNetStreamReference(stream: fileStream);
+                await JsRuntime.InvokeVoidAsync("downloadFileFromStream", fileName, streamRef);
+            }
         }
     }
 
@@ -926,17 +943,23 @@ else
 
     async Task OnPodStatusSelect(ChangeEventArgs e)
     {
-        PodStatus = e.Value.ToString();
-        await FilterResults();
+        if (e != null && e.Value != null)
+        {
+            PodStatus = e.Value.ToString() ?? string.Empty;
+            await FilterResults();
+        }
     }
 
     async Task FilterChange(ChangeEventArgs e)
     {
-        Filter = e?.Value?.ToString().Trim();
-        
-        if (!string.IsNullOrWhiteSpace(Filter))
+        if (e != null && e.Value != null)
         {
-            await FilterResults();
+            Filter = (e.Value.ToString() ?? string.Empty).Trim();
+            
+            if (!string.IsNullOrWhiteSpace(Filter))
+            {
+                await FilterResults();
+            }
         }
     }
 
@@ -969,20 +992,20 @@ else
         if ((string.IsNullOrWhiteSpace(Filter) || (!SearchPodName && !SearchContainerName && !SearchInitContainerName)) && string.IsNullOrWhiteSpace(PodStatus))
         {
             FilteredPods = NamespacedPods;
-            ItemCountFiltered = FilteredPods.Count();
+            ItemCountFiltered = FilteredPods != null ? FilteredPods.Count() : 0;
         }
         else
         {
             var filterResults = NamespacedPods;
             
-            if (!string.IsNullOrWhiteSpace(PodStatus))
+            if (!string.IsNullOrWhiteSpace(PodStatus) && filterResults != null)
             {
                 filterResults = filterResults.Where(p =>
                     (!string.IsNullOrWhiteSpace(PodStatus) && (p.PodStatus ?? "").Equals(PodStatus, StringComparison.OrdinalIgnoreCase))
                 ).ToList();
             }
 
-            if (!string.IsNullOrWhiteSpace(Filter))
+            if (!string.IsNullOrWhiteSpace(Filter) && filterResults != null)
             {
                 filterResults = filterResults.Where(p =>
                     (SearchPodName && ((p.PodName ?? "").Contains(Filter, StringComparison.OrdinalIgnoreCase) || (p.Name ?? "").Contains(Filter, StringComparison.OrdinalIgnoreCase))) ||
@@ -992,7 +1015,7 @@ else
             }
 
             FilteredPods = filterResults;
-            ItemCountFiltered = FilteredPods.Count();
+            ItemCountFiltered = FilteredPods != null ? FilteredPods.Count() : 0;
         }
         await InvokeAsync(() => { base.StateHasChanged(); });
     }

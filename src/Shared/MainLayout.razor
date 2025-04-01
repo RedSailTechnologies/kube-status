@@ -30,5 +30,5 @@
 
 @code {
     MarkupString headerContentMarkup => (MarkupString)headerContent;
-    string headerContent = HttpUtility.HtmlDecode(Environment.GetEnvironmentVariable("ADDITIONAL_HEAD_CONTENT"));
+    string headerContent = HttpUtility.HtmlDecode(Environment.GetEnvironmentVariable("ADDITIONAL_HEAD_CONTENT") ?? string.Empty);
 }

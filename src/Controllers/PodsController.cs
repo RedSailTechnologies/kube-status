@@ -3,7 +3,6 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Logging;
 
 using KubeStatus.Data;
 
@@ -12,18 +11,10 @@ namespace KubeStatus.Controllers
     [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
     [ApiController]
     [Route("api/[controller]")]
-    public class PodsController : ControllerBase
+    public class PodsController(IAuthorizationService authorizationService, PodService podService) : ControllerBase
     {
-        private readonly ILogger<PodsController> _logger;
-        private readonly IAuthorizationService _authorizationService;
-        private readonly PodService _podService;
-
-        public PodsController(ILogger<PodsController> logger, IAuthorizationService authorizationService, PodService podService)
-        {
-            _logger = logger;
-            _authorizationService = authorizationService;
-            _podService = podService;
-        }
+        private readonly IAuthorizationService _authorizationService = authorizationService;
+        private readonly PodService _podService = podService;
 
         [HttpGet]
         public IActionResult ListNamespacedPodAsync()
@@ -86,10 +77,10 @@ namespace KubeStatus.Controllers
         }
 
         [HttpGet("metrics")]
-        public async Task<IActionResult> GetContainerLogsAsync(string podIP, int port)
+        public async Task<IActionResult> GetContainerLogsAsync(string name, string k8sNamespace, int port)
         {
-            var fileName = $"{podIP.Replace(".", "-")}-metrics.txt";
-            var stream = await _podService.GetContainerMetricsAsync(podIP, port);
+            var fileName = $"{name}-metrics.txt";
+            var stream = await _podService.GetContainerMetricsAsync(name, k8sNamespace, port);
 
             if (stream == null)
             {

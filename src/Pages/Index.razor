@@ -85,13 +85,40 @@
             </div>
         </div>
     </div>
+    @if (UiShowTor)
+    {
+        <div class="col">
+            <div class="card h-100">
+                <div class="card-body">
+                    <h5 class="card-title"><span class="oi oi-medical-cross" aria-hidden="true"></span> Tor Enterprises</h5>
+                    <p class="card-text">View the deployed Tor Enterprises for this environment.</p>
+                </div>
+                <div class="card-footer">
+                    <a href="tor-enterprises" class="btn btn-primary">View Tor Enterprises</a>
+                </div>
+            </div>
+        </div>
+        <div class="col">
+            <div class="card h-100">
+                <div class="card-body">
+                    <h5 class="card-title"><span class="oi oi-hard-drive" aria-hidden="true"></span> Tor Databases</h5>
+                    <p class="card-text">View the deployed Tor Databases for this environment.</p>
+                </div>
+                <div class="card-footer">
+                    <a href="tor-databases" class="btn btn-primary">View Tor Databases</a>
+                </div>
+            </div>
+        </div>
+    }
 </div>
 
 @code {
-    bool UiShowHelm;
+    bool UiShowHelm = true;
+    bool UiShowTor = true;
 
     protected override void OnInitialized()
     {
         Boolean.TryParse(@Environment.GetEnvironmentVariable("UI_SHOW_HELM"), out UiShowHelm);
+        Boolean.TryParse(@Environment.GetEnvironmentVariable("UI_SHOW_TOR"), out UiShowTor);
     }
 }

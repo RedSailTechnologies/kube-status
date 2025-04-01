@@ -4,7 +4,6 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Logging;
 
 using KubeStatus.Data;
 using KubeStatus.Models;
@@ -14,16 +13,9 @@ namespace KubeStatus.Controllers
     [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
     [ApiController]
     [Route("api/[controller]")]
-    public class KafkaConnectorsController : ControllerBase
+    public class KafkaConnectorsController(KafkaConnectorService kafkaConnectorService) : ControllerBase
     {
-        private readonly ILogger<KafkaConnectorsController> _logger;
-        private readonly KafkaConnectorService _kafkaConnectorService;
-
-        public KafkaConnectorsController(ILogger<KafkaConnectorsController> logger, KafkaConnectorService kafkaConnectorService)
-        {
-            _logger = logger;
-            _kafkaConnectorService = kafkaConnectorService;
-        }
+        private readonly KafkaConnectorService _kafkaConnectorService = kafkaConnectorService;
 
         [HttpGet]
         public async Task<IEnumerable<KafkaConnector>> GetAllKafkaConnectorsAsync()

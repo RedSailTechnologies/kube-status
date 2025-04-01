@@ -5,16 +5,11 @@ using k8s;
 
 namespace KubeStatus.Data
 {
-    public class LogService
+    public class LogService(IKubernetes kubernetesClient)
     {
-        private readonly IKubernetes kubernetesClient;
+        private readonly IKubernetes kubernetesClient = kubernetesClient;
 
-        public LogService(IKubernetes kubernetesClient)
-        {
-            this.kubernetesClient = kubernetesClient;
-        }
-
-        public async Task<System.IO.Stream> GetContainerLogsAsync(string pod, string container, string k8sNamespace = "default", int tail = 10)
+        public async Task<System.IO.Stream?> GetContainerLogsAsync(string pod, string container, string k8sNamespace = "default", int tail = 10)
         {
             try
             {

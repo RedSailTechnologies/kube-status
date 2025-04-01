@@ -1,10 +1,12 @@
 ﻿<nav class="top-row ps-3 navbar navbar-dark">
-  <div class="container-fluid">
-    <a class="navbar-brand mb-0 h1" href=""><img src="/kubernetes-white.svg" width="48" height="48" class="d-inline-block align-middle"><span class="d-inline-block align-middle ms-3">Kube Status</span></a>
-    <button class="navbar-toggler" @onclick="ToggleNavMenu">
-      <span class="navbar-toggler-icon"></span>
-    </button>
-  </div>
+    <div class="container-fluid">
+        <a class="navbar-brand mb-0 h1" href=""><img src="/kubernetes-white.svg" width="48" height="48"
+                class="d-inline-block align-middle"><span class="d-inline-block align-middle ms-3">Kube
+                Status</span></a>
+        <button class="navbar-toggler" @onclick="ToggleNavMenu">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+    </div>
 </nav>
 
 <div class="@NavMenuCssClass" @onclick="ToggleNavMenu">
@@ -52,17 +54,32 @@
                 <span class="oi oi-project" aria-hidden="true"></span> Spark Applications
             </NavLink>
         </li>
+        @if (UiShowTor)
+        {
+            <li class="nav-item px-3">
+                <NavLink class="nav-link" href="tor-enterprises">
+                    <span class="oi oi-medical-cross" aria-hidden="true"></span> Tor Enterprises
+                </NavLink>
+            </li>
+            <li class="nav-item px-3">
+                <NavLink class="nav-link" href="tor-databases">
+                    <span class="oi oi-hard-drive" aria-hidden="true"></span> Tor Databases
+                </NavLink>
+            </li>
+        }
     </ul>
 </div>
 
 @code {
     private bool collapseNavMenu = true;
-    private string NavMenuCssClass => collapseNavMenu ? "collapse" : null;
-    bool UiShowHelm;
+    private string? NavMenuCssClass => collapseNavMenu ? "collapse" : null;
+    bool UiShowHelm = true;
+    bool UiShowTor = true;
 
     protected override void OnInitialized()
     {
         Boolean.TryParse(@Environment.GetEnvironmentVariable("UI_SHOW_HELM"), out UiShowHelm);
+        Boolean.TryParse(@Environment.GetEnvironmentVariable("UI_SHOW_TOR"), out UiShowTor);
     }
 
     private void ToggleNavMenu()

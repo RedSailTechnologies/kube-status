@@ -24,17 +24,17 @@
 
 @code {
     [Parameter]
-    public RenderFragment TableHeader { get; set; }
+    public required RenderFragment TableHeader { get; set; }
 
     [Parameter]
-    public RenderFragment<TItem> RowTemplate { get; set; }
+    public required RenderFragment<TItem> RowTemplate { get; set; }
 
     [Parameter]
-    public IEnumerable<TItem> Items { get; set; }
+    public required IEnumerable<TItem> Items { get; set; }
 
     [Parameter]
-    public string TableClass { get; set; }
+    public required string TableClass { get; set; }
 
     [Parameter]
-    public string TableHeaderClass { get; set; }
+    public required string TableHeaderClass { get; set; }
 }

@@ -207,6 +207,8 @@ The following Environment Variables are specific to Kube Status and can be set h
   - The typical mount point for the Service Account's Token.
 - UI_SHOW_HELM: "true"
   - Should Helm elements be exposed in the UI?
+- UI_SHOW_TOR: "true"
+  - Should Tor elements be exposed in the UI?
 - POD_METRIC_PORT_PAGE: "metrics|metrics"
   - A pipe separated string that determines if the Metrics Download will be exposed to the UI. `{port_name}|{url_route}`
 - STRIMZI\_\_CONNECT_CLUSTER_SERVICE_HOST: http://cluster-connect-api.strimzi.svc.cluster.local:8083/
