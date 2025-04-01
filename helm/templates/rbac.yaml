@@ -44,6 +44,9 @@ rules:
 - apiGroups: ["sparkoperator.k8s.io"]
   resources: ["sparkapplications", "sparkapplications/status"]
   verbs: ["get", "watch", "list", "patch", "update", "delete"]
+- apiGroups: ["redsail.tor"]
+  resources: ["databases", "databases/status", "enterprises", "enterprises/status"]
+  verbs: ["get", "watch", "list"]
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
