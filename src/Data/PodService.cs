@@ -17,7 +17,7 @@ namespace KubeStatus.Data
     public class PodService(IKubernetes kubernetesClient, IMemoryCache memoryCache)
     {
         private readonly IKubernetes kubernetesClient = kubernetesClient;
-        static readonly HttpClient httpClient = new HttpClient();
+        static readonly HttpClient httpClient = new();
 
         public IMemoryCache MemoryCache { get; } = memoryCache;
 
@@ -268,7 +268,7 @@ namespace KubeStatus.Data
             }
         }
 
-        public async Task<System.IO.Stream?> GetContainerMetricsAsync(string name, string k8sNamespace, int port)
+        public async Task<Stream?> GetContainerMetricsAsync(string name, string k8sNamespace, int port)
         {
             try
             {

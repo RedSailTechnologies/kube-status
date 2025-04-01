@@ -10,7 +10,6 @@ using Microsoft.Extensions.Caching.Memory;
 using k8s;
 
 using KubeStatus.Models;
-using Microsoft.VisualBasic;
 
 namespace KubeStatus.Data
 {

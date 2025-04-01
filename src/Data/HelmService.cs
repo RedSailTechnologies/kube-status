@@ -147,7 +147,7 @@ namespace KubeStatus.Data
 
                     string[] dateParts = values[3].Split(' ');
                     DateTimeOffset.TryParse($"{dateParts[0]} {dateParts[1]} {dateParts[2]}",
-                        null as IFormatProvider,
+                        null,
                         DateTimeStyles.AdjustToUniversal,
                         out DateTimeOffset updated);
 

@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
@@ -16,7 +15,7 @@ namespace KubeStatus.Data
     public class KafkaConnectorService(IKubernetes kubernetesClient)
     {
         private readonly IKubernetes kubernetesClient = kubernetesClient;
-        static readonly HttpClient httpClient = new HttpClient();
+        static readonly HttpClient httpClient = new();
 
         public async Task<IEnumerable<KafkaConnector>> GetAllKafkaConnectorsAsync()
         {
