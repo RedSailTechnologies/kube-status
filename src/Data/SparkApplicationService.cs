@@ -30,54 +30,54 @@ namespace KubeStatus.Data
         {
             var sparkApplications = new List<SparkApplication>();
 
-            if (!string.IsNullOrWhiteSpace(filterStatus))
+            if (string.IsNullOrWhiteSpace(filterStatus))
             {
-                return MemoryCache.GetOrCreateAsync(filterStatus, async e =>
-                {
-                    e.SetOptions(new MemoryCacheEntryOptions
-                    {
-                        AbsoluteExpirationRelativeToNow =
-                            TimeSpan.FromSeconds(10)
-                    });
-
-                    var sparkApplications = new List<SparkApplication>();
-
-                    var response = await kubernetesClient.CustomObjects.ListClusterCustomObjectAsync(Helper.SparkGroup(), Helper.SparkApplicationVersion(), Helper.SparkApplicationPlural());
-
-                    var jsonString = JsonSerializer.Serialize<object>(response);
-                    JsonNode jsonNode = JsonNode.Parse(jsonString)!;
-                    JsonNode itemsNode = jsonNode!["items"]!;
-
-                    foreach (var item in itemsNode.AsArray())
-                    {
-                        var status = JsonSerializer.Deserialize<SparkApplicationStatus>(item!["status"]!, _jsonSerializerOptions);
-                        var applicationState = status?.ApplicationState?["state"] ?? "Unknown";
-
-                        if (!filterStatus.Equals(applicationState, StringComparison.OrdinalIgnoreCase))
-                        {
-                            continue;
-                        }
-
-                        var apiVersion = item!["apiVersion"]!.ToString();
-                        var kind = item!["kind"]!.ToString();
-                        var metadata = JsonSerializer.Deserialize<Metadata>(item!["metadata"]!, _jsonSerializerOptions);
-                        var spec = item!["spec"]!.ToString();
-
-                        sparkApplications.Add(new SparkApplication
-                        {
-                            ApiVersion = apiVersion,
-                            Kind = kind,
-                            Metadata = metadata,
-                            Status = status,
-                            Spec = spec
-                        });
-                    }
-
-                    return sparkApplications.AsEnumerable();
-                });
+                filterStatus = "";
             }
 
-            return (Task<IEnumerable<SparkApplication>?>)sparkApplications.AsEnumerable();
+            return MemoryCache.GetOrCreateAsync(filterStatus, async e =>
+            {
+                e.SetOptions(new MemoryCacheEntryOptions
+                {
+                    AbsoluteExpirationRelativeToNow =
+                        TimeSpan.FromSeconds(10)
+                });
+
+                var sparkApplications = new List<SparkApplication>();
+
+                var response = await kubernetesClient.CustomObjects.ListClusterCustomObjectAsync(Helper.SparkGroup(), Helper.SparkApplicationVersion(), Helper.SparkApplicationPlural());
+
+                var jsonString = JsonSerializer.Serialize(response);
+                JsonNode jsonNode = JsonNode.Parse(jsonString)!;
+                JsonNode itemsNode = jsonNode!["items"]!;
+
+                foreach (var item in itemsNode.AsArray())
+                {
+                    var status = JsonSerializer.Deserialize<SparkApplicationStatus>(item!["status"]!, _jsonSerializerOptions);
+                    var applicationState = status?.ApplicationState?["state"] ?? "Unknown";
+
+                    if (!string.IsNullOrWhiteSpace(filterStatus) && !filterStatus.Equals(applicationState, StringComparison.OrdinalIgnoreCase))
+                    {
+                        continue;
+                    }
+
+                    var apiVersion = item!["apiVersion"]!.ToString();
+                    var kind = item!["kind"]!.ToString();
+                    var metadata = JsonSerializer.Deserialize<Metadata>(item!["metadata"]!, _jsonSerializerOptions);
+                    var spec = item!["spec"]!.ToString();
+
+                    sparkApplications.Add(new SparkApplication
+                    {
+                        ApiVersion = apiVersion,
+                        Kind = kind,
+                        Metadata = metadata,
+                        Status = status,
+                        Spec = spec
+                    });
+                }
+
+                return sparkApplications.AsEnumerable();
+            });
         }
 
         public async Task<int> DeleteFailedSparkApplicationsAsync(string keepHours = "168")

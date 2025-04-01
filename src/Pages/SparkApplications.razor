@@ -15,128 +15,105 @@
 }
 else
 {
+
+    <div class="row">
+        @if (@ItemCountAll == @ItemCountFiltered)
+        {
+            <h6>Items: @ItemCountAll</h6>
+        }
+        else
+        {
+            <h6>Filtered: @ItemCountFiltered / @ItemCountAll</h6>
+        }
+    </div>
+    <div class="form-group row mb-3">
+        <div class="col-sm-4">
+            <label for="applicationStatusSelect" class="form-label">Application State Filter</label>
+            <select class="form-select" id="applicationStatusSelect" @onchange="@OnSelect">
+                @foreach (var status in ApplicationStatuses)
+                {
+                    @if (@status.Key.Equals(@SelectedApplicationStatus, StringComparison.OrdinalIgnoreCase))
+                    {
+                        <option value=@status.Value selected>@status.Key</option>
+                    }
+                    else
+                    {
+                        <option value=@status.Value>@status.Key</option>
+                    }
+                }
+            </select>
+        </div>
+    </div>
+    <div class="form-group row mb-3">
+        <div class="col-sm-4">
+            <div class="input-group">
+                <input type="text" class="form-control" placeholder="Search..." aria-label="Filter"
+                    aria-describedby="button-clear" @bind-value="Filter" @oninput="@FilterChange">
+                <button class="btn btn-outline-secondary" type="button" id="button-clear"
+                    @onclick="@ClearFilter">Clear</button>
+            </div>
+        </div>
+    </div>
     @if (@Applications != null && @Applications.Any())
     {
-        <div class="row">
-            @if (@ItemCountAll == @ItemCountFiltered)
-            {
-                <h6>Items: @ItemCountAll</h6>
-            }
-            else
-            {
-                <h6>Filtered: @ItemCountFiltered / @ItemCountAll</h6>
-            }
-        </div>
-        <div class="form-group row mb-3">
-            <div class="col-sm-4">
-                <label for="applicationStatusSelect" class="form-label">Application State Filter</label>
-                <select class="form-select" id="applicationStatusSelect" @onchange="@OnSelect">
-                    @foreach (var status in ApplicationStatuses)
-                    {
-                        @if (@status.Key.Equals(@SelectedApplicationStatus, StringComparison.OrdinalIgnoreCase))
-                        {
-                            <option value=@status.Value selected>@status.Key</option>
-                        }
-                        else
-                        {
-                            <option value=@status.Value>@status.Key</option>
-                        }
-                    }
-                </select>
-            </div>
-        </div>
-        <div class="form-group row mb-3">
-            <div class="col-sm-4">
-                <div class="input-group">
-                    <input type="text" class="form-control" placeholder="Search..." aria-label="Filter"
-                        aria-describedby="button-clear" @bind-value="Filter" @oninput="@FilterChange">
-                    <button class="btn btn-outline-secondary" type="button" id="button-clear"
-                        @onclick="@ClearFilter">Clear</button>
-                </div>
-            </div>
-        </div>
-
         <TableTemplate Items="FilteredApplications" TItem="SparkApplication" TableHeaderClass="thead-light" TableClass="mb-5">
             <TableHeader>
                 <th>
                 </th>
             </TableHeader>
             <RowTemplate>
-                @if(context != null && context.Metadata != null && context.Metadata.Name != null)
+                @if (context != null && context.Metadata != null && context.Metadata.Name != null)
                 {
-                <td class="container">
-                    <div class="form-group row mb-2">
-                        <div class="col-xl-6">
-                            <span id="name" class="form-item h4">@context.Metadata.Name</span>
-                            <button type="button" class="btn btn-link btn-copy js-tooltip" data-toggle="tooltip"
-                                data-placement="top" title="Copy link to clipboard"
-                                @onclick="() => CopyTextToClipboard(context.Metadata.Name)">
-                                <span class="oi oi-link-intact" aria-hidden="true"></span>
-                            </button>
-                        </div>
-                    </div>
-                    <div class="form-group row mb-2">
-                        <div class="col-xl-4">
-                            <label class="form-label"><b>Submission Attempts:</b></label>
-                            <span id="submissionAttempts" class="form-item">@context.Status?.SubmissionAttempts</span>
-                        </div>
-                        <div class="col-xl-3">
-                            <label class="form-label"><b>Last Submission Attempt Time:</b></label>
-                            <span id="lastSubmissionAttemptTime"
-                                class="form-item">@context.Status?.LastSubmissionAttemptTime</span>
-                        </div>
-                        @if (context.Status?.TerminationTime != null)
-                        {
-                            <div class="col-xl-3">
-                                <label class="form-label"><b>Termination Time:</b></label>
-                                <span id="terminationTime" class="form-item">@context.Status.TerminationTime</span>
+                    <td class="container">
+                        <div class="form-group row mb-2">
+                            <div class="col-xl-6">
+                                <span id="name" class="form-item h4">@context.Metadata.Name</span>
+                                <button type="button" class="btn btn-link btn-copy js-tooltip" data-toggle="tooltip"
+                                    data-placement="top" title="Copy link to clipboard"
+                                    @onclick="() => CopyTextToClipboard(context.Metadata.Name)">
+                                    <span class="oi oi-link-intact" aria-hidden="true"></span>
+                                </button>
                             </div>
-                        }
-                    </div>
-                    @if (context.Status?.ApplicationState != null)
-
-                    {
-                        <div class="row mb-2">
+                        </div>
+                        <div class="form-group row mb-2">
                             <div class="col-xl-4">
-                                @if (context.Status.DriverInfo != null)
-                                {
-
-                                    foreach (var driverInfo in context.Status.DriverInfo)
-
-                                    {
-                                        <h5 id="driver-state-@context.Metadata.Name-driver-info-@driverInfo.Key">@driverInfo.Value</h5>
-                                    }
-                                }
+                                <label class="form-label"><b>Submission Attempts:</b></label>
+                                <span id="submissionAttempts" class="form-item">@context.Status?.SubmissionAttempts</span>
                             </div>
-                            @if (context.Status.ExecutorState != null)
+                            <div class="col-xl-3">
+                                <label class="form-label"><b>Last Submission Attempt Time:</b></label>
+                                <span id="lastSubmissionAttemptTime"
+                                    class="form-item">@context.Status?.LastSubmissionAttemptTime</span>
+                            </div>
+                            @if (context.Status?.TerminationTime != null)
                             {
-                                @if (context.Status.ExecutorState.Count < 2)
-                                {
-                                    <div class="col-xl-7">
-                                        @foreach (var execState in context.Status.ExecutorState)
-                                        {
-                                            <div class="exec-state" id="@context.Metadata.Name-exec-state-@execState.Key">
-                                                <label
-                                                    class="form-label">@($"{char.ToUpper(@execState.Key[0])}{@execState.Key.Substring(1)}:")</label>
-                                                <span id="exec-state-@context.Metadata.Name-exec-state-@execState.Key"
-                                                    class="form-item">@execState.Value</span>
-                                            </div>
-                                        }
-                                    </div>
-                                }
-                                else
-                                {
-                                    <div class="col-xl-7">
-                                        <button class="btn btn-outline-dark btn-sm collapsed mb-2" type="button" data-bs-toggle="collapse"
-                                            data-bs-target="#@context.Metadata.Name-exec-states" aria-expanded="false"
-                                            aria-controls="@context.Metadata.Name-exec-states">
-                                            <span><span class="show">Show</span><span class="hide">Hide</span>
-                                                @context.Status.ExecutorState.Count Executor States</span>
-                                        </button>
-                                        <div id="@context.Metadata.Name-exec-states" class="exec-states collapse">
-                                            @foreach (var execState in context.Status.ExecutorState.OrderBy(s =>
-                                           SortRegEx.Match(s.Key).Value.PadLeft(10, '0')))
+                                <div class="col-xl-3">
+                                    <label class="form-label"><b>Termination Time:</b></label>
+                                    <span id="terminationTime" class="form-item">@context.Status.TerminationTime</span>
+                                </div>
+                            }
+                        </div>
+                        @if (context.Status?.ApplicationState != null)
 
+                        {
+                            <div class="row mb-2">
+                                <div class="col-xl-4">
+                                    @if (context.Status.DriverInfo != null)
+                                    {
+
+                                        foreach (var driverInfo in context.Status.DriverInfo)
+
+                                        {
+                                            <h5 id="driver-state-@context.Metadata.Name-driver-info-@driverInfo.Key">@driverInfo.Value</h5>
+                                        }
+                                    }
+                                </div>
+                                @if (context.Status.ExecutorState != null)
+                                {
+                                    @if (context.Status.ExecutorState.Count < 2)
+                                    {
+                                        <div class="col-xl-7">
+                                            @foreach (var execState in context.Status.ExecutorState)
                                             {
                                                 <div class="exec-state" id="@context.Metadata.Name-exec-state-@execState.Key">
                                                     <label
@@ -146,75 +123,98 @@ else
                                                 </div>
                                             }
                                         </div>
-                                    </div>
-                                }
-                            }
-                        </div>
-                        <div class="row mb-2">
-                            <div class="col-xl-2">
-                                @if (context.Status.ExecutionAttempts != null)
-                                {
-                                    <label class="form-label"><b>Executor Attempts:</b></label>
-                                    <span id="exec-attempts-@context.Metadata.Name"
-                                        class="form-item">@context.Status.ExecutionAttempts</span>
-                                }
-                            </div>
-                        </div>
-                        <div class="row mb-2">
-                            @if (context.Status.ApplicationState != null)
-                            {
-                                var sortedAppState = new
-                                SortedDictionary<string, string>(context.Status.ApplicationState).OrderByDescending(s => s.Key);
-
-                                foreach (var appState in sortedAppState)
-                                {
-                                    if (appState.Key.Equals("errorMessage", StringComparison.OrdinalIgnoreCase))
-                                    {
-                                        <div class="col-xl-1">
-                                            <button class="btn btn-outline-dark btn-sm collapsed" type="button" data-bs-toggle="collapse"
-                                                data-bs-target="#@context.Metadata.Name-app-state-@appState.Key" aria-expanded="false"
-                                                aria-controls="@context.Metadata.Name-app-state-@appState.Key">
-                                                <span><span class="show">Show</span><span class="hide">Hide</span> Errors</span>
-                                            </button>
-                                        </div>
-                                        <div class="app-state collapse col-sm-12" id="@context.Metadata.Name-app-state-@appState.Key">
-                                            <div class="key fw-bold">@($"{char.ToUpper(@appState.Key[0])}{@appState.Key.Substring(1)}:")</div>
-                                            <div class="value">
-                                                <pre>@appState.Value</pre>
-                                            </div>
-                                        </div>
                                     }
                                     else
                                     {
-                                        <div class="app-state col-xl-1" id="@context.Metadata.Name-app-state-@appState.Key">
-                                            <label
-                                                class="form-label"><b>@($"{char.ToUpper(@appState.Key[0])}{@appState.Key.Substring(1)}:")</b></label>
-                                            <span id="app-state-@appState.Key" class="form-item">@appState.Value</span>
+                                        <div class="col-xl-7">
+                                            <button class="btn btn-outline-dark btn-sm collapsed mb-2" type="button" data-bs-toggle="collapse"
+                                                data-bs-target="#@context.Metadata.Name-exec-states" aria-expanded="false"
+                                                aria-controls="@context.Metadata.Name-exec-states">
+                                                <span><span class="show">Show</span><span class="hide">Hide</span>
+                                                    @context.Status.ExecutorState.Count Executor States</span>
+                                            </button>
+                                            <div id="@context.Metadata.Name-exec-states" class="exec-states collapse">
+                                                @foreach (var execState in context.Status.ExecutorState.OrderBy(s =>
+                                                                        SortRegEx.Match(s.Key).Value.PadLeft(10, '0')))
+
+                                                {
+                                                    <div class="exec-state" id="@context.Metadata.Name-exec-state-@execState.Key">
+                                                        <label
+                                                            class="form-label">@($"{char.ToUpper(@execState.Key[0])}{@execState.Key.Substring(1)}:")</label>
+                                                        <span id="exec-state-@context.Metadata.Name-exec-state-@execState.Key"
+                                                            class="form-item">@execState.Value</span>
+                                                    </div>
+                                                }
+                                            </div>
                                         </div>
                                     }
                                 }
-                            }
-                        </div>
-                    }
-                    <div class="row mb-2">
-                        <div class="col-sm-12">
-                            @if (!string.IsNullOrWhiteSpace(@context.Spec))
-                            {
-                                <div class="col-xl-1">
-                                    <button class="btn btn-outline-dark btn-sm collapsed" type="button" data-bs-toggle="collapse"
-                                        data-bs-target="#@context.Metadata.Name-spec" aria-expanded="false"
-                                        aria-controls="@context.Metadata.Name-spec">
-                                        <span><span class="show">Show</span><span class="hide">Hide</span> Spec</span>
-                                    </button>
+                            </div>
+                            <div class="row mb-2">
+                                <div class="col-xl-2">
+                                    @if (context.Status.ExecutionAttempts != null)
+                                    {
+                                        <label class="form-label"><b>Executor Attempts:</b></label>
+                                        <span id="exec-attempts-@context.Metadata.Name"
+                                            class="form-item">@context.Status.ExecutionAttempts</span>
+                                    }
                                 </div>
-                                <div class="collapse col-sm-12" id="@context.Metadata.Name-spec">
-                                    <pre>@context.Spec</pre>
-                                </div>
-                            }
+                            </div>
+                            <div class="row mb-2">
+                                @if (context.Status.ApplicationState != null)
+                                {
+                                    var sortedAppState = new
+                                    SortedDictionary<string, string>(context.Status.ApplicationState).OrderByDescending(s => s.Key);
+
+                                    foreach (var appState in sortedAppState)
+                                    {
+                                        if (appState.Key.Equals("errorMessage", StringComparison.OrdinalIgnoreCase))
+                                        {
+                                            <div class="col-xl-1">
+                                                <button class="btn btn-outline-dark btn-sm collapsed" type="button" data-bs-toggle="collapse"
+                                                    data-bs-target="#@context.Metadata.Name-app-state-@appState.Key" aria-expanded="false"
+                                                    aria-controls="@context.Metadata.Name-app-state-@appState.Key">
+                                                    <span><span class="show">Show</span><span class="hide">Hide</span> Errors</span>
+                                                </button>
+                                            </div>
+                                            <div class="app-state collapse col-sm-12" id="@context.Metadata.Name-app-state-@appState.Key">
+                                                <div class="key fw-bold">@($"{char.ToUpper(@appState.Key[0])}{@appState.Key.Substring(1)}:")</div>
+                                                <div class="value">
+                                                    <pre>@appState.Value</pre>
+                                                </div>
+                                            </div>
+                                        }
+                                        else
+                                        {
+                                            <div class="app-state col-xl-1" id="@context.Metadata.Name-app-state-@appState.Key">
+                                                <label
+                                                    class="form-label"><b>@($"{char.ToUpper(@appState.Key[0])}{@appState.Key.Substring(1)}:")</b></label>
+                                                <span id="app-state-@appState.Key" class="form-item">@appState.Value</span>
+                                            </div>
+                                        }
+                                    }
+                                }
+                            </div>
+                        }
+                        <div class="row mb-2">
+                            <div class="col-sm-12">
+                                @if (!string.IsNullOrWhiteSpace(@context.Spec))
+                                {
+                                    <div class="col-xl-1">
+                                        <button class="btn btn-outline-dark btn-sm collapsed" type="button" data-bs-toggle="collapse"
+                                            data-bs-target="#@context.Metadata.Name-spec" aria-expanded="false"
+                                            aria-controls="@context.Metadata.Name-spec">
+                                            <span><span class="show">Show</span><span class="hide">Hide</span> Spec</span>
+                                        </button>
+                                    </div>
+                                    <div class="collapse col-sm-12" id="@context.Metadata.Name-spec">
+                                        <pre>@context.Spec</pre>
+                                    </div>
+                                }
+                            </div>
                         </div>
-                    </div>
-                </td>
-            }
+                    </td>
+                }
             </RowTemplate>
         </TableTemplate>
     }
@@ -263,6 +263,7 @@ else
             ApplicationStatusParam = ApplicationStatusParam ?? "";
             SelectedApplicationStatus = ApplicationStatusParam;
             ApplicationStatuses.Add("All", "");
+            ApplicationStatuses.Add("Completed", "COMPLETED");
             ApplicationStatuses.Add("Failed", "FAILED");
             ApplicationStatuses.Add("Running", "RUNNING");
 
@@ -337,7 +338,8 @@ else
         }
         else
         {
-            FilteredApplications = Applications?.Where(s => s != null && s.Metadata != null && s.Metadata.Name != null && s.Metadata.Name.Contains(Filter, StringComparison.OrdinalIgnoreCase)).ToList();
+            FilteredApplications = Applications?.Where(s => s != null && s.Metadata != null && s.Metadata.Name != null &&
+            s.Metadata.Name.Contains(Filter, StringComparison.OrdinalIgnoreCase)).ToList();
             ItemCountFiltered = FilteredApplications?.Count() ?? 0;
         }
         await InvokeAsync(() => { base.StateHasChanged(); });
