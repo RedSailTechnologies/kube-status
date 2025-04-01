@@ -105,6 +105,31 @@ namespace KubeStatus
             return (Environment.GetEnvironmentVariable("POD_METRIC_PORT_PAGE") ?? string.Empty).Split("|")[1];
         }
 
+        public static string TorGroup()
+        {
+            return Environment.GetEnvironmentVariable("TOR__GROUP") ?? "redsail.tor";
+        }
+
+        public static string TorEnterpriseVersion()
+        {
+            return Environment.GetEnvironmentVariable("TOR__ENTERPRISE_VERSION") ?? "v1";
+        }
+
+        public static string TorEnterprisePlural()
+        {
+            return Environment.GetEnvironmentVariable("TOR__ENTERPRISE_PLURAL") ?? "enterprises";
+        }
+
+        public static string TorDatabaseVersion()
+        {
+            return Environment.GetEnvironmentVariable("TOR__DATABASE_VERSION") ?? "v1";
+        }
+
+        public static string TorDatabasePlural()
+        {
+            return Environment.GetEnvironmentVariable("TOR__DATABASE_PLURAL") ?? "databases";
+        }
+
         /// <summary>
         /// Converts an object to yaml.
         /// </summary>

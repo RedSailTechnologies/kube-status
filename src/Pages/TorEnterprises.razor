@@ -1,0 +1,378 @@
+@page "/tor-enterprises/{namespaceparam?}/{filterparam?}"
+
+@using System.Text.RegularExpressions
+
+@inject NamespaceService NamespaceService
+@inject TorEnterpriseService TorEnterpriseService
+@inject IJSRuntime JsRuntime
+@inject NavigationManager Navigator
+
+@if (UiShowTor)
+{
+    <h1>Tor Enterprises</h1>
+
+    @if (GetNamespacesError)
+    {
+        <div class="alert alert-danger" role="alert">
+            Unable to get namespaces. Please try again later.
+        </div>
+    }
+    else
+    {
+        <div class="row">
+            @if (@ItemCountAll == @ItemCountFiltered)
+            {
+                <h6>Items: @ItemCountAll</h6>
+            }
+            else
+            {
+                <h6>Filtered: @ItemCountFiltered / @ItemCountAll</h6>
+            }
+        </div>
+        <div class="form-group row mb-3">
+            <div class="col-sm-4">
+                <label for="namespaceSelect" class="form-label">Select a Namespace</label>
+                <select class="form-select" id="namespaceSelect" @onchange="@OnNamespaceSelect">
+                    @foreach (var ns in Namespaces)
+                    {
+                        @if (@ns.Equals(@SelectedNamespace))
+                        {
+                            <option value=@ns selected>@ns</option>
+                        }
+                        else
+                        {
+                            <option value=@ns>@ns</option>
+                        }
+                    }
+                </select>
+            </div>
+        </div>
+        <div class="form-group row mb-3">
+            <div class="col-sm-4">
+                <div class="input-group">
+                    <input type="text" class="form-control" placeholder="Search..." aria-label="Filter"
+                        aria-describedby="button-clear" @bind-value="Filter" @oninput="@FilterChange">
+                    <button class="btn btn-outline-secondary" type="button" id="button-clear"
+                        @onclick="@ClearFilter">Clear</button>
+                </div>
+            </div>
+        </div>
+    }
+    @if (GetEnterprisesError)
+    {
+        <div class="alert alert-danger" role="alert">
+            Unable to get Tor Enterprises. Please try again later.
+        </div>
+    }
+    else
+    {
+        @if (@Enterprises != null && @Enterprises.Any())
+        {
+            <TableTemplate Items="FilteredEnterprises" TItem="TorEnterprise" TableHeaderClass="thead-light" TableClass="mb-5">
+                <TableHeader>
+                    <th>
+                    </th>
+                </TableHeader>
+                <RowTemplate>
+                    @if (context != null && context != null && context.Name != null)
+                    {
+                        <td class="container">
+                            <div class="form-group row mb-2">
+                                <div class="col-xl-6">
+                                    <span id="name" class="form-item h4">@context.Name</span>
+                                    <button type="button" class="btn btn-link btn-copy js-tooltip" data-toggle="tooltip"
+                                        data-placement="top" title="Copy link to clipboard"
+                                        @onclick="() => CopyTextToClipboard(context.Name)">
+                                        <span class="oi oi-link-intact" aria-hidden="true"></span>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="form-group row mb-2">
+                                <div class="col-xl-3">
+                                    <label class="form-label"><b>Tenant Id:</b></label>
+                                    <span id="tenant-id-@context.Name" class="form-item">@context.Spec.TenantId</span>
+                                </div>
+                                <div class="col-xl-3">
+                                    <label class="form-label"><b>Prefix:</b></label>
+                                    <span id="prefix-@context.Name" class="form-item">@context.Spec.Prefix</span>
+                                </div>
+                                <div class="col-xl-6">
+                                    <label class="form-label"><b>Host:</b></label>
+                                    <span id="host-@context.Name" class="form-item">@context.Spec.Host</span>
+                                </div>
+                            </div>
+                            <div class="form-group row mb-2">
+                                <div class="col-xl-3">
+                                    <label class="form-label"><b>Skip Reconcile:</b></label>
+                                    <span id="skip-reconcile-@context.Name" class="form-item">@context.Spec.SkipReconcile</span>
+                                </div>
+                                <div class="col-xl-3">
+                                    <label class="form-label"><b>Shared Only Databases:</b></label>
+                                    <span id="shared-only-databases-@context.Name"
+                                        class="form-item">@context.Spec.SharedOnlyDatabases</span>
+                                </div>
+                                <div class="col-xl-3">
+                                    <label class="form-label"><b>Server Secret:</b></label>
+                                    <span id="server-secret-@context.Name" class="form-item">@context.Spec.ServerSecret</span>
+                                </div>
+                                @if (context.Spec.AdditionalNamespaces != null && context.Spec.AdditionalNamespaces.Any())
+                                {
+                                    <div class="col-xl-3">
+                                        <label class="form-label"><b>Additional Namespaces:</b></label>
+                                        <span id="additional-namespaces-@context.Name" class="form-item">
+                                            @string.Join(',', context.Spec.AdditionalNamespaces)
+                                        </span>
+                                    </div>
+                                }
+                            </div>
+                            <div class="form-group row mb-2">
+                                <div class="col-xl-3">
+                                    <label class="form-label"><b>Platform:</b></label>
+                                    <span id="platform-@context.Name" class="form-item">@context.Spec.Platform</span>
+                                </div>
+                                <div class="col-xl-3">
+                                    <label class="form-label"><b>Port:</b></label>
+                                    <span id="port-@context.Name" class="form-item">@context.Spec.Port</span>
+                                </div>
+                                <div class="col-xl-3">
+                                    <label class="form-label"><b>SSL Mode:</b></label>
+                                    <span id="ssl=mode-@context.Name" class="form-item">@context.Spec.SslMode</span>
+                                </div>
+                                <div class="col-xl-3">
+                                    <label class="form-label"><b>Trust Server Certificate:</b></label>
+                                    <span id="trust-server-certificate-@context.Name"
+                                        class="form-item">@context.Spec.TrustServerCertificate</span>
+                                </div>
+                            </div>
+                            <div class="form-group row mb-2">
+                                <div class="col-xl-3">
+                                    <label class="form-label"><b>Created:</b></label>
+                                    <span id="created-date-@context.Name" class="form-item">@context.Status.CreatedDate</span>
+                                </div>
+                                <div class="col-xl-3">
+                                    <label class="form-label"><b>Last Updated:</b></label>
+                                    <span id="last-updated-@context.Name" class="form-item">@context.Status.LastUpdatedDate</span>
+                                </div>
+                                <div class="col-xl-3">
+                                    <label class="form-label"><b>Last Reconciled:</b></label>
+                                    <span id="last-reconciled-@context.Name" class="form-item">@context.Status.LastReconciledDate</span>
+                                </div>
+                                <div class="col-xl-3">
+                                    <label class="form-label"><b>Last Error:</b></label>
+                                    <span id="last-error-@context.Name" class="form-item">@context.Status.LastErrorDate</span>
+                                </div>
+                            </div>
+                            <div class="row mb-2">
+                                <div class="col-sm-12">
+                                    @if (context.Status.LastErrorMessage != null)
+                                    {
+                                        <div class="col-xl-1">
+                                            <button class="btn btn-outline-dark btn-sm collapsed" type="button" data-bs-toggle="collapse"
+                                                data-bs-target="#@context.Name-last-error-message" aria-expanded="false"
+                                                aria-controls="@context.Name-last-error-message">
+                                                <span><span class="show">Show</span><span class="hide">Hide</span> Last Error Message</span>
+                                            </button>
+                                        </div>
+                                        <div class="collapse col-sm-12" id="@context.Name-last-error-message">
+                                            <h5>Last Error Message</h5>
+                                            <pre>@context.Status.LastErrorMessage</pre>
+                                        </div>
+                                    }
+                                </div>
+                            </div>
+                            <div class="row mb-2">
+                                <div class="col-sm-12">
+                                    <div class="col-xl-1">
+                                        <button class="btn btn-outline-dark btn-sm collapsed" type="button" data-bs-toggle="collapse"
+                                            data-bs-target="#@context.Name-hashes" aria-expanded="false"
+                                            aria-controls="@context.Name-hashes">
+                                            <span><span class="show">Show</span><span class="hide">Hide</span> Hashes</span>
+                                        </button>
+                                    </div>
+                                    <div class="collapse col-sm-12" id="@context.Name-hashes">
+                                        <h5>Enterprise Hash</h5>
+                                        <pre>@context.Status.Hash</pre>
+                                        @if (context.Status.DatabaseHashes != null && context.Status.DatabaseHashes.Any())
+                                        {
+                                            <h5>Databases Hashes</h5>
+                                            <pre>@context.Status.DatabaseHashes.ToYaml()</pre>
+                                        }
+                                    </div>
+                                </div>
+                            </div>
+                        </td>
+                    }
+                </RowTemplate>
+            </TableTemplate>
+        }
+
+        else if (Enterprises == null)
+
+        {
+            <div class="alert alert-info" role="alert">
+                Loading Tor Enterprises...
+            </div>
+        }
+
+        else
+
+        {
+            <div class="alert alert-primary" role="alert">
+                No Tor Enterprises found in the @SelectedNamespace namespace.
+            </div>
+        }
+    }
+}
+else
+{
+    <div class="alert alert-danger" role="alert">
+        Tor is not currently enabled!
+    </div>
+}
+
+@code {
+    [Parameter]
+    public string? NamespaceParam { get; set; }
+    [Parameter]
+    public string? FilterParam { get; set; }
+
+    bool UiShowTor = true;
+    bool GetNamespacesError;
+    bool GetEnterprisesError;
+    bool _shouldRender;
+    IEnumerable<string> Namespaces = Array.Empty<string>();
+    string SelectedNamespace = string.Empty;
+    IEnumerable<TorEnterprise>? Enterprises;
+    IEnumerable<TorEnterprise>? FilteredEnterprises;
+    string? Filter;
+    int ItemCountAll = 0;
+    int ItemCountFiltered = 0;
+    Regex SortRegEx = new Regex(@"([^-]*$)");
+
+    protected override bool ShouldRender() => _shouldRender;
+
+    protected override async Task OnInitializedAsync()
+    {
+        Boolean.TryParse(@Environment.GetEnvironmentVariable("UI_SHOW_TOR"), out UiShowTor);
+
+        try
+        {
+            if (!string.IsNullOrWhiteSpace(NamespaceParam))
+            {
+                SelectedNamespace = NamespaceParam;
+                await SetNamespaceCookie();
+            }
+            else
+            {
+                SelectedNamespace = await GetNamespaceCookie();
+            }
+
+            FilterParam = FilterParam ?? "";
+            Filter = FilterParam;
+
+            Namespaces = await NamespaceService.GetAllNamespaceNamesAsync();
+
+            await GetTorEnterprises();
+
+            _shouldRender = true;
+        }
+        catch
+        {
+            GetNamespacesError = true;
+            GetEnterprisesError = true;
+        }
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        await JsRuntime.InvokeVoidAsync("addCopyTooltips");
+    }
+
+    async Task OnNamespaceSelect(ChangeEventArgs e)
+    {
+        if (e != null && e.Value != null)
+        {
+            SelectedNamespace = e.Value.ToString() ?? string.Empty;
+            await SetNamespaceCookie();
+            await GetTorEnterprises();
+        }
+    }
+
+    async Task SetNamespaceCookie()
+    {
+        await JsRuntime.InvokeAsync<object>("WriteCookie.WriteCookie", "selectedNamespace", SelectedNamespace,
+        DateTime.Now.AddDays(1));
+    }
+
+    async Task<string> GetNamespaceCookie()
+    {
+        try
+        {
+            var namespaceCookie = await JsRuntime.InvokeAsync<string>("ReadCookie.ReadCookie", "selectedNamespace");
+            if (string.IsNullOrWhiteSpace(namespaceCookie))
+            {
+                namespaceCookie = "default";
+            }
+            return namespaceCookie;
+        }
+        catch
+        {
+            return "default";
+        }
+    }
+
+    async Task GetTorEnterprises()
+    {
+        Enterprises = null;
+        FilteredEnterprises = new List<TorEnterprise>();
+        Enterprises = await TorEnterpriseService.GetAllTorEnterprisesAsync(SelectedNamespace);
+        ItemCountAll = Enterprises?.Count() ?? 0;
+        FilteredEnterprises = Enterprises;
+        ItemCountFiltered = FilteredEnterprises?.Count() ?? 0;
+
+        if (!string.IsNullOrWhiteSpace(Filter))
+        {
+            await FilterResults();
+        }
+    }
+    async Task FilterChange(ChangeEventArgs e)
+    {
+        if (e != null && e.Value != null)
+        {
+            Filter = (e.Value.ToString() ?? string.Empty).Trim();
+
+            if (!string.IsNullOrWhiteSpace(Filter))
+            {
+                await FilterResults();
+            }
+        }
+    }
+
+    async Task ClearFilter()
+    {
+        Filter = "";
+        await FilterResults();
+    }
+
+    async Task FilterResults()
+    {
+        if (string.IsNullOrWhiteSpace(Filter))
+        {
+            FilteredEnterprises = Enterprises;
+            ItemCountFiltered = FilteredEnterprises?.Count() ?? 0;
+        }
+        else
+        {
+            FilteredEnterprises = Enterprises?.Where(s => s != null && s.Name != null && s.Name.Contains(Filter,
+            StringComparison.OrdinalIgnoreCase)).ToList();
+            ItemCountFiltered = FilteredEnterprises?.Count() ?? 0;
+        }
+        await InvokeAsync(() => { base.StateHasChanged(); });
+    }
+
+    async Task CopyTextToClipboard(string name)
+    {
+        var text = $"{Navigator.BaseUri}tor-enterprises/{SelectedNamespace}/{name}";
+        await JsRuntime.InvokeVoidAsync("clipboardCopy.copyText", text);
+    }
+}

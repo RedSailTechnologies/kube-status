@@ -103,6 +103,7 @@ envVars:
   KUBE_CA_FILE: "/run/secrets/kubernetes.io/serviceaccount/ca.crt"
   KUBE_TOKEN_FILE: "/run/secrets/kubernetes.io/serviceaccount/token"
   UI_SHOW_HELM: "true"
+  UI_SHOW_TOR: "true"
   POD_METRIC_PORT_PAGE: "metrics|metrics"
   # STRIMZI__CONNECT_CLUSTER_SERVICE_HOST: http://cluster-connect-api.strimzi.svc.cluster.local:8083/
   # ADDITIONAL_HEAD_CONTENT: "&lt;meta name=&quot;env:header&quot; content=&quot;hello world&quot;&gt;"

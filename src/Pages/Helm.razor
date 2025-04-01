@@ -1,5 +1,3 @@
-@if (UiShowHelm)
-{
 @page "/helm/{namespaceparam?}"
 
 @using System
@@ -8,6 +6,8 @@
 @inject HelmService HelmService
 @inject IJSRuntime JsRuntime
 
+@if (UiShowHelm)
+{
 <h1>Helm Releases</h1>
 
 @if (GetNamespacesError)
@@ -157,12 +157,19 @@ else
         </div>
     }
 }
+}
+else
+{
+    <div class="alert alert-danger" role="alert">
+        Helm is not currently enabled!
+    </div>
+}
 
 @code {
     [Parameter]
     public string? NamespaceParam { get; set; }
 
-    bool UiShowHelm;
+    bool UiShowHelm = true;
     bool GetNamespacesError;
     bool HelmListError;
     bool _shouldRender;
@@ -334,11 +341,4 @@ else
         }
         await InvokeAsync(() => { base.StateHasChanged(); });
     }
-}
-}
-else
-{
-    <div class="alert alert-danger" role="alert">
-        Helm is not currently enabled!
-    </div>
 }

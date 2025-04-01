@@ -64,6 +64,8 @@ builder.Services.AddSingleton<DeploymentService>();
 builder.Services.AddSingleton<StatefulSetService>();
 builder.Services.AddSingleton<LogService>();
 builder.Services.AddSingleton<HelmService>();
+builder.Services.AddSingleton<TorEnterpriseService>();
+builder.Services.AddSingleton<TorDatabaseService>();
 
 builder.Services.AddHealthChecks();
 builder.Services.AddControllers();

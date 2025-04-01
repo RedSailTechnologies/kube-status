@@ -64,7 +64,7 @@ else
             <RowTemplate>
                 @if(context != null && context.Metadata != null && context.Metadata.Name != null)
                 {
-                <td>
+                <td class="container">
                     <div class="form-group row mb-2">
                         <div class="col-xl-6">
                             <span id="name" class="form-item h4">@context.Metadata.Name</span>
@@ -197,19 +197,21 @@ else
                         </div>
                     }
                     <div class="row mb-2">
-                        @if (!string.IsNullOrWhiteSpace(@context.Spec))
-                        {
-                            <div class="col-xl-1">
-                                <button class="btn btn-outline-dark btn-sm collapsed" type="button" data-bs-toggle="collapse"
-                                    data-bs-target="#@context.Metadata.Name-spec" aria-expanded="false"
-                                    aria-controls="@context.Metadata.Name-spec">
-                                    <span><span class="show">Show</span><span class="hide">Hide</span> Spec</span>
-                                </button>
-                            </div>
-                            <div class="collapse col-sm-12" id="@context.Metadata.Name-spec">
-                                <pre>@context.Spec</pre>
-                            </div>
-                        }
+                        <div class="col-sm-12">
+                            @if (!string.IsNullOrWhiteSpace(@context.Spec))
+                            {
+                                <div class="col-xl-1">
+                                    <button class="btn btn-outline-dark btn-sm collapsed" type="button" data-bs-toggle="collapse"
+                                        data-bs-target="#@context.Metadata.Name-spec" aria-expanded="false"
+                                        aria-controls="@context.Metadata.Name-spec">
+                                        <span><span class="show">Show</span><span class="hide">Hide</span> Spec</span>
+                                    </button>
+                                </div>
+                                <div class="collapse col-sm-12" id="@context.Metadata.Name-spec">
+                                    <pre>@context.Spec</pre>
+                                </div>
+                            }
+                        </div>
                     </div>
                 </td>
             }
