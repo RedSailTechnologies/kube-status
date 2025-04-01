@@ -463,11 +463,11 @@ else
                                         </button>
                                     </div>
                                     }
-                                    @if (Helper.ShowMetricsDownload() && context != null && statusContext != null && @statusContext.Ports != null && @context.PodIPs != null && @context.PodIPs.Any() && @statusContext.Ports.Any(p => p.Name != null && p.Name.Equals(Helper.MetricsPortName())))
+                                    @if (Helper.ShowMetricsDownload() && context != null && statusContext != null && @statusContext.Ports != null && @context.Name != null && @context.Namespace != null && @statusContext.Ports.Any(p => p.Name != null && p.Name.Equals(Helper.MetricsPortName())))
                                     {
                                     <div class="row mb-2">
                                         <button class="btn btn-outline-dark btn-sm"
-                            @onclick="() => GetMetrics(context.PodIPs.FirstOrDefault() ?? string.Empty, statusContext.Ports.FirstOrDefault(p => p.Name.Equals(Helper.MetricsPortName()))?.ContainerPort ?? 0)">Metrics</button>
+                                            @onclick="() => GetMetrics(context.Name, context.Namespace, statusContext.Ports.FirstOrDefault(p => p.Name.Equals(Helper.MetricsPortName()))?.ContainerPort ?? 0)">Metrics</button>
                                     </div>
                                     }
                                 </div>
@@ -880,10 +880,10 @@ else
         }
     }
 
-    async Task GetMetrics(string podIP, int port)
+    async Task GetMetrics(string name, string k8sNamespace, int port)
     {
-        var fileStream = await PodService.GetContainerMetricsAsync(podIP, port);
-        var fileName = $"{podIP.Replace(".", "-")}-metrics.txt";
+        var fileStream = await PodService.GetContainerMetricsAsync(name, k8sNamespace, port);
+        var fileName = $"{name}-metrics.txt";
 
         if (fileStream != null)
         {

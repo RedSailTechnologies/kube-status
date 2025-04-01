@@ -77,10 +77,10 @@ namespace KubeStatus.Controllers
         }
 
         [HttpGet("metrics")]
-        public async Task<IActionResult> GetContainerLogsAsync(string podIP, int port)
+        public async Task<IActionResult> GetContainerLogsAsync(string name, string k8sNamespace, int port)
         {
-            var fileName = $"{podIP.Replace(".", "-")}-metrics.txt";
-            var stream = await _podService.GetContainerMetricsAsync(podIP, port);
+            var fileName = $"{name}-metrics.txt";
+            var stream = await _podService.GetContainerMetricsAsync(name, k8sNamespace, port);
 
             if (stream == null)
             {
