@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System.Collections.Generic;
+using System.Threading.Tasks;
 using KubeStatus.Data;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
@@ -23,7 +24,7 @@ namespace KubeStatus.Controllers
         [HttpGet("{k8sNamespace}")]
         public async Task<IActionResult> GetAllNamespacedPodsAsync(string k8sNamespace = "default")
         {
-            System.Collections.Generic.IEnumerable<Models.Pod>? pods = await _podService.GetAllNamespacedPodsAsync(k8sNamespace);
+            IEnumerable<Models.Pod>? pods = await _podService.GetAllNamespacedPodsAsync(k8sNamespace);
 
             if (pods == null)
             {
@@ -40,7 +41,7 @@ namespace KubeStatus.Controllers
         {
             AuthorizationResult isAdminEvaluationResult = await _authorizationService.AuthorizeAsync(User, null, "RequireAdminRole");
             bool showSecrets = isAdminEvaluationResult.Succeeded;
-            System.Collections.Generic.List<Models.EnvironmentVariable> envVars = await _podService.GetContainerEnvironmentVariablesAsync(k8sNamespace, pod, container, showSecrets);
+            List<Models.EnvironmentVariable> envVars = await _podService.GetContainerEnvironmentVariablesAsync(k8sNamespace, pod, container, showSecrets);
 
             if (envVars == null)
             {

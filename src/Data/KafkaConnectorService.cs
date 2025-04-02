@@ -14,8 +14,8 @@ namespace KubeStatus.Data
 {
     public class KafkaConnectorService(IKubernetes kubernetesClient)
     {
-        private readonly IKubernetes kubernetesClient = kubernetesClient;
-        static readonly HttpClient httpClient = new();
+        private readonly IKubernetes _kubernetesClient = kubernetesClient;
+        private static readonly HttpClient s_httpClient = new();
 
         public async Task<IEnumerable<KafkaConnector>> GetAllKafkaConnectorsAsync()
         {
@@ -42,7 +42,7 @@ namespace KubeStatus.Data
     }
 }";
 
-                await kubernetesClient.CustomObjects.PatchNamespacedCustomObjectAsync(new V1Patch(patchStr, V1Patch.PatchType.MergePatch), Helper.StrimziGroup(), Helper.StrimziConnectorVersion(), failedKafkaConnector.Namespace, Helper.StrimziConnectorPlural(), failedKafkaConnector.Name);
+                _ = await _kubernetesClient.CustomObjects.PatchNamespacedCustomObjectAsync(new V1Patch(patchStr, V1Patch.PatchType.MergePatch), Helper.StrimziGroup(), Helper.StrimziConnectorVersion(), failedKafkaConnector.Namespace, Helper.StrimziConnectorPlural(), failedKafkaConnector.Name);
             }
 
             return await Task.FromResult(failedKafkaConnectors);
@@ -61,7 +61,7 @@ namespace KubeStatus.Data
     }
 }";
 
-            await kubernetesClient.CustomObjects.PatchNamespacedCustomObjectAsync(new V1Patch(patchStr, V1Patch.PatchType.MergePatch), Helper.StrimziGroup(), Helper.StrimziConnectorVersion(), kafkaConnector.Namespace, Helper.StrimziConnectorPlural(), kafkaConnector.Name);
+            _ = await _kubernetesClient.CustomObjects.PatchNamespacedCustomObjectAsync(new V1Patch(patchStr, V1Patch.PatchType.MergePatch), Helper.StrimziGroup(), Helper.StrimziConnectorVersion(), kafkaConnector.Namespace, Helper.StrimziConnectorPlural(), kafkaConnector.Name);
 
             return await Task.FromResult(kafkaConnector);
         }
@@ -70,7 +70,7 @@ namespace KubeStatus.Data
         {
             var kafkaConnectors = new List<KafkaConnector>();
 
-            object response = await kubernetesClient.CustomObjects.ListClusterCustomObjectAsync(Helper.StrimziGroup(), Helper.StrimziConnectorVersion(), Helper.StrimziConnectorPlural());
+            object response = await _kubernetesClient.CustomObjects.ListClusterCustomObjectAsync(Helper.StrimziGroup(), Helper.StrimziConnectorVersion(), Helper.StrimziConnectorPlural());
             string jsonString = JsonSerializer.Serialize<object>(response);
             JsonNode jsonNode = JsonNode.Parse(jsonString)!;
             JsonNode itemsNode = jsonNode!["items"]!;
@@ -144,7 +144,7 @@ namespace KubeStatus.Data
 
         private async Task<KafkaConnector> GetKafkaConnector(string name, string k8sNamespace = "default")
         {
-            object response = await kubernetesClient.CustomObjects.GetNamespacedCustomObjectAsync(Helper.StrimziGroup(), Helper.StrimziConnectorVersion(), k8sNamespace, Helper.StrimziConnectorPlural(), name);
+            object response = await _kubernetesClient.CustomObjects.GetNamespacedCustomObjectAsync(Helper.StrimziGroup(), Helper.StrimziConnectorVersion(), k8sNamespace, Helper.StrimziConnectorPlural(), name);
             string jsonString = JsonSerializer.Serialize(response);
             JsonNode? item = JsonNode.Parse(jsonString);
 
@@ -233,7 +233,7 @@ namespace KubeStatus.Data
 
                 string uri = $"{host.TrimEnd(['\\', '/'])}/connectors{urlParam}";
 
-                return await httpClient.GetStringAsync(uri);
+                return await s_httpClient.GetStringAsync(uri);
             }
         }
     }

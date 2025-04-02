@@ -13,8 +13,8 @@ namespace KubeStatus.Data
 {
     public class PodService(IKubernetes kubernetesClient, IMemoryCache memoryCache)
     {
-        private readonly IKubernetes kubernetesClient = kubernetesClient;
-        static readonly HttpClient httpClient = new();
+        private readonly IKubernetes _kubernetesClient = kubernetesClient;
+        private static readonly HttpClient s_httpClient = new();
 
         public IMemoryCache MemoryCache { get; } = memoryCache;
 
@@ -22,20 +22,20 @@ namespace KubeStatus.Data
         {
             return MemoryCache.GetOrCreateAsync($"{k8sNamespace}_pods", async e =>
             {
-                e.SetOptions(new MemoryCacheEntryOptions
+                _ = e.SetOptions(new MemoryCacheEntryOptions
                 {
                     AbsoluteExpirationRelativeToNow =
                         TimeSpan.FromSeconds(10)
                 });
 
-                V1NamespaceList namespaces = await kubernetesClient.CoreV1.ListNamespaceAsync();
+                V1NamespaceList namespaces = await _kubernetesClient.CoreV1.ListNamespaceAsync();
                 if (namespaces == null || !namespaces.Items.Any(n => n.Metadata.Name.Equals(k8sNamespace, System.StringComparison.OrdinalIgnoreCase)))
                 {
                     return null;
                 }
 
-                V1PodList list = await kubernetesClient.CoreV1.ListNamespacedPodAsync(k8sNamespace);
-                Corev1EventList events = await kubernetesClient.CoreV1.ListNamespacedEventAsync(k8sNamespace);
+                V1PodList list = await _kubernetesClient.CoreV1.ListNamespacedPodAsync(k8sNamespace);
+                Corev1EventList events = await _kubernetesClient.CoreV1.ListNamespacedEventAsync(k8sNamespace);
 
                 var pods = new List<Pod>();
 
@@ -123,7 +123,7 @@ namespace KubeStatus.Data
 
         public async Task<List<EnvironmentVariable>> GetContainerEnvironmentVariablesAsync(string k8sNamespace, string podName, string containerName, bool showSecrets)
         {
-            V1Pod pod = await kubernetesClient.CoreV1.ReadNamespacedPodAsync(podName, k8sNamespace);
+            V1Pod pod = await _kubernetesClient.CoreV1.ReadNamespacedPodAsync(podName, k8sNamespace);
             List<V1Container> containers = [.. pod.Spec.Containers, .. pod.Spec.InitContainers];
             V1Container? container = containers.FirstOrDefault(c => c.Name.Equals(containerName));
             if (container != null)
@@ -154,7 +154,7 @@ namespace KubeStatus.Data
                         {
                             if (showSecrets)
                             {
-                                V1Secret secret = await kubernetesClient.CoreV1.ReadNamespacedSecretAsync(envVar.ValueFrom.SecretKeyRef.Name, k8sNamespace);
+                                V1Secret secret = await _kubernetesClient.CoreV1.ReadNamespacedSecretAsync(envVar.ValueFrom.SecretKeyRef.Name, k8sNamespace);
                                 envVars.Add(new EnvironmentVariable() { Key = envVar.Name, Value = System.Text.Encoding.UTF8.GetString(secret.Data.FirstOrDefault(d => d.Key.Equals(envVar.ValueFrom.SecretKeyRef.Key)).Value), Type = "Secret" });
                             }
                             else
@@ -164,7 +164,7 @@ namespace KubeStatus.Data
                         }
                         else if (envVar.ValueFrom.ConfigMapKeyRef != null)
                         {
-                            V1ConfigMap configMap = await kubernetesClient.CoreV1.ReadNamespacedConfigMapAsync(envVar.ValueFrom.ConfigMapKeyRef.Name, k8sNamespace);
+                            V1ConfigMap configMap = await _kubernetesClient.CoreV1.ReadNamespacedConfigMapAsync(envVar.ValueFrom.ConfigMapKeyRef.Name, k8sNamespace);
                             envVars.Add(new EnvironmentVariable() { Key = envVar.Name, Value = configMap.Data.FirstOrDefault(d => d.Key.Equals(envVar.ValueFrom.ConfigMapKeyRef.Key)).Value, Type = "ConfigMap" });
                         }
                         else if (envVar.ValueFrom.FieldRef != null)
@@ -185,7 +185,7 @@ namespace KubeStatus.Data
                 {
                     if (envVarRef.ConfigMapRef != null)
                     {
-                        V1ConfigMap configMap = await kubernetesClient.CoreV1.ReadNamespacedConfigMapAsync(envVarRef.ConfigMapRef.Name, k8sNamespace);
+                        V1ConfigMap configMap = await _kubernetesClient.CoreV1.ReadNamespacedConfigMapAsync(envVarRef.ConfigMapRef.Name, k8sNamespace);
                         if (configMap.Data != null && configMap.Data.Any())
                         {
                             foreach (KeyValuePair<string, string> val in configMap.Data)
@@ -197,7 +197,7 @@ namespace KubeStatus.Data
 
                     if (envVarRef.SecretRef != null)
                     {
-                        V1Secret secret = await kubernetesClient.CoreV1.ReadNamespacedSecretAsync(envVarRef.SecretRef.Name, k8sNamespace);
+                        V1Secret secret = await _kubernetesClient.CoreV1.ReadNamespacedSecretAsync(envVarRef.SecretRef.Name, k8sNamespace);
                         if (secret.Data != null && secret.Data.Any())
                         {
                             foreach (KeyValuePair<string, byte[]> val in secret.Data)
@@ -269,13 +269,13 @@ namespace KubeStatus.Data
         {
             try
             {
-                V1Pod pod = await kubernetesClient.CoreV1.ReadNamespacedPodAsync(podName, k8sNamespace);
+                V1Pod pod = await _kubernetesClient.CoreV1.ReadNamespacedPodAsync(podName, k8sNamespace);
                 string podIP = pod.Status.PodIP;
 
                 if (Helper.IsPrivateIP(podIP) && Helper.IsValidPort(port))
                 {
                     string uri = $"http://{podIP}:{port}/{Helper.MetricsRoute()}";
-                    return await httpClient.GetByteArrayAsync(uri);
+                    return await s_httpClient.GetByteArrayAsync(uri);
                 }
 
                 return null;
@@ -291,7 +291,7 @@ namespace KubeStatus.Data
         {
             try
             {
-                V1Pod pod = await kubernetesClient.CoreV1.ReadNamespacedPodAsync(podName, k8sNamespace);
+                V1Pod pod = await _kubernetesClient.CoreV1.ReadNamespacedPodAsync(podName, k8sNamespace);
                 if (pod != null)
                 {
                     return true;

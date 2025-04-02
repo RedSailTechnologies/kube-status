@@ -14,7 +14,7 @@ namespace KubeStatus.Data
 {
     public class DeploymentService(IKubernetes kubernetesClient, IMemoryCache memoryCache, IHttpContextAccessor httpContextAccessor)
     {
-        private readonly IKubernetes kubernetesClient = kubernetesClient;
+        private readonly IKubernetes _kubernetesClient = kubernetesClient;
 
         private readonly Counter _restartedDeployments = Metrics.CreateCounter(
             "kube_status_deployment_restarted_total",
@@ -50,19 +50,19 @@ namespace KubeStatus.Data
         {
             return MemoryCache.GetOrCreateAsync($"{k8sNamespace}_deployments", async e =>
             {
-                e.SetOptions(new MemoryCacheEntryOptions
+                _ = e.SetOptions(new MemoryCacheEntryOptions
                 {
                     AbsoluteExpirationRelativeToNow =
                         TimeSpan.FromSeconds(10)
                 });
 
-                V1NamespaceList namespaces = await kubernetesClient.CoreV1.ListNamespaceAsync();
-                if (namespaces == null || !namespaces.Items.Any(n => n.Metadata.Name.Equals(k8sNamespace, System.StringComparison.OrdinalIgnoreCase)))
+                V1NamespaceList namespaces = await _kubernetesClient.CoreV1.ListNamespaceAsync();
+                if (namespaces == null || !namespaces.Items.Any(n => n.Metadata.Name.Equals(k8sNamespace, StringComparison.OrdinalIgnoreCase)))
                 {
                     return null;
                 }
 
-                return await kubernetesClient.AppsV1.ListNamespacedDeploymentAsync(k8sNamespace);
+                return await _kubernetesClient.AppsV1.ListNamespacedDeploymentAsync(k8sNamespace);
             });
         }
 
@@ -70,7 +70,7 @@ namespace KubeStatus.Data
         {
             try
             {
-                V1Deployment deployment = await kubernetesClient.AppsV1.ReadNamespacedDeploymentAsync(name, k8sNamespace);
+                V1Deployment deployment = await _kubernetesClient.AppsV1.ReadNamespacedDeploymentAsync(name, k8sNamespace);
                 JsonDocument old = JsonSerializer.SerializeToDocument(deployment, _jsonSerializerOptions);
                 var restart = new Dictionary<string, string>
                 {
@@ -82,7 +82,7 @@ namespace KubeStatus.Data
                 JsonDocument expected = JsonSerializer.SerializeToDocument(deployment);
 
                 JsonPatch patch = old.CreatePatch(expected);
-                await kubernetesClient.AppsV1.PatchNamespacedDeploymentAsync(new V1Patch(patch, V1Patch.PatchType.JsonPatch), name, k8sNamespace);
+                _ = await _kubernetesClient.AppsV1.PatchNamespacedDeploymentAsync(new V1Patch(patch, V1Patch.PatchType.JsonPatch), name, k8sNamespace);
 
                 _restartedDeployments.WithLabels(_httpContextAccessor.GetUserIdentityName(), k8sNamespace, name).Inc();
 
@@ -99,19 +99,19 @@ namespace KubeStatus.Data
         {
             try
             {
-                V1NamespaceList namespaces = await kubernetesClient.CoreV1.ListNamespaceAsync();
-                if (!namespaces.Items.Any(n => n.Metadata.Name.Equals(k8sNamespace, System.StringComparison.OrdinalIgnoreCase)))
+                V1NamespaceList namespaces = await _kubernetesClient.CoreV1.ListNamespaceAsync();
+                if (!namespaces.Items.Any(n => n.Metadata.Name.Equals(k8sNamespace, StringComparison.OrdinalIgnoreCase)))
                 {
                     return false;
                 }
 
-                V1DeploymentList deployments = await kubernetesClient.AppsV1.ListNamespacedDeploymentAsync(k8sNamespace);
+                V1DeploymentList deployments = await _kubernetesClient.AppsV1.ListNamespacedDeploymentAsync(k8sNamespace);
 
                 if (deployments?.Items != null && deployments.Items.Any())
                 {
                     foreach (V1Deployment? deployment in deployments.Items)
                     {
-                        await RestartDeploymentAsync(deployment.Metadata.Name, k8sNamespace);
+                        _ = await RestartDeploymentAsync(deployment.Metadata.Name, k8sNamespace);
                     }
                 }
 
@@ -130,15 +130,15 @@ namespace KubeStatus.Data
         {
             try
             {
-                V1NamespaceList namespaces = await kubernetesClient.CoreV1.ListNamespaceAsync();
-                if (!namespaces.Items.Any(n => n.Metadata.Name.Equals(k8sNamespace, System.StringComparison.OrdinalIgnoreCase)))
+                V1NamespaceList namespaces = await _kubernetesClient.CoreV1.ListNamespaceAsync();
+                if (!namespaces.Items.Any(n => n.Metadata.Name.Equals(k8sNamespace, StringComparison.OrdinalIgnoreCase)))
                 {
                     return false;
                 }
 
                 string patchStr = $"{{\"spec\": {{\"replicas\": {replicas}}}}}";
 
-                await kubernetesClient.AppsV1.PatchNamespacedDeploymentAsync(new V1Patch(patchStr, V1Patch.PatchType.MergePatch), name, k8sNamespace);
+                _ = await _kubernetesClient.AppsV1.PatchNamespacedDeploymentAsync(new V1Patch(patchStr, V1Patch.PatchType.MergePatch), name, k8sNamespace);
 
                 _scaledDeployments.WithLabels(_httpContextAccessor.GetUserIdentityName(), k8sNamespace, name).Inc();
 

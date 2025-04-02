@@ -113,7 +113,7 @@ app.UseForwardedHeaders();
 string[] allowedHosts = builder.Configuration.GetSection("AllowedHosts").Value?.Split(',') ?? Array.Empty<string>();
 if (allowedHosts.Length > 0)
 {
-    app.UseCors(x => x
+    _ = app.UseCors(x => x
     .WithOrigins(allowedHosts)
     .AllowAnyMethod()
     );
@@ -121,8 +121,8 @@ if (allowedHosts.Length > 0)
 
 if (Helper.EnableSwagger() && !app.Environment.IsDevelopment())
 {
-    app.UseSwagger();
-    app.UseSwaggerUI(c =>
+    _ = app.UseSwagger();
+    _ = app.UseSwaggerUI(c =>
     {
         c.SwaggerEndpoint("/swagger/v1/swagger.json", "KubeStatus v1");
     });
@@ -130,19 +130,19 @@ if (Helper.EnableSwagger() && !app.Environment.IsDevelopment())
 
 if (app.Environment.IsDevelopment())
 {
-    app.UseSwagger();
-    app.UseSwaggerUI(c =>
+    _ = app.UseSwagger();
+    _ = app.UseSwaggerUI(c =>
     {
         c.SwaggerEndpoint("/swagger/v1/swagger.json", "KubeStatus v1");
         c.OAuthClientId(builder.Configuration.GetSection("AzureAd").GetSection("ClientId").Value);
     });
 
-    app.UseDeveloperExceptionPage();
+    _ = app.UseDeveloperExceptionPage();
     Microsoft.IdentityModel.Logging.IdentityModelEventSource.ShowPII = true;
 }
 else
 {
-    app.UseExceptionHandler("/Error");
+    _ = app.UseExceptionHandler("/Error");
 }
 
 app.UseStaticFiles();

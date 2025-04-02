@@ -10,26 +10,26 @@ namespace KubeStatus
 {
     public static class Helper
     {
-        static Dictionary<string, string> _podStatusDictionary;
+        private static readonly Dictionary<string, string> s_podStatusDictionary;
 
         static Helper()
         {
-            _podStatusDictionary = [];
+            s_podStatusDictionary = [];
         }
 
         public static void BuildPodStatusDictionary()
         {
-            _podStatusDictionary.Add("All", "");
-            _podStatusDictionary.Add("Pending", "Pending");
-            _podStatusDictionary.Add("Running", "Running");
-            _podStatusDictionary.Add("Succeeded", "Succeeded");
-            _podStatusDictionary.Add("Failed", "Failed");
-            _podStatusDictionary.Add("Unknown", "Unknown");
+            s_podStatusDictionary.Add("All", "");
+            s_podStatusDictionary.Add("Pending", "Pending");
+            s_podStatusDictionary.Add("Running", "Running");
+            s_podStatusDictionary.Add("Succeeded", "Succeeded");
+            s_podStatusDictionary.Add("Failed", "Failed");
+            s_podStatusDictionary.Add("Unknown", "Unknown");
         }
 
         public static Dictionary<string, string> ReturnPodStatusDictionary()
         {
-            return _podStatusDictionary;
+            return s_podStatusDictionary;
         }
 
         public static KubernetesClientConfiguration GetKubernetesClientConfiguration()
@@ -49,7 +49,7 @@ namespace KubeStatus
 
         public static bool EnableSwagger()
         {
-            bool.TryParse(Environment.GetEnvironmentVariable("ENABLE_SWAGGER"), out bool enableSwagger);
+            _ = bool.TryParse(Environment.GetEnvironmentVariable("ENABLE_SWAGGER"), out bool enableSwagger);
             return enableSwagger;
         }
 

@@ -9,18 +9,18 @@ namespace KubeStatus.Data
 {
     public class NamespaceService(IKubernetes kubernetesClient)
     {
-        private readonly IKubernetes kubernetesClient = kubernetesClient;
+        private readonly IKubernetes _kubernetesClient = kubernetesClient;
 
         public async Task<V1NamespaceList> GetAllNamespacesAsync()
         {
-            V1NamespaceList namespaces = await kubernetesClient.CoreV1.ListNamespaceAsync();
+            V1NamespaceList namespaces = await _kubernetesClient.CoreV1.ListNamespaceAsync();
 
             return await Task.FromResult(namespaces);
         }
 
         public async Task<IEnumerable<string>> GetAllNamespaceNamesAsync()
         {
-            V1NamespaceList namespaces = await kubernetesClient.CoreV1.ListNamespaceAsync();
+            V1NamespaceList namespaces = await _kubernetesClient.CoreV1.ListNamespaceAsync();
 
             if (namespaces == null)
             {

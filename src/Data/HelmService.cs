@@ -143,7 +143,7 @@ namespace KubeStatus.Data
                     int revision = int.TryParse(values[2].Trim(), out revision) ? revision : 1;
 
                     string[] dateParts = values[3].Split(' ');
-                    DateTimeOffset.TryParse($"{dateParts[0]} {dateParts[1]} {dateParts[2]}",
+                    _ = DateTimeOffset.TryParse($"{dateParts[0]} {dateParts[1]} {dateParts[2]}",
                         null,
                         DateTimeStyles.AdjustToUniversal,
                         out DateTimeOffset updated);

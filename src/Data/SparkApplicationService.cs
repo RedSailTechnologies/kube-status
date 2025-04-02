@@ -12,7 +12,7 @@ namespace KubeStatus.Data
 {
     public class SparkApplicationService(IKubernetes kubernetesClient, IMemoryCache memoryCache)
     {
-        private readonly IKubernetes kubernetesClient = kubernetesClient;
+        private readonly IKubernetes _kubernetesClient = kubernetesClient;
 
         public IMemoryCache MemoryCache { get; } = memoryCache;
 
@@ -34,7 +34,7 @@ namespace KubeStatus.Data
 
             return MemoryCache.GetOrCreateAsync(filterStatus, async e =>
             {
-                e.SetOptions(new MemoryCacheEntryOptions
+                _ = e.SetOptions(new MemoryCacheEntryOptions
                 {
                     AbsoluteExpirationRelativeToNow =
                         TimeSpan.FromSeconds(10)
@@ -42,7 +42,7 @@ namespace KubeStatus.Data
 
                 var sparkApplications = new List<SparkApplication>();
 
-                object response = await kubernetesClient.CustomObjects.ListClusterCustomObjectAsync(Helper.SparkGroup(), Helper.SparkApplicationVersion(), Helper.SparkApplicationPlural());
+                object response = await _kubernetesClient.CustomObjects.ListClusterCustomObjectAsync(Helper.SparkGroup(), Helper.SparkApplicationVersion(), Helper.SparkApplicationPlural());
 
                 string jsonString = JsonSerializer.Serialize(response);
                 JsonNode jsonNode = JsonNode.Parse(jsonString)!;
@@ -98,7 +98,7 @@ namespace KubeStatus.Data
                         {
                             if (cr.Metadata.CreationTimestamp.UtcDateTime < date)
                             {
-                                await kubernetesClient.CustomObjects.DeleteNamespacedCustomObjectAsync(
+                                _ = await _kubernetesClient.CustomObjects.DeleteNamespacedCustomObjectAsync(
                                     Helper.SparkGroup(),
                                     Helper.SparkApplicationVersion(),
                                     cr.Metadata.Namespace ?? "default",

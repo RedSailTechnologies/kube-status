@@ -12,8 +12,8 @@ namespace KubeStatus.Data
     public class TorEnterpriseService(ILogger<TorEnterpriseService> logger, IKubernetes kubernetesClient)
     {
         private readonly ILogger<TorEnterpriseService> _logger = logger;
-        private readonly IKubernetes kubernetesClient = kubernetesClient;
-        private static readonly JsonSerializerOptions _jsonSerializerOptions = new() { PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
+        private readonly IKubernetes _kubernetesClient = kubernetesClient;
+        private static readonly JsonSerializerOptions s_jsonSerializerOptions = new() { PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
 
         public async Task<TorEnterprise?> TriggerTorEnterpriseProcessingAsync(string name, string k8sNamespace = "default")
         {
@@ -30,7 +30,7 @@ namespace KubeStatus.Data
     }
 }";
 
-                await kubernetesClient.CustomObjects.PatchNamespacedCustomObjectAsync(new V1Patch(patchStr, V1Patch.PatchType.MergePatch), Helper.TorGroup(), Helper.TorEnterpriseVersion(), k8sNamespace, Helper.TorEnterprisePlural(), name);
+                _ = await _kubernetesClient.CustomObjects.PatchNamespacedCustomObjectAsync(new V1Patch(patchStr, V1Patch.PatchType.MergePatch), Helper.TorGroup(), Helper.TorEnterpriseVersion(), k8sNamespace, Helper.TorEnterprisePlural(), name);
 
                 return await Task.FromResult(torEnterprise);
             }
@@ -42,8 +42,8 @@ namespace KubeStatus.Data
         {
             var torEnterprises = new List<TorEnterprise>();
 
-            object response = await kubernetesClient.CustomObjects.ListClusterCustomObjectAsync(Helper.TorGroup(), Helper.TorEnterpriseVersion(), Helper.TorEnterprisePlural());
-            string jsonString = JsonSerializer.Serialize<object>(response);
+            object response = await _kubernetesClient.CustomObjects.ListClusterCustomObjectAsync(Helper.TorGroup(), Helper.TorEnterpriseVersion(), Helper.TorEnterprisePlural());
+            string jsonString = JsonSerializer.Serialize(response);
             _logger.LogDebug("Response: {jsonString}", jsonString);
 
             JsonNode jsonNode = JsonNode.Parse(jsonString)!;
@@ -59,10 +59,10 @@ namespace KubeStatus.Data
                         string enterpriseNamespace = item!["metadata"]!["namespace"]!.ToString();
 
                         _logger.LogDebug("Spec String: {specString}", item!["spec"]);
-                        EnterpriseSpec? spec = JsonSerializer.Deserialize<EnterpriseSpec>(item!["spec"], _jsonSerializerOptions);
+                        EnterpriseSpec? spec = JsonSerializer.Deserialize<EnterpriseSpec>(item!["spec"], s_jsonSerializerOptions);
 
                         _logger.LogDebug("Status String: {statusString}", item!["status"]);
-                        EnterpriseStatus? status = JsonSerializer.Deserialize<EnterpriseStatus>(item!["status"], _jsonSerializerOptions);
+                        EnterpriseStatus? status = JsonSerializer.Deserialize<EnterpriseStatus>(item!["status"], s_jsonSerializerOptions);
 
                         torEnterprises.Add(new TorEnterprise
                         {
@@ -80,7 +80,7 @@ namespace KubeStatus.Data
 
         public async Task<TorEnterprise?> GetTorEnterpriseAsync(string name, string k8sNamespace = "default")
         {
-            object response = await kubernetesClient.CustomObjects.GetNamespacedCustomObjectAsync(Helper.TorGroup(), Helper.TorEnterpriseVersion(), k8sNamespace, Helper.TorEnterprisePlural(), name);
+            object response = await _kubernetesClient.CustomObjects.GetNamespacedCustomObjectAsync(Helper.TorGroup(), Helper.TorEnterpriseVersion(), k8sNamespace, Helper.TorEnterprisePlural(), name);
             string jsonString = JsonSerializer.Serialize(response);
             _logger.LogDebug("Response: {jsonString}", jsonString);
 
@@ -90,10 +90,10 @@ namespace KubeStatus.Data
             string enterpriseNamespace = jsonNode!["metadata"]!["namespace"]!.ToString();
 
             _logger.LogDebug("Spec String: {specString}", jsonNode!["spec"]);
-            EnterpriseSpec? spec = JsonSerializer.Deserialize<EnterpriseSpec>(jsonNode!["spec"], _jsonSerializerOptions);
+            EnterpriseSpec? spec = JsonSerializer.Deserialize<EnterpriseSpec>(jsonNode!["spec"], s_jsonSerializerOptions);
 
             _logger.LogDebug("Status String: {statusString}", jsonNode!["status"]);
-            EnterpriseStatus? status = JsonSerializer.Deserialize<EnterpriseStatus>(jsonNode!["status"], _jsonSerializerOptions);
+            EnterpriseStatus? status = JsonSerializer.Deserialize<EnterpriseStatus>(jsonNode!["status"], s_jsonSerializerOptions);
 
             var torEnterprise = new TorEnterprise
             {
@@ -108,7 +108,7 @@ namespace KubeStatus.Data
 
         public async Task DeleteTorEnterpriseAsync(string name, string k8sNamespace = "default")
         {
-            await kubernetesClient.CustomObjects.DeleteNamespacedCustomObjectAsync(Helper.TorGroup(), Helper.TorEnterpriseVersion(), k8sNamespace, Helper.TorEnterprisePlural(), name).ConfigureAwait(false);
+            _ = await _kubernetesClient.CustomObjects.DeleteNamespacedCustomObjectAsync(Helper.TorGroup(), Helper.TorEnterpriseVersion(), k8sNamespace, Helper.TorEnterprisePlural(), name).ConfigureAwait(false);
         }
     }
 }
