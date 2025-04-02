@@ -882,13 +882,18 @@ else
 
     async Task GetMetrics(string name, string k8sNamespace, int port)
     {
-        var fileStream = await PodService.GetContainerMetricsAsync(name, k8sNamespace, port);
-        var fileName = $"{name}-metrics.txt";
+        var fileBytes = await PodService.GetContainerMetricsAsync(name, k8sNamespace, port);
 
-        if (fileStream != null)
-        {
-            using var streamRef = new DotNetStreamReference(stream: fileStream);
-            await JsRuntime.InvokeVoidAsync("downloadFileFromStream", fileName, streamRef);
+        if (fileBytes != null)
+            {
+            var fileStream = new MemoryStream(fileBytes);
+            var fileName = $"{name}-metrics.txt";
+
+            if (fileStream != null)
+            {
+                using var streamRef = new DotNetStreamReference(stream: fileStream);
+                await JsRuntime.InvokeVoidAsync("downloadFileFromStream", fileName, streamRef);
+            }
         }
     }
 

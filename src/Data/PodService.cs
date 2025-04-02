@@ -268,13 +268,13 @@ namespace KubeStatus.Data
             }
         }
 
-        public async Task<Stream?> GetContainerMetricsAsync(string name, string k8sNamespace, int port)
+        public async Task<byte[]?> GetContainerMetricsAsync(string name, string k8sNamespace, int port)
         {
             try
             {
                 var pod = await kubernetesClient.CoreV1.ReadNamespacedPodAsync(name, k8sNamespace);
                 var uri = $"http://{pod.Status.PodIP}:{port}/{Helper.MetricsRoute()}";
-                return await httpClient.GetStreamAsync(uri);
+                return await httpClient.GetByteArrayAsync(uri);
             }
             catch (Exception ex)
             {
