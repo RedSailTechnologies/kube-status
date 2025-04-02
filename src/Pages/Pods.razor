@@ -467,7 +467,7 @@ else
                                     {
                                     <div class="row mb-2">
                                         <button class="btn btn-outline-dark btn-sm"
-                                            @onclick="() => GetMetrics(context.Namespace, context.Name, statusContext.Ports.FirstOrDefault(p => p.Name.Equals(Helper.MetricsPortName()))?.ContainerPort ?? 0)">Metrics</button>
+                                            @onclick="() => GetMetrics(context.Namespace, context.PodName, statusContext.Ports.FirstOrDefault(p => p.Name.Equals(Helper.MetricsPortName()))?.ContainerPort ?? 0)">Metrics</button>
                                     </div>
                                     }
                                 </div>

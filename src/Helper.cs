@@ -3,6 +3,7 @@ using System.Collections.Generic;
 
 using Microsoft.AspNetCore.Http;
 
+using System.Linq;
 using k8s;
 
 using YamlDotNet.Serialization;
@@ -155,6 +156,28 @@ namespace KubeStatus
         public static string GetUserIdentityName(this IHttpContextAccessor httpContextAccessor)
         {
             return httpContextAccessor.HttpContext?.User.Identity?.Name?.ToLower() ?? "";
+        }
+
+        public static bool IsPrivateIP(string ipAddress)
+        {
+            int[] ipParts = [.. ipAddress.Split(["."], StringSplitOptions.RemoveEmptyEntries).Select(s => int.Parse(s))];
+
+            if (ipParts[0] == 10 || (ipParts[0] == 192 && ipParts[1] == 168) || (ipParts[0] == 172 && ipParts[1] >= 16 && ipParts[1] <= 31))
+            {
+                return true;
+            }
+
+            return false;
+        }
+
+        public static bool IsValidPort(int port)
+        {
+            if (port >= 0 && port <= 65535)
+            {
+                return true;
+            }
+
+            return false;
         }
     }
 }
