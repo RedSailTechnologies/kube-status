@@ -7,11 +7,13 @@ using System.Threading.Tasks;
 using k8s;
 using KubeStatus.Models;
 using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.Logging;
 
 namespace KubeStatus.Data
 {
-    public class SparkApplicationService(IKubernetes kubernetesClient, IMemoryCache memoryCache)
+    public class SparkApplicationService(ILogger<SparkApplicationService> logger, IKubernetes kubernetesClient, IMemoryCache memoryCache)
     {
+        private readonly ILogger<SparkApplicationService> _logger = logger;
         private readonly IKubernetes _kubernetesClient = kubernetesClient;
 
         public IMemoryCache MemoryCache { get; } = memoryCache;
@@ -114,7 +116,7 @@ namespace KubeStatus.Data
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex.Message);
+                _logger.LogError("{ex}", ex.Message);
                 return -1;
             }
         }

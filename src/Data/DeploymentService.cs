@@ -8,12 +8,14 @@ using k8s;
 using k8s.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.Logging;
 using Prometheus;
 
 namespace KubeStatus.Data
 {
-    public class DeploymentService(IKubernetes kubernetesClient, IMemoryCache memoryCache, IHttpContextAccessor httpContextAccessor)
+    public class DeploymentService(ILogger<DeploymentService> logger, IKubernetes kubernetesClient, IMemoryCache memoryCache, IHttpContextAccessor httpContextAccessor)
     {
+        private readonly ILogger<DeploymentService> _logger = logger;
         private readonly IKubernetes _kubernetesClient = kubernetesClient;
 
         private readonly Counter _restartedDeployments = Metrics.CreateCounter(
@@ -90,7 +92,7 @@ namespace KubeStatus.Data
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex.Message);
+                _logger.LogError("{ex}", ex.Message);
                 return false;
             }
         }
@@ -121,7 +123,7 @@ namespace KubeStatus.Data
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex.Message);
+                _logger.LogError("{ex}", ex.Message);
                 return false;
             }
         }
@@ -146,7 +148,7 @@ namespace KubeStatus.Data
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex.Message);
+                _logger.LogError("{ex}", ex.Message);
                 return false;
             }
         }

@@ -8,11 +8,13 @@ using k8s;
 using k8s.Models;
 using KubeStatus.Models;
 using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.Logging;
 
 namespace KubeStatus.Data
 {
-    public class PodService(IKubernetes kubernetesClient, IMemoryCache memoryCache)
+    public class PodService(ILogger<PodService> logger, IKubernetes kubernetesClient, IMemoryCache memoryCache)
     {
+        private readonly ILogger<PodService> _logger = logger;
         private readonly IKubernetes _kubernetesClient = kubernetesClient;
         private static readonly HttpClient s_httpClient = new();
 
@@ -260,7 +262,7 @@ namespace KubeStatus.Data
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex.Message);
+                _logger.LogError("{ex}", ex.Message);
                 return null;
             }
         }
@@ -282,7 +284,7 @@ namespace KubeStatus.Data
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex.Message);
+                _logger.LogError("{ex}", ex.Message);
                 return null;
             }
         }
@@ -301,7 +303,7 @@ namespace KubeStatus.Data
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex.Message);
+                _logger.LogError("{ex}", ex.Message);
                 return false;
             }
         }
