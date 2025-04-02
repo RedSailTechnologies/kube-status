@@ -268,19 +268,48 @@ namespace KubeStatus.Data
             }
         }
 
-        public async Task<byte[]?> GetContainerMetricsAsync(string name, string k8sNamespace, int port)
+        public async Task<byte[]?> GetContainerMetricsAsync(string k8sNamespace, string podName, int port)
         {
             try
             {
-                var pod = await kubernetesClient.CoreV1.ReadNamespacedPodAsync(name, k8sNamespace);
-                var uri = $"http://{pod.Status.PodIP}:{port}/{Helper.MetricsRoute()}";
-                return await httpClient.GetByteArrayAsync(uri);
+                var pod = await kubernetesClient.CoreV1.ReadNamespacedPodAsync(podName, k8sNamespace);
+                var podIP = pod.Status.PodIP;
+
+                if (IsPrivateIP(podIP) && IsValidPort(port))
+                {
+                    var uri = $"http://{podIP}:{port}/{Helper.MetricsRoute()}";
+                    return await httpClient.GetByteArrayAsync(uri);
+                }
+                
+                return null;
             }
             catch (Exception ex)
             {
                 Console.WriteLine(ex.Message);
                 return null;
             }
+        }
+
+        private static bool IsPrivateIP(string ipAddress)
+        {
+            int[] ipParts = [.. ipAddress.Split(["."], StringSplitOptions.RemoveEmptyEntries).Select(s => int.Parse(s))];
+
+            if (ipParts[0] == 10 || (ipParts[0] == 192 && ipParts[1] == 168) || (ipParts[0] == 172 && ipParts[1] >= 16 && ipParts[1] <= 31))
+            {
+                return true;
+            }
+
+            return false;
+        }
+
+        private static bool IsValidPort(int port)
+        {
+            if (port >= 0 && port <= 65535)
+            {
+                return true;
+            }
+
+            return false;
         }
 
         private class PodMeta

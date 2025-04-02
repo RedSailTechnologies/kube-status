@@ -467,7 +467,7 @@ else
                                     {
                                     <div class="row mb-2">
                                         <button class="btn btn-outline-dark btn-sm"
-                                            @onclick="() => GetMetrics(context.Name, context.Namespace, statusContext.Ports.FirstOrDefault(p => p.Name.Equals(Helper.MetricsPortName()))?.ContainerPort ?? 0)">Metrics</button>
+                                            @onclick="() => GetMetrics(context.Namespace, context.Name, statusContext.Ports.FirstOrDefault(p => p.Name.Equals(Helper.MetricsPortName()))?.ContainerPort ?? 0)">Metrics</button>
                                     </div>
                                     }
                                 </div>
@@ -880,9 +880,9 @@ else
         }
     }
 
-    async Task GetMetrics(string name, string k8sNamespace, int port)
+    async Task GetMetrics(string k8sNamespace, string podName, int port)
     {
-        var fileBytes = await PodService.GetContainerMetricsAsync(name, k8sNamespace, port);
+        var fileBytes = await PodService.GetContainerMetricsAsync(k8sNamespace, podName, port);
 
         if (fileBytes != null)
             {
