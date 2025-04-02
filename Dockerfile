@@ -7,14 +7,19 @@ RUN apk add --update --no-cache curl bash
 ARG HELM_VERSION
 RUN curl -fsSL -o get_helm.sh https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 && chmod 700 get_helm.sh && ./get_helm.sh --version ${HELM_VERSION}
 RUN apk del curl
-WORKDIR /source
+WORKDIR /src
 COPY src/*.csproj .
 RUN dotnet restore
 COPY src .
 
 
+FROM base AS lint
+WORKDIR /src
+ENTRYPOINT ["sh", "lint-entrypoint.sh"]
+
+
 FROM base AS build
-WORKDIR /source
+WORKDIR /src
 RUN dotnet build -c Release --no-restore
 
 

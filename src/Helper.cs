@@ -1,11 +1,8 @@
 using System;
 using System.Collections.Generic;
-
-using Microsoft.AspNetCore.Http;
-
 using System.Linq;
 using k8s;
-
+using Microsoft.AspNetCore.Http;
 using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
 
@@ -144,11 +141,11 @@ namespace KubeStatus
                 defaultValueHandlingEnum = DefaultValuesHandling.OmitNull;
             }
 
-            var serializer = new SerializerBuilder()
+            ISerializer serializer = new SerializerBuilder()
                 .ConfigureDefaultValuesHandling(defaultValueHandlingEnum)
                 .WithNamingConvention(CamelCaseNamingConvention.Instance)
                 .Build();
-            var yaml = serializer.Serialize(obj);
+            string yaml = serializer.Serialize(obj);
 
             return yaml;
         }

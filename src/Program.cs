@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
-
+using k8s;
+using KubeStatus;
+using KubeStatus.Data;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
@@ -12,17 +14,11 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Identity.Web;
 using Microsoft.Identity.Web.UI;
 using Microsoft.OpenApi.Models;
-
-using k8s;
-
-using KubeStatus;
-using KubeStatus.Data;
-
 using Prometheus;
 
 Helper.BuildPodStatusDictionary();
 
-var builder = WebApplication.CreateBuilder(args);
+WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddAuthentication(options =>
 {
@@ -110,11 +106,11 @@ builder.Services.Configure<ForwardedHeadersOptions>(options =>
         ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
 });
 
-var app = builder.Build();
+WebApplication app = builder.Build();
 
 app.UseForwardedHeaders();
 
-var allowedHosts = builder.Configuration.GetSection("AllowedHosts").Value?.Split(',') ?? Array.Empty<string>();
+string[] allowedHosts = builder.Configuration.GetSection("AllowedHosts").Value?.Split(',') ?? Array.Empty<string>();
 if (allowedHosts.Length > 0)
 {
     app.UseCors(x => x

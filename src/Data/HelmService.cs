@@ -4,13 +4,10 @@ using System.Globalization;
 using System.IO;
 using System.Text;
 using System.Threading.Tasks;
-
-using Microsoft.AspNetCore.Http;
-
 using CliWrap;
-using Prometheus;
-
 using KubeStatus.Models;
+using Microsoft.AspNetCore.Http;
+using Prometheus;
 
 namespace KubeStatus.Data
 {
@@ -39,7 +36,7 @@ namespace KubeStatus.Data
             List<string> cliArgs = GetHelmCliArguments();
             var stdOutBuffer = new StringBuilder();
 
-            var cmd = Cli.Wrap("helm")
+            Command cmd = Cli.Wrap("helm")
                 .WithArguments(args => args
                     .Add("list")
                     .Add("--all")
@@ -49,7 +46,7 @@ namespace KubeStatus.Data
                     .Add(cliArgs)
                 ) | stdOutBuffer;
 
-            var result = await cmd
+            CommandResult result = await cmd
                 .ExecuteAsync();
 
             return ParseListItems(stdOutBuffer);
@@ -60,7 +57,7 @@ namespace KubeStatus.Data
             List<string> cliArgs = GetHelmCliArguments();
             var stdOutBuffer = new StringBuilder();
 
-            var cmd = Cli.Wrap("helm")
+            Command cmd = Cli.Wrap("helm")
                 .WithArguments(args => args
                     .Add("rollback")
                     .Add(package)
@@ -69,7 +66,7 @@ namespace KubeStatus.Data
                     .Add(cliArgs)
                 ) | stdOutBuffer;
 
-            var result = await cmd
+            CommandResult result = await cmd
                 .ExecuteAsync();
 
             _helmRollback.WithLabels(_httpContextAccessor.GetUserIdentityName(), k8sNamespace, package).Inc();
@@ -82,7 +79,7 @@ namespace KubeStatus.Data
             List<string> cliArgs = GetHelmCliArguments();
             var stdOutBuffer = new StringBuilder();
 
-            var cmd = Cli.Wrap("helm")
+            Command cmd = Cli.Wrap("helm")
                 .WithArguments(args => args
                     .Add("uninstall")
                     .Add(package)
@@ -91,7 +88,7 @@ namespace KubeStatus.Data
                     .Add(cliArgs)
                 ) | stdOutBuffer;
 
-            var result = await cmd
+            CommandResult result = await cmd
                 .ExecuteAsync();
 
             _helmUninstall.WithLabels(_httpContextAccessor.GetUserIdentityName(), k8sNamespace, package).Inc();
@@ -101,7 +98,7 @@ namespace KubeStatus.Data
 
         private List<string> GetHelmCliArguments()
         {
-            var config = Helper.GetKubernetesClientConfiguration();
+            k8s.KubernetesClientConfiguration config = Helper.GetKubernetesClientConfiguration();
             List<string> cliArgs = ["--kube-apiserver", config.Host];
 
             if (!string.IsNullOrWhiteSpace(config.AccessToken))
@@ -111,7 +108,7 @@ namespace KubeStatus.Data
             }
             else if (!string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable("KUBE_TOKEN_FILE") ?? string.Empty))
             {
-                var token = File.ReadAllText(Environment.GetEnvironmentVariable("KUBE_TOKEN_FILE") ?? string.Empty);
+                string token = File.ReadAllText(Environment.GetEnvironmentVariable("KUBE_TOKEN_FILE") ?? string.Empty);
                 if (!string.IsNullOrWhiteSpace(token))
                 {
                     cliArgs.Add("--kube-token");
@@ -137,7 +134,7 @@ namespace KubeStatus.Data
             var items = new List<HelmListItem>();
             string[] lines = result.ToString().Split(Environment.NewLine.ToCharArray());
 
-            foreach (var line in lines)
+            foreach (string line in lines)
             {
                 if (!string.IsNullOrWhiteSpace(line))
                 {

@@ -1,12 +1,10 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
-
+using KubeStatus.Data;
+using KubeStatus.Models;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-
-using KubeStatus.Data;
-using KubeStatus.Models;
 
 namespace KubeStatus.Controllers
 {

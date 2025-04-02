@@ -1,12 +1,10 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
-
+using KubeStatus.Data;
+using KubeStatus.Models;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-
-using KubeStatus.Data;
-using KubeStatus.Models;
 
 namespace KubeStatus.Controllers
 {
@@ -33,7 +31,7 @@ namespace KubeStatus.Controllers
         [HttpDelete("Database/{k8sNamespace}/{name}")]
         public async Task<IActionResult> DeleteTorDatabasesAsync(string k8sNamespace, string name)
         {
-            var torDatabase = await _torDatabaseService.GetTorDatabaseAsync(name, k8sNamespace);
+            TorDatabase? torDatabase = await _torDatabaseService.GetTorDatabaseAsync(name, k8sNamespace);
 
             if (torDatabase != null)
             {

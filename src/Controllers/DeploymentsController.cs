@@ -1,10 +1,8 @@
 ﻿using System.Threading.Tasks;
-
+using KubeStatus.Data;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-
-using KubeStatus.Data;
 
 namespace KubeStatus.Controllers
 {
@@ -24,7 +22,7 @@ namespace KubeStatus.Controllers
         [HttpGet("{k8sNamespace}")]
         public async Task<IActionResult> GetAllNamespacedDeploymentsAsync(string k8sNamespace = "default")
         {
-            var deployments = await _deploymentService.GetAllNamespacedDeploymentsAsync(k8sNamespace);
+            k8s.Models.V1DeploymentList? deployments = await _deploymentService.GetAllNamespacedDeploymentsAsync(k8sNamespace);
 
             if (deployments == null)
             {
@@ -40,7 +38,7 @@ namespace KubeStatus.Controllers
         [HttpPatch("restart/{name}")]
         public async Task<IActionResult> RestartDeploymentAsync(string name, string k8sNamespace = "default")
         {
-            var restarted = await _deploymentService.RestartDeploymentAsync(name, k8sNamespace);
+            bool restarted = await _deploymentService.RestartDeploymentAsync(name, k8sNamespace);
 
             if (restarted)
             {
@@ -56,7 +54,7 @@ namespace KubeStatus.Controllers
         [HttpPatch("rollout/restart")]
         public async Task<IActionResult> RestartNamespacedDeploymentAsync(string k8sNamespace = "default")
         {
-            var restarted = await _deploymentService.RestartNamespacedDeploymentAsync(k8sNamespace);
+            bool restarted = await _deploymentService.RestartNamespacedDeploymentAsync(k8sNamespace);
 
             if (restarted)
             {
@@ -72,7 +70,7 @@ namespace KubeStatus.Controllers
         [HttpPatch("scale/{name}/{replicas}")]
         public async Task<IActionResult> ScaleDeploymentAsync(string name, int replicas, string k8sNamespace = "default")
         {
-            var scaled = await _deploymentService.ScaleDeploymentAsync(name, replicas, k8sNamespace);
+            bool scaled = await _deploymentService.ScaleDeploymentAsync(name, replicas, k8sNamespace);
 
             if (scaled)
             {

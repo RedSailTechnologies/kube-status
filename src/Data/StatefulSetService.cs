@@ -3,15 +3,12 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
-
-using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.Caching.Memory;
-
 using Json.Patch;
-using Prometheus;
-
 using k8s;
 using k8s.Models;
+using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Caching.Memory;
+using Prometheus;
 
 namespace KubeStatus.Data
 {
@@ -58,7 +55,7 @@ namespace KubeStatus.Data
                         TimeSpan.FromSeconds(10)
                 });
 
-                var namespaces = await kubernetesClient.CoreV1.ListNamespaceAsync();
+                V1NamespaceList namespaces = await kubernetesClient.CoreV1.ListNamespaceAsync();
                 if (namespaces == null || !namespaces.Items.Any(n => n.Metadata.Name.Equals(k8sNamespace, System.StringComparison.OrdinalIgnoreCase)))
                 {
                     return null;
@@ -72,8 +69,8 @@ namespace KubeStatus.Data
         {
             try
             {
-                var StatefulSet = await kubernetesClient.AppsV1.ReadNamespacedStatefulSetAsync(name, k8sNamespace);
-                var old = JsonSerializer.SerializeToDocument(StatefulSet, _jsonSerializerOptions);
+                V1StatefulSet StatefulSet = await kubernetesClient.AppsV1.ReadNamespacedStatefulSetAsync(name, k8sNamespace);
+                JsonDocument old = JsonSerializer.SerializeToDocument(StatefulSet, _jsonSerializerOptions);
                 var restart = new Dictionary<string, string>
                 {
                     ["kubectl.kubernetes.io/restartedAt"] = $"{DateTimeOffset.Now.UtcDateTime:s}Z"
@@ -81,9 +78,9 @@ namespace KubeStatus.Data
 
                 StatefulSet.Spec.Template.Metadata.Annotations = restart;
 
-                var expected = JsonSerializer.SerializeToDocument(StatefulSet);
+                JsonDocument expected = JsonSerializer.SerializeToDocument(StatefulSet);
 
-                var patch = old.CreatePatch(expected);
+                JsonPatch patch = old.CreatePatch(expected);
                 await kubernetesClient.AppsV1.PatchNamespacedStatefulSetAsync(new V1Patch(patch, V1Patch.PatchType.JsonPatch), name, k8sNamespace);
 
                 _restartedStatefulSets.WithLabels(_httpContextAccessor.GetUserIdentityName(), k8sNamespace, name).Inc();
@@ -101,17 +98,17 @@ namespace KubeStatus.Data
         {
             try
             {
-                var namespaces = await kubernetesClient.CoreV1.ListNamespaceAsync();
+                V1NamespaceList namespaces = await kubernetesClient.CoreV1.ListNamespaceAsync();
                 if (!namespaces.Items.Any(n => n.Metadata.Name.Equals(k8sNamespace, System.StringComparison.OrdinalIgnoreCase)))
                 {
                     return false;
                 }
 
-                var StatefulSets = await kubernetesClient.AppsV1.ListNamespacedStatefulSetAsync(k8sNamespace);
+                V1StatefulSetList StatefulSets = await kubernetesClient.AppsV1.ListNamespacedStatefulSetAsync(k8sNamespace);
 
                 if (StatefulSets?.Items != null && StatefulSets.Items.Any())
                 {
-                    foreach (var StatefulSet in StatefulSets.Items)
+                    foreach (V1StatefulSet? StatefulSet in StatefulSets.Items)
                     {
                         await RestartStatefulSetAsync(StatefulSet.Metadata.Name, k8sNamespace);
                     }
@@ -132,13 +129,13 @@ namespace KubeStatus.Data
         {
             try
             {
-                var namespaces = await kubernetesClient.CoreV1.ListNamespaceAsync();
+                V1NamespaceList namespaces = await kubernetesClient.CoreV1.ListNamespaceAsync();
                 if (!namespaces.Items.Any(n => n.Metadata.Name.Equals(k8sNamespace, System.StringComparison.OrdinalIgnoreCase)))
                 {
                     return false;
                 }
 
-                var patchStr = $"{{\"spec\": {{\"replicas\": {replicas}}}}}";
+                string patchStr = $"{{\"spec\": {{\"replicas\": {replicas}}}}}";
 
                 await kubernetesClient.AppsV1.PatchNamespacedStatefulSetAsync(new V1Patch(patchStr, V1Patch.PatchType.MergePatch), name, k8sNamespace);
 

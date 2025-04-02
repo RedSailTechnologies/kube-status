@@ -2,12 +2,10 @@ using System.Collections.Generic;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Threading.Tasks;
-
 using k8s;
 using k8s.Models;
-using Microsoft.Extensions.Logging;
-
 using KubeStatus.Models;
+using Microsoft.Extensions.Logging;
 
 namespace KubeStatus.Data
 {
@@ -19,11 +17,11 @@ namespace KubeStatus.Data
 
         public async Task<TorEnterprise?> TriggerTorEnterpriseProcessingAsync(string name, string k8sNamespace = "default")
         {
-            var torEnterprise = await GetTorEnterpriseAsync(name, k8sNamespace);
+            TorEnterprise? torEnterprise = await GetTorEnterpriseAsync(name, k8sNamespace);
             if (torEnterprise != null)
             {
 
-                var patchStr = @"
+                string patchStr = @"
 {
     ""metadata"": {
         ""annotations"": {
@@ -44,27 +42,27 @@ namespace KubeStatus.Data
         {
             var torEnterprises = new List<TorEnterprise>();
 
-            var response = await kubernetesClient.CustomObjects.ListClusterCustomObjectAsync(Helper.TorGroup(), Helper.TorEnterpriseVersion(), Helper.TorEnterprisePlural());
-            var jsonString = JsonSerializer.Serialize<object>(response);
+            object response = await kubernetesClient.CustomObjects.ListClusterCustomObjectAsync(Helper.TorGroup(), Helper.TorEnterpriseVersion(), Helper.TorEnterprisePlural());
+            string jsonString = JsonSerializer.Serialize<object>(response);
             _logger.LogDebug("Response: {jsonString}", jsonString);
 
             JsonNode jsonNode = JsonNode.Parse(jsonString)!;
             JsonNode itemsNode = jsonNode!["items"]!;
 
-            foreach (var item in itemsNode.AsArray())
+            foreach (JsonNode? item in itemsNode.AsArray())
             {
                 if (item != null)
                 {
                     if (k8sNamespace == null || k8sNamespace == item!["metadata"]!["namespace"]!.ToString())
                     {
-                        var enterpriseName = item!["metadata"]!["name"]!.ToString();
-                        var enterpriseNamespace = item!["metadata"]!["namespace"]!.ToString();
+                        string enterpriseName = item!["metadata"]!["name"]!.ToString();
+                        string enterpriseNamespace = item!["metadata"]!["namespace"]!.ToString();
 
                         _logger.LogDebug("Spec String: {specString}", item!["spec"]);
-                        var spec = JsonSerializer.Deserialize<EnterpriseSpec>(item!["spec"], _jsonSerializerOptions);
+                        EnterpriseSpec? spec = JsonSerializer.Deserialize<EnterpriseSpec>(item!["spec"], _jsonSerializerOptions);
 
                         _logger.LogDebug("Status String: {statusString}", item!["status"]);
-                        var status = JsonSerializer.Deserialize<EnterpriseStatus>(item!["status"], _jsonSerializerOptions);
+                        EnterpriseStatus? status = JsonSerializer.Deserialize<EnterpriseStatus>(item!["status"], _jsonSerializerOptions);
 
                         torEnterprises.Add(new TorEnterprise
                         {
@@ -82,20 +80,20 @@ namespace KubeStatus.Data
 
         public async Task<TorEnterprise?> GetTorEnterpriseAsync(string name, string k8sNamespace = "default")
         {
-            var response = await kubernetesClient.CustomObjects.GetNamespacedCustomObjectAsync(Helper.TorGroup(), Helper.TorEnterpriseVersion(), k8sNamespace, Helper.TorEnterprisePlural(), name);
-            var jsonString = JsonSerializer.Serialize(response);
+            object response = await kubernetesClient.CustomObjects.GetNamespacedCustomObjectAsync(Helper.TorGroup(), Helper.TorEnterpriseVersion(), k8sNamespace, Helper.TorEnterprisePlural(), name);
+            string jsonString = JsonSerializer.Serialize(response);
             _logger.LogDebug("Response: {jsonString}", jsonString);
 
             JsonNode jsonNode = JsonNode.Parse(jsonString)!;
 
-            var enterpriseName = jsonNode!["metadata"]!["name"]!.ToString();
-            var enterpriseNamespace = jsonNode!["metadata"]!["namespace"]!.ToString();
+            string enterpriseName = jsonNode!["metadata"]!["name"]!.ToString();
+            string enterpriseNamespace = jsonNode!["metadata"]!["namespace"]!.ToString();
 
             _logger.LogDebug("Spec String: {specString}", jsonNode!["spec"]);
-            var spec = JsonSerializer.Deserialize<EnterpriseSpec>(jsonNode!["spec"], _jsonSerializerOptions);
+            EnterpriseSpec? spec = JsonSerializer.Deserialize<EnterpriseSpec>(jsonNode!["spec"], _jsonSerializerOptions);
 
             _logger.LogDebug("Status String: {statusString}", jsonNode!["status"]);
-            var status = JsonSerializer.Deserialize<EnterpriseStatus>(jsonNode!["status"], _jsonSerializerOptions);
+            EnterpriseStatus? status = JsonSerializer.Deserialize<EnterpriseStatus>(jsonNode!["status"], _jsonSerializerOptions);
 
             var torEnterprise = new TorEnterprise
             {

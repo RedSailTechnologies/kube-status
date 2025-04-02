@@ -1,12 +1,10 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
-
+using KubeStatus.Data;
+using KubeStatus.Models;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-
-using KubeStatus.Data;
-using KubeStatus.Models;
 
 namespace KubeStatus.Controllers
 {
@@ -33,7 +31,7 @@ namespace KubeStatus.Controllers
         [HttpDelete("{keepHours}")]
         public async Task<IActionResult> DeleteFailedSparkApplicationsAsync(string keepHours = "168")
         {
-            var deleteResults = await _SparkApplicationService.DeleteFailedSparkApplicationsAsync(keepHours);
+            int deleteResults = await _SparkApplicationService.DeleteFailedSparkApplicationsAsync(keepHours);
             if (deleteResults < 0)
             {
                 return BadRequest();

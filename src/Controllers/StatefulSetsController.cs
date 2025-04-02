@@ -1,10 +1,8 @@
 ﻿using System.Threading.Tasks;
-
+using KubeStatus.Data;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-
-using KubeStatus.Data;
 
 namespace KubeStatus.Controllers
 {
@@ -24,7 +22,7 @@ namespace KubeStatus.Controllers
         [HttpGet("{k8sNamespace}")]
         public async Task<IActionResult> GetAllNamespacedStatefulSetsAsync(string k8sNamespace = "default")
         {
-            var StatefulSets = await _StatefulSetService.GetAllNamespacedStatefulSetsAsync(k8sNamespace);
+            k8s.Models.V1StatefulSetList? StatefulSets = await _StatefulSetService.GetAllNamespacedStatefulSetsAsync(k8sNamespace);
 
             if (StatefulSets == null)
             {
@@ -40,7 +38,7 @@ namespace KubeStatus.Controllers
         [HttpPatch("restart/{name}")]
         public async Task<IActionResult> RestartStatefulSetAsync(string name, string k8sNamespace = "default")
         {
-            var restarted = await _StatefulSetService.RestartStatefulSetAsync(name, k8sNamespace);
+            bool restarted = await _StatefulSetService.RestartStatefulSetAsync(name, k8sNamespace);
 
             if (restarted)
             {
@@ -56,7 +54,7 @@ namespace KubeStatus.Controllers
         [HttpPatch("rollout/restart")]
         public async Task<IActionResult> RestartNamespacedStatefulSetAsync(string k8sNamespace = "default")
         {
-            var restarted = await _StatefulSetService.RestartNamespacedStatefulSetAsync(k8sNamespace);
+            bool restarted = await _StatefulSetService.RestartNamespacedStatefulSetAsync(k8sNamespace);
 
             if (restarted)
             {
@@ -72,7 +70,7 @@ namespace KubeStatus.Controllers
         [HttpPatch("scale/{name}/{replicas}")]
         public async Task<IActionResult> ScaleStatefulSetAsync(string name, int replicas, string k8sNamespace = "default")
         {
-            var scaled = await _StatefulSetService.ScaleStatefulSetAsync(name, replicas, k8sNamespace);
+            bool scaled = await _StatefulSetService.ScaleStatefulSetAsync(name, replicas, k8sNamespace);
 
             if (scaled)
             {

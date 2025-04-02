@@ -1,10 +1,8 @@
 ﻿using System.Threading.Tasks;
-
+using KubeStatus.Data;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-
-using KubeStatus.Data;
 
 namespace KubeStatus.Controllers
 {
@@ -25,7 +23,7 @@ namespace KubeStatus.Controllers
         [HttpGet("{k8sNamespace}")]
         public async Task<IActionResult> GetAllNamespacedPodsAsync(string k8sNamespace = "default")
         {
-            var pods = await _podService.GetAllNamespacedPodsAsync(k8sNamespace);
+            System.Collections.Generic.IEnumerable<Models.Pod>? pods = await _podService.GetAllNamespacedPodsAsync(k8sNamespace);
 
             if (pods == null)
             {
@@ -40,9 +38,9 @@ namespace KubeStatus.Controllers
         [HttpGet("{k8sNamespace}/{pod}/{container}/env")]
         public async Task<IActionResult> GetContainerEnvironmentVariablesAsync(string k8sNamespace, string pod, string container)
         {
-            var isAdminEvaluationResult = await _authorizationService.AuthorizeAsync(User, null, "RequireAdminRole");
-            var showSecrets = isAdminEvaluationResult.Succeeded;
-            var envVars = await _podService.GetContainerEnvironmentVariablesAsync(k8sNamespace, pod, container, showSecrets);
+            AuthorizationResult isAdminEvaluationResult = await _authorizationService.AuthorizeAsync(User, null, "RequireAdminRole");
+            bool showSecrets = isAdminEvaluationResult.Succeeded;
+            System.Collections.Generic.List<Models.EnvironmentVariable> envVars = await _podService.GetContainerEnvironmentVariablesAsync(k8sNamespace, pod, container, showSecrets);
 
             if (envVars == null)
             {
@@ -63,8 +61,8 @@ namespace KubeStatus.Controllers
         [HttpGet("{k8sNamespace}/csv")]
         public async Task<IActionResult> GetAllNamespacedPodsFileAsync(string k8sNamespace = "default")
         {
-            var fileName = $"{k8sNamespace}.csv";
-            var bytes = await _podService.GetAllNamespacedPodsFileAsync(k8sNamespace);
+            string fileName = $"{k8sNamespace}.csv";
+            byte[]? bytes = await _podService.GetAllNamespacedPodsFileAsync(k8sNamespace);
 
             if (bytes == null)
             {
@@ -79,12 +77,12 @@ namespace KubeStatus.Controllers
         [HttpGet("metrics")]
         public async Task<IActionResult> GetContainerLogsAsync(string k8sNamespace, string pod, int port)
         {
-            var podExists = await _podService.PodExistsAsync(k8sNamespace, pod);
+            bool podExists = await _podService.PodExistsAsync(k8sNamespace, pod);
 
             if (podExists && Helper.IsValidPort(port))
             {
-                var fileName = $"{pod}-metrics.txt";
-                var stream = await _podService.GetContainerMetricsAsync(k8sNamespace, pod, port);
+                string fileName = $"{pod}-metrics.txt";
+                byte[]? stream = await _podService.GetContainerMetricsAsync(k8sNamespace, pod, port);
 
                 if (stream == null)
                 {

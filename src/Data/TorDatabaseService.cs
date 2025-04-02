@@ -2,12 +2,10 @@ using System.Collections.Generic;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Threading.Tasks;
-
 using k8s;
 using k8s.Models;
-using Microsoft.Extensions.Logging;
-
 using KubeStatus.Models;
+using Microsoft.Extensions.Logging;
 
 namespace KubeStatus.Data
 {
@@ -21,27 +19,27 @@ namespace KubeStatus.Data
         {
             var torDatabases = new List<TorDatabase>();
 
-            var response = await kubernetesClient.CustomObjects.ListClusterCustomObjectAsync(Helper.TorGroup(), Helper.TorDatabaseVersion(), Helper.TorDatabasePlural());
-            var jsonString = JsonSerializer.Serialize<object>(response);
+            object response = await kubernetesClient.CustomObjects.ListClusterCustomObjectAsync(Helper.TorGroup(), Helper.TorDatabaseVersion(), Helper.TorDatabasePlural());
+            string jsonString = JsonSerializer.Serialize<object>(response);
             _logger.LogDebug("Response: {jsonString}", jsonString);
 
             JsonNode jsonNode = JsonNode.Parse(jsonString)!;
             JsonNode itemsNode = jsonNode!["items"]!;
 
-            foreach (var item in itemsNode.AsArray())
+            foreach (JsonNode? item in itemsNode.AsArray())
             {
                 if (item != null)
                 {
                     if (k8sNamespace == null || k8sNamespace == item!["metadata"]!["namespace"]!.ToString())
                     {
-                        var databaseName = item!["metadata"]!["name"]!.ToString();
-                        var databaseNamespace = item!["metadata"]!["namespace"]!.ToString();
+                        string databaseName = item!["metadata"]!["name"]!.ToString();
+                        string databaseNamespace = item!["metadata"]!["namespace"]!.ToString();
 
                         _logger.LogDebug("Spec String: {specString}", item!["spec"]);
-                        var spec = JsonSerializer.Deserialize<DatabaseSpec>(item!["spec"], _jsonSerializerOptions);
+                        DatabaseSpec? spec = JsonSerializer.Deserialize<DatabaseSpec>(item!["spec"], _jsonSerializerOptions);
 
                         _logger.LogDebug("Status String: {statusString}", item!["status"]);
-                        var status = JsonSerializer.Deserialize<DatabaseStatus>(item!["status"], _jsonSerializerOptions);
+                        DatabaseStatus? status = JsonSerializer.Deserialize<DatabaseStatus>(item!["status"], _jsonSerializerOptions);
 
                         torDatabases.Add(new TorDatabase
                         {
@@ -59,20 +57,20 @@ namespace KubeStatus.Data
 
         public async Task<TorDatabase?> GetTorDatabaseAsync(string name, string k8sNamespace = "default")
         {
-            var response = await kubernetesClient.CustomObjects.GetNamespacedCustomObjectAsync(Helper.TorGroup(), Helper.TorDatabaseVersion(), k8sNamespace, Helper.TorDatabasePlural(), name);
-            var jsonString = JsonSerializer.Serialize(response);
+            object response = await kubernetesClient.CustomObjects.GetNamespacedCustomObjectAsync(Helper.TorGroup(), Helper.TorDatabaseVersion(), k8sNamespace, Helper.TorDatabasePlural(), name);
+            string jsonString = JsonSerializer.Serialize(response);
             _logger.LogDebug("Response: {jsonString}", jsonString);
 
             JsonNode jsonNode = JsonNode.Parse(jsonString)!;
 
-            var databaseName = jsonNode!["metadata"]!["name"]!.ToString();
-            var databaseNamespace = jsonNode!["metadata"]!["namespace"]!.ToString();
+            string databaseName = jsonNode!["metadata"]!["name"]!.ToString();
+            string databaseNamespace = jsonNode!["metadata"]!["namespace"]!.ToString();
 
             _logger.LogDebug("Spec String: {specString}", jsonNode!["spec"]);
-            var spec = JsonSerializer.Deserialize<DatabaseSpec>(jsonNode!["spec"], _jsonSerializerOptions);
+            DatabaseSpec? spec = JsonSerializer.Deserialize<DatabaseSpec>(jsonNode!["spec"], _jsonSerializerOptions);
 
             _logger.LogDebug("Status String: {statusString}", jsonNode!["status"]);
-            var status = JsonSerializer.Deserialize<DatabaseStatus>(jsonNode!["status"], _jsonSerializerOptions);
+            DatabaseStatus? status = JsonSerializer.Deserialize<DatabaseStatus>(jsonNode!["status"], _jsonSerializerOptions);
 
             var torDatabase = new TorDatabase
             {

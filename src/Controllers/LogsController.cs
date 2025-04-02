@@ -1,10 +1,8 @@
 ﻿using System.Threading.Tasks;
-
+using KubeStatus.Data;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-
-using KubeStatus.Data;
 
 namespace KubeStatus.Controllers
 {
@@ -18,8 +16,8 @@ namespace KubeStatus.Controllers
         [HttpGet("{k8sNamespace}/{pod}/{container}")]
         public async Task<IActionResult> GetContainerLogsAsync(string k8sNamespace, string pod, string container, int tail = 100)
         {
-            var fileName = $"{k8sNamespace}-{pod}-{container}.log";
-            var stream = await _logService.GetContainerLogsAsync(pod, container, k8sNamespace, tail);
+            string fileName = $"{k8sNamespace}-{pod}-{container}.log";
+            System.IO.Stream? stream = await _logService.GetContainerLogsAsync(pod, container, k8sNamespace, tail);
 
             if (stream == null)
             {

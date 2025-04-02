@@ -23,7 +23,22 @@ env:
   IMAGE_NAME: redsailtechnologies/kube-status
 
 jobs:
+  lint:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build Lint
+        run: docker build . --target lint --file Dockerfile --tag $IMAGE_NAME-lint-${{ github.run_id }}
+
+      - name: Run Lint
+        run: docker run --name $IMAGE_NAME-lint-${{ github.run_id }} $IMAGE_NAME-lint-${{ github.run_id }}
+
+        working-directory: ./src
+
   build:
+    needs: lint
     runs-on: ubuntu-latest
 
     steps:

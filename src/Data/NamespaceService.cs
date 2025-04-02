@@ -13,14 +13,14 @@ namespace KubeStatus.Data
 
         public async Task<V1NamespaceList> GetAllNamespacesAsync()
         {
-            var namespaces = await kubernetesClient.CoreV1.ListNamespaceAsync();
+            V1NamespaceList namespaces = await kubernetesClient.CoreV1.ListNamespaceAsync();
 
             return await Task.FromResult(namespaces);
         }
 
         public async Task<IEnumerable<string>> GetAllNamespaceNamesAsync()
         {
-            var namespaces = await kubernetesClient.CoreV1.ListNamespaceAsync();
+            V1NamespaceList namespaces = await kubernetesClient.CoreV1.ListNamespaceAsync();
 
             if (namespaces == null)
             {

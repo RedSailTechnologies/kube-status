@@ -14,7 +14,7 @@ namespace KubeStatus.Data
         {
             try
             {
-                var response = await kubernetesClient.CoreV1.ReadNamespacedPodLogWithHttpMessagesAsync(pod, k8sNamespace, container: container, tailLines: tail).ConfigureAwait(false);
+                k8s.Autorest.HttpOperationResponse<Stream> response = await kubernetesClient.CoreV1.ReadNamespacedPodLogWithHttpMessagesAsync(pod, k8sNamespace, container: container, tailLines: tail).ConfigureAwait(false);
 
                 return response.Body;
             }

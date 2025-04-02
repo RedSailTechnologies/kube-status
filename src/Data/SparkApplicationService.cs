@@ -4,12 +4,9 @@ using System.Linq;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Threading.Tasks;
-
-using Microsoft.Extensions.Caching.Memory;
-
 using k8s;
-
 using KubeStatus.Models;
+using Microsoft.Extensions.Caching.Memory;
 
 namespace KubeStatus.Data
 {
@@ -45,26 +42,26 @@ namespace KubeStatus.Data
 
                 var sparkApplications = new List<SparkApplication>();
 
-                var response = await kubernetesClient.CustomObjects.ListClusterCustomObjectAsync(Helper.SparkGroup(), Helper.SparkApplicationVersion(), Helper.SparkApplicationPlural());
+                object response = await kubernetesClient.CustomObjects.ListClusterCustomObjectAsync(Helper.SparkGroup(), Helper.SparkApplicationVersion(), Helper.SparkApplicationPlural());
 
-                var jsonString = JsonSerializer.Serialize(response);
+                string jsonString = JsonSerializer.Serialize(response);
                 JsonNode jsonNode = JsonNode.Parse(jsonString)!;
                 JsonNode itemsNode = jsonNode!["items"]!;
 
-                foreach (var item in itemsNode.AsArray())
+                foreach (JsonNode? item in itemsNode.AsArray())
                 {
-                    var status = JsonSerializer.Deserialize<SparkApplicationStatus>(item!["status"]!, _jsonSerializerOptions);
-                    var applicationState = status?.ApplicationState?["state"] ?? "Unknown";
+                    SparkApplicationStatus? status = JsonSerializer.Deserialize<SparkApplicationStatus>(item!["status"]!, _jsonSerializerOptions);
+                    string applicationState = status?.ApplicationState?["state"] ?? "Unknown";
 
                     if (!string.IsNullOrWhiteSpace(filterStatus) && !filterStatus.Equals(applicationState, StringComparison.OrdinalIgnoreCase))
                     {
                         continue;
                     }
 
-                    var apiVersion = item!["apiVersion"]!.ToString();
-                    var kind = item!["kind"]!.ToString();
-                    var metadata = JsonSerializer.Deserialize<Metadata>(item!["metadata"]!, _jsonSerializerOptions);
-                    var spec = item!["spec"]!.ToString();
+                    string apiVersion = item!["apiVersion"]!.ToString();
+                    string kind = item!["kind"]!.ToString();
+                    Metadata? metadata = JsonSerializer.Deserialize<Metadata>(item!["metadata"]!, _jsonSerializerOptions);
+                    string spec = item!["spec"]!.ToString();
 
                     sparkApplications.Add(new SparkApplication
                     {
@@ -89,13 +86,13 @@ namespace KubeStatus.Data
                     hours = 168;
                 }
                 hours *= -1;
-                var date = DateTime.UtcNow.AddHours(hours);
+                DateTime date = DateTime.UtcNow.AddHours(hours);
 
-                var crs = await GetSparkApplicationsAsync("failed");
-                var deleted = 0;
+                IEnumerable<SparkApplication>? crs = await GetSparkApplicationsAsync("failed");
+                int deleted = 0;
                 if (crs != null)
                 {
-                    foreach (var cr in crs)
+                    foreach (SparkApplication cr in crs)
                     {
                         if (cr != null && cr.Metadata != null)
                         {
