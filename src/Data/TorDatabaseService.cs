@@ -29,7 +29,7 @@ namespace KubeStatus.Data
             {
                 if (item != null)
                 {
-                    if (k8sNamespace == null || k8sNamespace == item!["metadata"]!["namespace"]!.ToString())
+                    if (string.IsNullOrWhiteSpace(k8sNamespace) || k8sNamespace == item!["metadata"]!["namespace"]!.ToString())
                     {
                         string databaseName = item!["metadata"]!["name"]!.ToString();
                         string databaseNamespace = item!["metadata"]!["namespace"]!.ToString();
