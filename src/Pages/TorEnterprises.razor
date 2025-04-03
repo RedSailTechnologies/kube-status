@@ -46,6 +46,13 @@
                     }
                 </select>
             </div>
+            <div class="col-sm-2">
+                <div class="form-check">
+                    <input class="form-check-input" id="ShowAllNamespacesCheckbox" type="checkbox" checked="@ShowAllNamespaces"
+                        @bind-value="ShowAllNamespaces" @onclick="@ShowAllNamespacesChange">
+                    <label class="form-check-label" for="ShowAllNamespacesCheckbox">Show All Namespaces</label>
+                </div>
+            </div>
         </div>
         <div class="form-group row mb-3">
             <div class="col-sm-4">
@@ -245,6 +252,7 @@ else
     IEnumerable<TorEnterprise>? Enterprises;
     IEnumerable<TorEnterprise>? FilteredEnterprises;
     string? Filter;
+    bool ShowAllNamespaces;
     int ItemCountAll = 0;
     int ItemCountFiltered = 0;
     Regex SortRegEx = new Regex(@"([^-]*$)");
@@ -323,9 +331,14 @@ else
 
     async Task GetTorEnterprises()
     {
+        string ns = SelectedNamespace;
+        if (ShowAllNamespaces)
+        {
+            ns = "";
+        }
         Enterprises = null;
         FilteredEnterprises = new List<TorEnterprise>();
-        Enterprises = await TorEnterpriseService.GetAllTorEnterprisesAsync(SelectedNamespace);
+        Enterprises = await TorEnterpriseService.GetAllTorEnterprisesAsync(ns);
         ItemCountAll = Enterprises?.Count() ?? 0;
         FilteredEnterprises = Enterprises;
         ItemCountFiltered = FilteredEnterprises?.Count() ?? 0;
@@ -335,6 +348,13 @@ else
             await FilterResults();
         }
     }
+
+    async Task ShowAllNamespacesChange()
+    {
+        ShowAllNamespaces = !ShowAllNamespaces;
+        await GetTorEnterprises();
+    }
+
     async Task FilterChange(ChangeEventArgs e)
     {
         if (e != null && e.Value != null)
