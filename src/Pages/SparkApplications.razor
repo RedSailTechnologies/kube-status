@@ -262,10 +262,19 @@ else
         {
             ApplicationStatusParam = ApplicationStatusParam ?? "";
             SelectedApplicationStatus = ApplicationStatusParam;
+            
+            // https://github.com/kubeflow/spark-operator/blob/5fe34a9aff0b311a81fc7783a0a13134ad0b3395/api/v1beta2/sparkapplication_types.go#L337
             ApplicationStatuses.Add("All", "");
+            ApplicationStatuses.Add("Submitted", "SUBMITTED");
+            ApplicationStatuses.Add("Running", "RUNNING");
             ApplicationStatuses.Add("Completed", "COMPLETED");
             ApplicationStatuses.Add("Failed", "FAILED");
-            ApplicationStatuses.Add("Running", "RUNNING");
+            ApplicationStatuses.Add("Submission Failed", "SUBMISSION_FAILED");
+            ApplicationStatuses.Add("Pending Rerun", "PENDING_RERUN");
+            ApplicationStatuses.Add("Invalidating", "INVALIDATING");
+            ApplicationStatuses.Add("Succeeding", "SUCCEEDING");
+            ApplicationStatuses.Add("Failing", "FAILING");
+            ApplicationStatuses.Add("Unknown", "UNKNOWN");
 
             FilterParam = FilterParam ?? "";
             Filter = FilterParam;
