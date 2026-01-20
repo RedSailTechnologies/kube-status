@@ -383,8 +383,14 @@ else
         }
         else
         {
-            FilteredEnterprises = Enterprises?.Where(s => s != null && s.Name != null && s.Name.Contains(Filter,
-            StringComparison.OrdinalIgnoreCase)).ToList();
+            FilteredEnterprises = Enterprises?.Where
+            (
+                s => s != null &&
+                (
+                    (s.Name != null && s.Name.Contains(Filter,StringComparison.OrdinalIgnoreCase)) ||
+                    (s.Spec.TenantId != null && s.Spec.TenantId.Contains(Filter,StringComparison.OrdinalIgnoreCase))
+                )
+            ).ToList();
             ItemCountFiltered = FilteredEnterprises?.Count() ?? 0;
         }
         await InvokeAsync(() => { base.StateHasChanged(); });
