@@ -189,7 +189,7 @@ namespace KubeStatus.Data
             JsonNode? topicsObj = item!["status"]!["topics"];
             if (topicsObj != null)
             {
-                topics = [.. topicsObj.AsArray().Select(c => c?.ToString())];
+                topics = [.. topicsObj.AsArray().Select(c => c?.ToString() ?? "")];
             }
 
             var kafkaConnector = new KafkaConnector
